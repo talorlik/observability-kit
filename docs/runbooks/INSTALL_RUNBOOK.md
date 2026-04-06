@@ -22,6 +22,12 @@ bash scripts/ci/validate_install_contract.sh
 bash scripts/ci/validate_compatibility_and_modes.sh
 ```
 
+1. Validate preflight and discovery artifacts:
+
+```bash
+bash scripts/ci/validate_preflight_and_discovery.sh
+```
+
 1. Validate GitOps baseline paths:
 
 ```bash

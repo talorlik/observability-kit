@@ -1,0 +1,28 @@
+{
+  "metadata": {
+    "version": "v1",
+    "template_owner": "platform-observability",
+    "emitted_after": "dry-run-install"
+  },
+  "input_refs": {
+    "capability_matrix": "contracts/discovery/GENERATED_CAPABILITY_MATRIX.json",
+    "compatibility_result": "contracts/discovery/GENERATED_COMPATIBILITY_RESULT.json"
+  },
+  "readiness_sections": [
+    {
+      "id": "platform_components",
+      "description": "Core platform component health and reconciliation status.",
+      "status": "pending"
+    },
+    {
+      "id": "telemetry_paths",
+      "description": "Smoke checks for logs, metrics, and traces pipelines.",
+      "status": "pending"
+    },
+    {
+      "id": "policy_and_access",
+      "description": "Identity, secret, and policy control validation summary.",
+      "status": "pending"
+    }
+  ]
+}

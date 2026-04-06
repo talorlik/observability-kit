@@ -1,0 +1,59 @@
+{
+  "metadata": {
+    "version": "v1",
+    "owner": "platform-observability",
+    "source_marker": "TR-05"
+  },
+  "cluster": {
+    "name": "sample-cluster-a"
+  },
+  "probes": {
+    "storage_and_ingress": {
+      "storage_classes": [
+        { "name": "gp3-csi", "default": true },
+        { "name": "standard-rwo", "default": false }
+      ],
+      "ingress_controllers": [
+        { "name": "nginx-ingress", "detected": true },
+        { "name": "gateway-api", "detected": false }
+      ],
+      "gateway_api_crds": {
+        "present": false
+      }
+    },
+    "gitops_and_secrets": {
+      "gitops_controllers": [
+        { "name": "argocd", "detected": true },
+        { "name": "flux", "detected": false }
+      ],
+      "secret_integrations": [
+        { "name": "external-secrets", "detected": true },
+        { "name": "vault", "detected": false }
+      ]
+    },
+    "workload_inventory": {
+      "namespaces": ["default", "payments", "platform"],
+      "controllers": {
+        "deployments": 8,
+        "statefulsets": 2,
+        "daemonsets": 3,
+        "jobs": 1,
+        "cronjobs": 2
+      },
+      "services": [
+        {
+          "namespace": "payments",
+          "name": "checkout-api",
+          "ports": [80, 9090],
+          "onboardable_candidate": true
+        },
+        {
+          "namespace": "platform",
+          "name": "reporting-worker",
+          "ports": [8080],
+          "onboardable_candidate": false
+        }
+      ]
+    }
+  }
+}

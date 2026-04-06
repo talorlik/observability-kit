@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "version": "v1",
+    "generated_by": "discovery-engine",
+    "cluster_name": "sample-cluster-a"
+  },
+  "capabilities": {
+    "storage_profile_candidates": ["gp3-csi", "standard-rwo"],
+    "default_storage_profile": "gp3-csi",
+    "ingress_profile_candidates": ["nginx-ingress"],
+    "default_ingress_profile": "nginx-ingress",
+    "gitops_controller_candidates": ["argocd"],
+    "default_gitops_controller": "argocd",
+    "secret_profile_candidates": ["external-secrets"],
+    "default_secret_profile": "external-secrets"
+  }
+}

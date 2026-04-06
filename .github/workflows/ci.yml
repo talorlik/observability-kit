@@ -43,6 +43,9 @@ jobs:
       - name: Compatibility and mode checks
         run: bash scripts/ci/validate_compatibility_and_modes.sh
 
+      - name: Preflight and discovery checks
+        run: bash scripts/ci/validate_preflight_and_discovery.sh
+
       - name: GitOps structure checks
         run: bash scripts/ci/validate_gitops_structure.sh
 

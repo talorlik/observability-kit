@@ -54,9 +54,25 @@ mode selection logic, and remediation mappings for `TR-04`, `TR-05`, and
 - Operator guide:
   `docs/runbooks/COMPATIBILITY_AND_MODE_OPERATOR_GUIDE.md`
 
+## Batch 3 Preflight And Discovery Engine
+
+Batch 3 adds guided preflight checks, discovery probe outputs, generated
+capability and compatibility artifacts, and a readiness scaffold contract for
+`TR-04`, `TR-05`, and `TR-10`.
+
+- Preflight and discovery artifacts:
+  `contracts/discovery/`
+- Batch 3 validation script:
+  `scripts/ci/validate_preflight_and_discovery.sh`
+- Batch 3 smoke wrapper:
+  `scripts/ci/validate_batch3_smoke.sh`
+- Operator guide:
+  `docs/runbooks/PREFLIGHT_AND_DISCOVERY_OPERATOR_GUIDE.md`
+
 ## Baseline Runbooks
 
 - `docs/runbooks/INSTALL_RUNBOOK.md`
 - `docs/runbooks/VALIDATION_RUNBOOK.md`
 - `docs/runbooks/ROLLBACK_RUNBOOK.md`
 - `docs/runbooks/COMPATIBILITY_AND_MODE_OPERATOR_GUIDE.md`
+- `docs/runbooks/PREFLIGHT_AND_DISCOVERY_OPERATOR_GUIDE.md`

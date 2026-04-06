@@ -1,0 +1,21 @@
+{
+  "metadata": {
+    "version": "v1",
+    "generated_by": "discovery-engine",
+    "cluster_name": "sample-cluster-a"
+  },
+  "input_refs": {
+    "preflight_report": "contracts/discovery/PREFLIGHT_REPORT_SAMPLE.json",
+    "discovery_probes": "contracts/discovery/DISCOVERY_PROBES_SAMPLE.json",
+    "capability_matrix": "contracts/discovery/GENERATED_CAPABILITY_MATRIX.json"
+  },
+  "compatibility_result": {
+    "grade": "conditional",
+    "reasons": ["gateway_api_crds_required"],
+    "recommended_deployment_mode": "attach",
+    "remediation_list": [
+      "Install Gateway API CRDs before selecting gateway-api based routing.",
+      "Verify GatewayClass and route resources reconcile successfully."
+    ]
+  }
+}

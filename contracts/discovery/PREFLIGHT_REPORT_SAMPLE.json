@@ -1,0 +1,41 @@
+{
+  "metadata": {
+    "version": "v1",
+    "owner": "platform-observability",
+    "source_marker": "TR-05"
+  },
+  "cluster": {
+    "name": "sample-cluster-a",
+    "kubernetes_version": "1.29",
+    "distribution": "eks"
+  },
+  "checks": [
+    {
+      "id": "cluster_connectivity",
+      "description": "Cluster API reachable with provided credentials.",
+      "status": "pass"
+    },
+    {
+      "id": "required_permissions",
+      "description": "Preflight service account can read required resources.",
+      "status": "pass"
+    },
+    {
+      "id": "required_api_readiness",
+      "description": "Required APIs and APIService endpoints are available.",
+      "status": "pass"
+    },
+    {
+      "id": "required_crd_readiness",
+      "description": "Gateway API CRDs are installed when gateway profile is set.",
+      "status": "fail",
+      "reason_code": "gateway_api_crds_required"
+    }
+  ],
+  "summary": {
+    "total_checks": 4,
+    "pass": 3,
+    "fail": 1,
+    "outcome": "fail"
+  }
+}

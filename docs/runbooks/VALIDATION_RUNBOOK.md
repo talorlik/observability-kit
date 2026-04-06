@@ -9,9 +9,16 @@ Run policy and structure checks:
 ```bash
 bash scripts/ci/validate_install_contract.sh
 bash scripts/ci/validate_compatibility_and_modes.sh
+bash scripts/ci/validate_preflight_and_discovery.sh
 bash scripts/ci/validate_gitops_structure.sh
 bash scripts/ci/check_no_hardcoded_env_values.sh
 bash scripts/ci/validate_runbook_links.sh
+```
+
+Run focused Batch 3 smoke validation:
+
+```bash
+bash scripts/ci/validate_batch3_smoke.sh
 ```
 
 Run chart validation:
@@ -30,6 +37,7 @@ The `.github/workflows/ci.yml` workflow enforces:
 - Helm lint and template rendering
 - install contract schema validation
 - compatibility matrix and mode decision validation
+- preflight and discovery output validation
 - GitOps structure checks
 - no hard-coded environment value checks
 - runbook baseline checks
