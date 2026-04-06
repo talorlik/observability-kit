@@ -1,0 +1,6 @@
+apiVersion: v2
+name: platform-core
+description: Baseline chart for observability platform core components.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

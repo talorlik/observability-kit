@@ -1,0 +1,13 @@
+{
+  "cluster_name": "cluster-dev-01",
+  "environment": "dev",
+  "deployment_mode": "standalone",
+  "gitops_repo_url": "https://github.com/example/observability-kit-config.git",
+  "gitops_path": "gitops/overlays/dev",
+  "base_domain": "dev.example.internal",
+  "storage_profile": "default-csi",
+  "object_storage_profile": "s3-compatible",
+  "identity_profile": "kubernetes-rbac",
+  "secret_profile": "external-secrets",
+  "ingress_profile": "nginx"
+}

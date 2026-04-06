@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observability-kit.local/contracts/install/schema/v1",
+  "title": "Install Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "cluster_name",
+    "environment",
+    "deployment_mode",
+    "gitops_repo_url",
+    "gitops_path",
+    "base_domain",
+    "storage_profile",
+    "object_storage_profile",
+    "identity_profile",
+    "secret_profile",
+    "ingress_profile"
+  ],
+  "properties": {
+    "cluster_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "environment": {
+      "type": "string",
+      "minLength": 1
+    },
+    "deployment_mode": {
+      "type": "string",
+      "enum": ["quickstart", "attach", "standalone", "hybrid"]
+    },
+    "gitops_repo_url": {
+      "type": "string",
+      "pattern": "^(https://|git@).+"
+    },
+    "gitops_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "base_domain": {
+      "type": "string",
+      "minLength": 1
+    },
+    "storage_profile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "object_storage_profile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "identity_profile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "secret_profile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ingress_profile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "attached_services": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "opensearch_endpoint": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dashboards_endpoint": {
+          "type": "string",
+          "minLength": 1
+        },
+        "otlp_endpoint": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "external_trust_references": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "secret_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pki_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "identity_provider_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "deployment_mode": {
+            "enum": ["attach", "hybrid"]
+          }
+        },
+        "required": ["deployment_mode"]
+      },
+      "then": {
+        "required": ["attached_services"]
+      }
+    }
+  ]
+}

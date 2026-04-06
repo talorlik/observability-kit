@@ -1,0 +1,106 @@
+{
+  "metadata": {
+    "version": "v1",
+    "owner": "platform-observability",
+    "source_marker": "TR-05"
+  },
+  "storage": {
+    "default_profile": "gp3-csi",
+    "profiles": {
+      "gp3-csi": {
+        "description": "Cloud block storage via CSI with single-writer volume mode.",
+        "prerequisites": ["csi_driver_installed"],
+        "notes": ["Recommended default for standalone mode."]
+      },
+      "standard-rwo": {
+        "description": "General RWO class for managed clusters.",
+        "prerequisites": ["default_storage_class_available"]
+      },
+      "nfs-rwx": {
+        "description": "Shared storage profile for multi-writer workloads.",
+        "prerequisites": ["nfs_provisioner_installed", "throughput_sizing_reviewed"]
+      }
+    }
+  },
+  "object_storage": {
+    "default_profile": "s3-compatible",
+    "profiles": {
+      "s3-compatible": {
+        "description": "S3 API compatible bucket for snapshots and backups.",
+        "prerequisites": ["bucket_created", "credentials_in_secret_backend"]
+      },
+      "azure-blob-s3-gateway": {
+        "description": "Azure Blob behind S3-compatible gateway endpoint.",
+        "prerequisites": ["gateway_endpoint_available", "snapshot_plugin_compatibility_tested"]
+      },
+      "gcs-s3-gateway": {
+        "description": "Google Cloud Storage behind S3-compatible gateway endpoint.",
+        "prerequisites": ["gateway_endpoint_available", "snapshot_plugin_compatibility_tested"]
+      }
+    }
+  },
+  "identity": {
+    "default_profile": "oidc",
+    "profiles": {
+      "oidc": {
+        "description": "OIDC integration with Kubernetes and dashboard auth.",
+        "prerequisites": ["oidc_issuer_reachable", "group_claims_defined"]
+      },
+      "saml": {
+        "description": "SAML integration for enterprise identity providers.",
+        "prerequisites": ["idp_metadata_provided", "group_mapping_rules_defined"]
+      },
+      "static-users": {
+        "description": "Local static users for quickstart and temporary use only.",
+        "prerequisites": ["rotation_policy_defined", "emergency_access_approval"]
+      }
+    }
+  },
+  "secret": {
+    "default_profile": "external-secrets",
+    "profiles": {
+      "external-secrets": {
+        "description": "External Secrets Operator backed by cloud or vault providers.",
+        "prerequisites": ["external_secrets_crds_installed", "backend_store_configured"]
+      },
+      "vault": {
+        "description": "HashiCorp Vault integration for runtime secret retrieval.",
+        "prerequisites": ["vault_reachable", "auth_method_configured"]
+      },
+      "sealed-secrets": {
+        "description": "Controller-based encrypted manifests for GitOps.",
+        "prerequisites": ["sealed_secrets_controller_installed", "key_rotation_process_defined"]
+      }
+    }
+  },
+  "ingress_network": {
+    "default_profile": "nginx-ingress",
+    "profiles": {
+      "nginx-ingress": {
+        "description": "Ingress-nginx based HTTP routing and TLS termination.",
+        "prerequisites": ["ingress_nginx_controller_installed", "base_domain_resolves"]
+      },
+      "gateway-api": {
+        "description": "Gateway API based ingress model.",
+        "prerequisites": ["gateway_api_crds_installed", "gateway_class_available"]
+      },
+      "traefik": {
+        "description": "Traefik controller with CRD based routing.",
+        "prerequisites": ["traefik_controller_installed", "x_forwarded_headers_configured"]
+      }
+    }
+  },
+  "gitops_controller": {
+    "default_profile": "argocd",
+    "profiles": {
+      "argocd": {
+        "description": "Argo CD as the reference GitOps controller.",
+        "prerequisites": ["argocd_namespace_exists", "argocd_application_crd_available"]
+      },
+      "flux": {
+        "description": "Flux with equivalent reconciliation guardrails.",
+        "prerequisites": ["flux_controllers_installed", "kustomization_health_checks_enabled"]
+      }
+    }
+  }
+}

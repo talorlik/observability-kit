@@ -1,0 +1,41 @@
+# Validation Runbook
+
+This runbook defines baseline verification entrypoints for Batch 1.
+
+## Local Checks
+
+Run policy and structure checks:
+
+```bash
+bash scripts/ci/validate_install_contract.sh
+bash scripts/ci/validate_compatibility_and_modes.sh
+bash scripts/ci/validate_gitops_structure.sh
+bash scripts/ci/check_no_hardcoded_env_values.sh
+bash scripts/ci/validate_runbook_links.sh
+```
+
+Run chart validation:
+
+```bash
+helm lint gitops/charts/platform-core
+helm template platform-core gitops/charts/platform-core
+```
+
+## CI Checks
+
+The `.github/workflows/ci.yml` workflow enforces:
+
+- markdown lint
+- YAML lint
+- Helm lint and template rendering
+- install contract schema validation
+- compatibility matrix and mode decision validation
+- GitOps structure checks
+- no hard-coded environment value checks
+- runbook baseline checks
+- secret scanning with gitleaks
+
+## Exit Criteria
+
+- Local checks complete with exit code `0`.
+- CI checks pass in pull request flow.

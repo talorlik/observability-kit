@@ -1,0 +1,91 @@
+{
+  "metadata": {
+    "version": "v1",
+    "owner": "platform-observability",
+    "supported_modes": ["quickstart", "attach", "standalone", "hybrid"]
+  },
+  "rules": [
+    {
+      "id": "quickstart-eval",
+      "priority": 10,
+      "when": {
+        "evaluation_only": true
+      },
+      "recommend": "quickstart",
+      "rationale": "Fastest low-friction path for evaluation."
+    },
+    {
+      "id": "attach-existing-stack",
+      "priority": 20,
+      "when": {
+        "has_compatible_existing_services": true,
+        "allow_new_backend_components": false
+      },
+      "recommend": "attach",
+      "rationale": "Reuse existing compatible telemetry services."
+    },
+    {
+      "id": "hybrid-shared-backend",
+      "priority": 30,
+      "when": {
+        "has_compatible_existing_services": true,
+        "allow_new_backend_components": true,
+        "require_in_cluster_collectors": true
+      },
+      "recommend": "hybrid",
+      "rationale": "Keep in-cluster collectors while reusing shared services."
+    },
+    {
+      "id": "standalone-full-stack",
+      "priority": 40,
+      "when": {
+        "has_compatible_existing_services": false,
+        "allow_new_backend_components": true
+      },
+      "recommend": "standalone",
+      "rationale": "Deploy full reference stack when no attach path exists."
+    }
+  ],
+  "sample_decisions": [
+    {
+      "name": "deterministic-quickstart",
+      "input": {
+        "evaluation_only": true,
+        "has_compatible_existing_services": false,
+        "allow_new_backend_components": false,
+        "require_in_cluster_collectors": true
+      },
+      "expected_mode": "quickstart"
+    },
+    {
+      "name": "deterministic-attach",
+      "input": {
+        "evaluation_only": false,
+        "has_compatible_existing_services": true,
+        "allow_new_backend_components": false,
+        "require_in_cluster_collectors": false
+      },
+      "expected_mode": "attach"
+    },
+    {
+      "name": "deterministic-hybrid",
+      "input": {
+        "evaluation_only": false,
+        "has_compatible_existing_services": true,
+        "allow_new_backend_components": true,
+        "require_in_cluster_collectors": true
+      },
+      "expected_mode": "hybrid"
+    },
+    {
+      "name": "deterministic-standalone",
+      "input": {
+        "evaluation_only": false,
+        "has_compatible_existing_services": false,
+        "allow_new_backend_components": true,
+        "require_in_cluster_collectors": true
+      },
+      "expected_mode": "standalone"
+    }
+  ]
+}

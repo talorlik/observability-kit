@@ -1,0 +1,23 @@
+{
+  "cluster_name": "cluster-prod-01",
+  "environment": "prod",
+  "deployment_mode": "attach",
+  "gitops_repo_url": "git@github.com:example/observability-kit-config.git",
+  "gitops_path": "gitops/overlays/prod",
+  "base_domain": "prod.example.internal",
+  "storage_profile": "gp3",
+  "object_storage_profile": "s3-compatible",
+  "identity_profile": "oidc",
+  "secret_profile": "vault",
+  "ingress_profile": "gateway-api",
+  "attached_services": {
+    "opensearch_endpoint": "https://search.example.internal:9200",
+    "dashboards_endpoint": "https://dashboards.example.internal",
+    "otlp_endpoint": "https://otlp.example.internal:4318"
+  },
+  "external_trust_references": {
+    "secret_ref": "vault/path/platform",
+    "pki_ref": "cert-manager/cluster-issuer/platform-root",
+    "identity_provider_ref": "oidc/platform-sso"
+  }
+}

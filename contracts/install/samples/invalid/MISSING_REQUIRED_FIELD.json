@@ -1,0 +1,12 @@
+{
+  "cluster_name": "cluster-qa-01",
+  "environment": "qa",
+  "deployment_mode": "standalone",
+  "gitops_repo_url": "https://github.com/example/observability-kit-config.git",
+  "base_domain": "qa.example.internal",
+  "storage_profile": "default-csi",
+  "object_storage_profile": "s3-compatible",
+  "identity_profile": "kubernetes-rbac",
+  "secret_profile": "external-secrets",
+  "ingress_profile": "nginx"
+}

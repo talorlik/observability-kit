@@ -1,0 +1,13 @@
+extends: default
+
+rules:
+  document-start: disable
+  truthy:
+    allowed-values:
+      - "true"
+      - "false"
+      - "on"
+      - "off"
+
+ignore: |
+  gitops/charts/**/templates/*.yaml

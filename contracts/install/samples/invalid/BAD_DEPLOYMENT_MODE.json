@@ -1,0 +1,13 @@
+{
+  "cluster_name": "cluster-stage-01",
+  "environment": "stage",
+  "deployment_mode": "managed",
+  "gitops_repo_url": "https://github.com/example/observability-kit-config.git",
+  "gitops_path": "gitops/overlays/stage",
+  "base_domain": "stage.example.internal",
+  "storage_profile": "default-csi",
+  "object_storage_profile": "s3-compatible",
+  "identity_profile": "kubernetes-rbac",
+  "secret_profile": "external-secrets",
+  "ingress_profile": "nginx"
+}

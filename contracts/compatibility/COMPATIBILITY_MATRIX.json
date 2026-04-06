@@ -1,0 +1,52 @@
+{
+  "metadata": {
+    "version": "v1",
+    "owner": "platform-observability",
+    "source_marker": "TR-04"
+  },
+  "kubernetes": {
+    "versions": [
+      { "version": "1.28", "status": "supported" },
+      { "version": "1.29", "status": "supported" },
+      { "version": "1.30", "status": "conditional", "conditions": ["gateway_api_crds_required"] }
+    ],
+    "distributions": [
+      { "name": "eks", "status": "supported" },
+      { "name": "gke", "status": "supported" },
+      { "name": "aks", "status": "supported" },
+      { "name": "kubeadm", "status": "conditional", "conditions": ["ingress_controller_required"] },
+      { "name": "openshift", "status": "conditional", "conditions": ["security_context_profile_adjustment"] }
+    ]
+  },
+  "profiles": {
+    "storage": [
+      { "id": "gp3-csi", "status": "supported" },
+      { "id": "standard-rwo", "status": "supported" },
+      { "id": "nfs-rwx", "status": "conditional", "conditions": ["throughput_validation_required"] }
+    ],
+    "object_storage": [
+      { "id": "s3-compatible", "status": "supported" },
+      { "id": "azure-blob-s3-gateway", "status": "conditional", "conditions": ["snapshot_plugin_validation_required"] },
+      { "id": "gcs-s3-gateway", "status": "conditional", "conditions": ["snapshot_plugin_validation_required"] }
+    ],
+    "identity": [
+      { "id": "oidc", "status": "supported" },
+      { "id": "saml", "status": "conditional", "conditions": ["group_mapping_validation_required"] },
+      { "id": "static-users", "status": "conditional", "conditions": ["short_lived_usage_only"] }
+    ],
+    "secret": [
+      { "id": "external-secrets", "status": "supported" },
+      { "id": "vault", "status": "supported" },
+      { "id": "sealed-secrets", "status": "conditional", "conditions": ["manual_rotation_policy_required"] }
+    ],
+    "ingress_network": [
+      { "id": "nginx-ingress", "status": "supported" },
+      { "id": "gateway-api", "status": "supported" },
+      { "id": "traefik", "status": "conditional", "conditions": ["header_forwarding_validation_required"] }
+    ],
+    "gitops_controller": [
+      { "id": "argocd", "status": "supported" },
+      { "id": "flux", "status": "conditional", "conditions": ["application_set_equivalent_required"] }
+    ]
+  }
+}

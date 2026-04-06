@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-core
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/example/observability-kit.git
+    targetRevision: main
+    path: gitops/charts/platform-core
+    helm:
+      valueFiles:
+        - ../../../overlays/base/platform-core-values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

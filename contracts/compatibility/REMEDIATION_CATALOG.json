@@ -1,0 +1,106 @@
+{
+  "metadata": {
+    "version": "v1",
+    "owner": "platform-observability"
+  },
+  "remediations": {
+    "unsupported_kubernetes_version": {
+      "severity": "blocked",
+      "actions": [
+        "Upgrade or downgrade Kubernetes to a matrix-supported version.",
+        "Re-run compatibility grading after control-plane version change."
+      ]
+    },
+    "unsupported_distribution": {
+      "severity": "blocked",
+      "actions": [
+        "Use a supported distribution or open an adapter request for this distribution.",
+        "Run preflight discovery and attach compatibility evidence to the request."
+      ]
+    },
+    "missing_required_profile": {
+      "severity": "blocked",
+      "actions": [
+        "Select values for storage, object storage, identity, secret, ingress network, and GitOps controller profiles.",
+        "Use profile catalog defaults when environment-specific values are not required."
+      ]
+    },
+    "missing_prerequisite": {
+      "severity": "blocked",
+      "actions": [
+        "Install or configure all missing prerequisites for selected profiles.",
+        "Re-run preflight and ensure missing prerequisite list is empty."
+      ]
+    },
+    "gateway_api_crds_required": {
+      "severity": "conditional",
+      "actions": [
+        "Install Gateway API CRDs before selecting gateway-api based routing.",
+        "Verify GatewayClass and route resources reconcile successfully."
+      ]
+    },
+    "ingress_controller_required": {
+      "severity": "conditional",
+      "actions": [
+        "Install a supported ingress controller profile.",
+        "Confirm ingress class and TLS configuration are valid."
+      ]
+    },
+    "security_context_profile_adjustment": {
+      "severity": "conditional",
+      "actions": [
+        "Adjust security context constraints for platform components.",
+        "Run policy checks and namespace deployment smoke tests."
+      ]
+    },
+    "throughput_validation_required": {
+      "severity": "conditional",
+      "actions": [
+        "Run synthetic write-read throughput test for selected storage class.",
+        "Document observed throughput against platform baseline."
+      ]
+    },
+    "snapshot_plugin_validation_required": {
+      "severity": "conditional",
+      "actions": [
+        "Validate snapshot plugin compatibility with the object storage gateway.",
+        "Execute backup and restore drill before production rollout."
+      ]
+    },
+    "group_mapping_validation_required": {
+      "severity": "conditional",
+      "actions": [
+        "Validate identity group mapping for dashboard and index access.",
+        "Run role-mapping tests for at least one team and one operator role."
+      ]
+    },
+    "short_lived_usage_only": {
+      "severity": "conditional",
+      "actions": [
+        "Use static users only for quickstart or temporary environments.",
+        "Plan migration to OIDC or SAML before production cutover."
+      ]
+    },
+    "manual_rotation_policy_required": {
+      "severity": "conditional",
+      "actions": [
+        "Define and approve manual secret rotation procedures.",
+        "Document recovery steps for key rollover."
+      ]
+    },
+    "header_forwarding_validation_required": {
+      "severity": "conditional",
+      "actions": [
+        "Validate `X-Forwarded-*` header behavior for ingress proxy chain.",
+        "Run authentication callback tests behind the ingress profile."
+      ]
+    },
+    "application_set_equivalent_required": {
+      "severity": "conditional",
+      "actions": [
+        "Implement Flux equivalent reconciliation controls for app sets.",
+        "Prove rollback behavior parity with the reference Argo CD flow."
+      ]
+    }
+  }
+}

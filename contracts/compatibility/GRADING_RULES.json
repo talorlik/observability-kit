@@ -1,0 +1,93 @@
+{
+  "metadata": {
+    "version": "v1",
+    "owner": "platform-observability"
+  },
+  "grading_scale": ["supported", "conditional", "blocked"],
+  "blocked_conditions": [
+    {
+      "code": "unsupported_kubernetes_version",
+      "description": "Kubernetes version is outside the supported or conditional matrix."
+    },
+    {
+      "code": "unsupported_distribution",
+      "description": "Kubernetes distribution has no supported or conditional path."
+    },
+    {
+      "code": "missing_required_profile",
+      "description": "One or more required profiles are unknown or not selected."
+    },
+    {
+      "code": "missing_prerequisite",
+      "description": "One or more selected profile prerequisites are not met."
+    }
+  ],
+  "sample_cluster_evaluations": [
+    {
+      "name": "cluster-supported",
+      "input": {
+        "kubernetes_version": "1.29",
+        "distribution": "eks",
+        "profiles": {
+          "storage": "gp3-csi",
+          "object_storage": "s3-compatible",
+          "identity": "oidc",
+          "secret": "external-secrets",
+          "ingress_network": "nginx-ingress",
+          "gitops_controller": "argocd"
+        },
+        "missing_prerequisites": []
+      },
+      "expected_output": {
+        "grade": "supported",
+        "reasons": []
+      }
+    },
+    {
+      "name": "cluster-conditional",
+      "input": {
+        "kubernetes_version": "1.30",
+        "distribution": "openshift",
+        "profiles": {
+          "storage": "nfs-rwx",
+          "object_storage": "s3-compatible",
+          "identity": "saml",
+          "secret": "vault",
+          "ingress_network": "gateway-api",
+          "gitops_controller": "flux"
+        },
+        "missing_prerequisites": []
+      },
+      "expected_output": {
+        "grade": "conditional",
+        "reasons": [
+          "gateway_api_crds_required",
+          "security_context_profile_adjustment",
+          "throughput_validation_required",
+          "group_mapping_validation_required",
+          "application_set_equivalent_required"
+        ]
+      }
+    },
+    {
+      "name": "cluster-blocked",
+      "input": {
+        "kubernetes_version": "1.26",
+        "distribution": "eks",
+        "profiles": {
+          "storage": "gp3-csi",
+          "object_storage": "s3-compatible",
+          "identity": "oidc",
+          "secret": "external-secrets",
+          "ingress_network": "nginx-ingress",
+          "gitops_controller": "argocd"
+        },
+        "missing_prerequisites": []
+      },
+      "expected_output": {
+        "grade": "blocked",
+        "reasons": ["unsupported_kubernetes_version"]
+      }
+    }
+  ]
+}
