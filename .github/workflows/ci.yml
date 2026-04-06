@@ -46,6 +46,9 @@ jobs:
       - name: Preflight and discovery checks
         run: bash scripts/ci/validate_preflight_and_discovery.sh
 
+      - name: Collector core topology checks
+        run: bash scripts/ci/validate_collector_core_topology.sh
+
       - name: GitOps structure checks
         run: bash scripts/ci/validate_gitops_structure.sh
 

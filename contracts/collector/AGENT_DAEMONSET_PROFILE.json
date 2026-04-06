@@ -1,0 +1,33 @@
+{
+  "metadata": {
+    "version": "v1",
+    "owner": "platform-observability",
+    "batch_marker": "TB-04",
+    "source_markers": ["TR-06", "TR-11"]
+  },
+  "profile": {
+    "name": "collector-agent-default",
+    "mode": "daemonset",
+    "responsibilities": [
+      "passive_container_log_collection",
+      "node_and_workload_metrics_collection",
+      "scrape_target_discovery",
+      "local_buffering_and_forward_to_gateway"
+    ],
+    "enabled_signals": ["logs", "metrics"],
+    "receivers": ["filelog", "hostmetrics", "kubeletstats", "prometheus"],
+    "processors": [
+      "k8sattributes",
+      "resource",
+      "memory_limiter",
+      "batch"
+    ],
+    "exporters": ["otlp/gateway"]
+  },
+  "scheduling_validation": {
+    "eligible_nodes": 3,
+    "scheduled_pods": 3,
+    "status": "pass",
+    "notes": "Agent scheduled on all eligible Linux worker nodes."
+  }
+}

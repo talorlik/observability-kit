@@ -1,0 +1,20 @@
+{
+  "metadata": {
+    "version": "v1",
+    "owner": "platform-observability",
+    "batch_marker": "TB-04",
+    "deployment_mode": "attach"
+  },
+  "test_input": {
+    "backend_endpoint": "https://external-opensearch-ingest.example.net:4317",
+    "tls_enabled": true,
+    "signals": ["logs", "metrics", "traces"]
+  },
+  "results": {
+    "export_handshake": "pass",
+    "otlp_delivery": "pass",
+    "dropped_items_total": 0,
+    "status": "pass",
+    "notes": "Attach mode OTLP export succeeded with external endpoint."
+  }
+}

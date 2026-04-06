@@ -1,0 +1,35 @@
+{
+  "metadata": {
+    "version": "v1",
+    "owner": "platform-observability",
+    "batch_marker": "TB-04",
+    "source_markers": ["TR-06", "TR-11"]
+  },
+  "profile": {
+    "name": "collector-gateway-default",
+    "mode": "deployment",
+    "responsibilities": [
+      "normalization_and_enrichment",
+      "sensitive_data_redaction",
+      "batching_retry_and_memory_limiting",
+      "sampling_and_routing",
+      "export_to_selected_backend_endpoints"
+    ],
+    "replicas": 2,
+    "processors": [
+      "k8sattributes",
+      "resource",
+      "memory_limiter",
+      "batch"
+    ],
+    "service_pipelines": ["logs", "metrics", "traces"],
+    "exporters": ["otlp/backend"]
+  },
+  "health_validation": {
+    "readiness_probe": "pass",
+    "liveness_probe": "pass",
+    "p95_export_latency_ms": 420,
+    "status": "pass",
+    "notes": "Gateway health checks stayed green under baseline load."
+  }
+}

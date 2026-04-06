@@ -1,0 +1,32 @@
+{
+  "metadata": {
+    "version": "v1",
+    "owner": "platform-observability",
+    "batch_marker": "TB-04"
+  },
+  "required_metrics": [
+    "otelcol_exporter_queue_size",
+    "otelcol_exporter_send_failed_log_records",
+    "otelcol_exporter_send_failed_metric_points",
+    "otelcol_exporter_send_failed_spans",
+    "otelcol_exporter_sent_log_records",
+    "otelcol_exporter_sent_metric_points",
+    "otelcol_exporter_sent_spans",
+    "otelcol_processor_batch_batch_size_trigger_send"
+  ],
+  "dashboard": {
+    "name": "collector-core-health",
+    "panels": [
+      "queue_depth",
+      "retry_rate",
+      "drop_rate",
+      "export_success_rate"
+    ]
+  },
+  "query_validation": {
+    "queue_depth_queryable": true,
+    "retries_queryable": true,
+    "drops_queryable": true,
+    "status": "pass"
+  }
+}

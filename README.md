@@ -69,6 +69,20 @@ capability and compatibility artifacts, and a readiness scaffold contract for
 - Operator guide:
   `docs/runbooks/PREFLIGHT_AND_DISCOVERY_OPERATOR_GUIDE.md`
 
+## Batch 4 Collector Core Topology
+
+Batch 4 adds baseline OpenTelemetry collector topology artifacts and validation
+for agent and gateway health, required processors, OTLP export checks across
+attach and standalone modes, and failure simulation evidence for bounded-loss
+behavior.
+
+- Collector topology artifacts:
+  `contracts/collector/`
+- Batch 4 validation script:
+  `scripts/ci/validate_collector_core_topology.sh`
+- Operator guide:
+  `docs/runbooks/COLLECTOR_CORE_TOPOLOGY_OPERATOR_GUIDE.md`
+
 ## Baseline Runbooks
 
 - `docs/runbooks/INSTALL_RUNBOOK.md`
@@ -76,3 +90,4 @@ capability and compatibility artifacts, and a readiness scaffold contract for
 - `docs/runbooks/ROLLBACK_RUNBOOK.md`
 - `docs/runbooks/COMPATIBILITY_AND_MODE_OPERATOR_GUIDE.md`
 - `docs/runbooks/PREFLIGHT_AND_DISCOVERY_OPERATOR_GUIDE.md`
+- `docs/runbooks/COLLECTOR_CORE_TOPOLOGY_OPERATOR_GUIDE.md`

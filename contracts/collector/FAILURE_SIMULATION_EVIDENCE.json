@@ -1,0 +1,35 @@
+{
+  "metadata": {
+    "version": "v1",
+    "owner": "platform-observability",
+    "batch_marker": "TB-04"
+  },
+  "simulations": [
+    {
+      "name": "gateway_restart",
+      "scenario": "Restart one gateway pod during active ingest.",
+      "observed": {
+        "max_queue_size": 149,
+        "max_retry_rate_per_s": 18,
+        "dropped_items_total": 0,
+        "recovery_time_seconds": 24
+      },
+      "result": "pass",
+      "bounded_loss": true
+    },
+    {
+      "name": "temporary_backend_outage",
+      "scenario": "Backend endpoint unavailable for 90 seconds.",
+      "observed": {
+        "max_queue_size": 913,
+        "max_retry_rate_per_s": 82,
+        "dropped_items_total": 17,
+        "total_items_sent": 121064,
+        "recovery_time_seconds": 73
+      },
+      "result": "pass",
+      "bounded_loss": true,
+      "bounded_loss_justification": "Dropped fraction remained under 0.05 percent."
+    }
+  ]
+}
