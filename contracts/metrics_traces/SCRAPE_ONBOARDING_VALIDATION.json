@@ -1,0 +1,36 @@
+{
+  "batch": "TB-06",
+  "task": 2,
+  "technical_markers": [
+    "TR-06"
+  ],
+  "onboarding_modes": [
+    "annotation",
+    "label"
+  ],
+  "required_controls": {
+    "annotation_key": "observability.opentelemetry.io/scrape",
+    "label_key": "observability.opentelemetry.io/scrape-enabled",
+    "opt_in_value": "true"
+  },
+  "service_tests": [
+    {
+      "service": "checkout-api",
+      "namespace": "team-a",
+      "mode": "annotation",
+      "status": "pass",
+      "metrics_found": true
+    },
+    {
+      "service": "inventory-api",
+      "namespace": "team-b",
+      "mode": "label",
+      "status": "pass",
+      "metrics_found": true
+    }
+  ],
+  "validation_result": {
+    "status": "pass",
+    "evidence_id": "scrape-onboarding-20260407"
+  }
+}

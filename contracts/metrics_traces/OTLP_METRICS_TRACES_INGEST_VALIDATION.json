@@ -1,0 +1,37 @@
+{
+  "batch": "TB-06",
+  "task": 3,
+  "technical_markers": [
+    "TR-06",
+    "TR-07"
+  ],
+  "otlp_protocols": [
+    "grpc",
+    "http/protobuf"
+  ],
+  "ingest_tests": [
+    {
+      "name": "metrics-otlp-ingest",
+      "signal": "metrics",
+      "status": "pass",
+      "accepted_points": 1240,
+      "dropped_points": 0,
+      "target_index": "metrics-dev-app-2026.04.07"
+    },
+    {
+      "name": "traces-otlp-ingest",
+      "signal": "traces",
+      "status": "pass",
+      "accepted_spans": 482,
+      "dropped_spans": 0,
+      "target_index": "traces-dev-app-2026.04.07"
+    }
+  ],
+  "validation_result": {
+    "status": "pass",
+    "end_to_end_latency_slo_seconds": {
+      "metrics": 30,
+      "traces": 60
+    }
+  }
+}

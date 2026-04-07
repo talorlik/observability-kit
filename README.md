@@ -96,6 +96,19 @@ and trace correlation behavior.
 - Operator guide:
   `docs/runbooks/LOGS_PIPELINE_OPERATOR_GUIDE.md`
 
+## Batch 6 Metrics And Traces Pipelines
+
+Batch 6 adds metrics and trace contract validation for infrastructure and
+application metrics ingestion, scrape onboarding, OTLP ingest behavior,
+cardinality guardrails, sampling policy controls, and cross-signal pivots.
+
+- Metrics and traces artifacts:
+  `contracts/metrics_traces/`
+- Batch 6 validation script:
+  `scripts/ci/validate_metrics_traces_pipeline.sh`
+- Operator guide:
+  `docs/runbooks/METRICS_TRACES_PIPELINE_OPERATOR_GUIDE.md`
+
 ## Baseline Runbooks
 
 - `docs/runbooks/INSTALL_RUNBOOK.md`
@@ -105,3 +118,4 @@ and trace correlation behavior.
 - `docs/runbooks/PREFLIGHT_AND_DISCOVERY_OPERATOR_GUIDE.md`
 - `docs/runbooks/COLLECTOR_CORE_TOPOLOGY_OPERATOR_GUIDE.md`
 - `docs/runbooks/LOGS_PIPELINE_OPERATOR_GUIDE.md`
+- `docs/runbooks/METRICS_TRACES_PIPELINE_OPERATOR_GUIDE.md`

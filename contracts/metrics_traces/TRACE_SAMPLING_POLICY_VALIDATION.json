@@ -1,0 +1,50 @@
+{
+  "batch": "TB-06",
+  "task": 5,
+  "technical_markers": [
+    "TR-06"
+  ],
+  "default_policy": {
+    "sampler": "parentbased_traceidratio",
+    "ratio": 0.1
+  },
+  "environment_overrides": {
+    "dev": 1.0,
+    "staging": 0.2,
+    "prod": 0.05
+  },
+  "tier_overrides": {
+    "critical": 1.0,
+    "standard": 0.1,
+    "batch": 0.02
+  },
+  "observed_sampling_results": [
+    {
+      "environment": "dev",
+      "tier": "critical",
+      "observed_ratio": 1.0,
+      "expected_min": 0.95,
+      "expected_max": 1.0,
+      "status": "pass"
+    },
+    {
+      "environment": "prod",
+      "tier": "standard",
+      "observed_ratio": 0.052,
+      "expected_min": 0.04,
+      "expected_max": 0.06,
+      "status": "pass"
+    },
+    {
+      "environment": "prod",
+      "tier": "batch",
+      "observed_ratio": 0.019,
+      "expected_min": 0.01,
+      "expected_max": 0.03,
+      "status": "pass"
+    }
+  ],
+  "validation_result": {
+    "status": "pass"
+  }
+}

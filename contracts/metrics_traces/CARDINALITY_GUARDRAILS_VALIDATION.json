@@ -1,0 +1,36 @@
+{
+  "batch": "TB-06",
+  "task": 4,
+  "technical_markers": [
+    "TR-06",
+    "TR-07"
+  ],
+  "cardinality_policy": {
+    "max_label_keys_per_metric": 12,
+    "max_unique_label_values_per_key": 1000,
+    "prohibited_labels": [
+      "user.id",
+      "session.id",
+      "request.id"
+    ]
+  },
+  "enforcement_mode": "drop",
+  "violation_tests": [
+    {
+      "name": "prohibited-label-drop",
+      "status": "pass",
+      "violating_series_seen": 18,
+      "dropped_series": 18
+    },
+    {
+      "name": "budget-overflow-drop",
+      "status": "pass",
+      "violating_series_seen": 35,
+      "dropped_series": 35
+    }
+  ],
+  "validation_result": {
+    "status": "pass",
+    "effective_block_or_drop_rate_percent": 100
+  }
+}

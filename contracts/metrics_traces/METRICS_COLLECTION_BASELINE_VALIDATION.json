@@ -1,0 +1,32 @@
+{
+  "batch": "TB-06",
+  "task": 1,
+  "technical_markers": [
+    "TR-06",
+    "TR-07"
+  ],
+  "scope": "cluster and workload metrics baseline",
+  "required_metric_families": [
+    "k8s.node.cpu.utilization",
+    "k8s.node.memory.usage",
+    "k8s.pod.cpu.utilization",
+    "k8s.pod.memory.usage",
+    "k8s.deployment.replicas.available"
+  ],
+  "namespace_coverage": {
+    "required_test_namespaces": [
+      "platform-system",
+      "team-a",
+      "team-b"
+    ],
+    "observed_coverage_percent": 100,
+    "missing_namespaces": []
+  },
+  "index_targets": [
+    "metrics-dev-cluster-2026.04.07"
+  ],
+  "validation_result": {
+    "status": "pass",
+    "evidence_id": "metrics-baseline-coverage-20260407"
+  }
+}
