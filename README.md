@@ -34,6 +34,8 @@ Batch 1 establishes delivery controls and baseline artifacts mapped to
   `contracts/install/INSTALL_CONTRACT_SCHEMA.json`
 - Install contract samples:
   `contracts/install/samples/`
+- Batch 1 smoke wrapper:
+  `scripts/ci/validate_batch1_smoke.sh`
 - GitOps baseline:
   `gitops/README.md`
 - Default Argo CD application:
@@ -51,6 +53,8 @@ mode selection logic, and remediation mappings for `TR-04`, `TR-05`, and
   `contracts/compatibility/`
 - Batch 2 validation script:
   `scripts/ci/validate_compatibility_and_modes.sh`
+- Batch 2 smoke wrapper:
+  `scripts/ci/validate_batch2_smoke.sh`
 - Operator guide:
   `docs/runbooks/COMPATIBILITY_AND_MODE_OPERATOR_GUIDE.md`
 
@@ -93,6 +97,8 @@ and trace correlation behavior.
   `contracts/logs/`
 - Batch 5 validation script:
   `scripts/ci/validate_logs_pipeline.sh`
+- Batch 5 smoke wrapper:
+  `scripts/ci/validate_batch5_smoke.sh`
 - Operator guide:
   `docs/runbooks/LOGS_PIPELINE_OPERATOR_GUIDE.md`
 

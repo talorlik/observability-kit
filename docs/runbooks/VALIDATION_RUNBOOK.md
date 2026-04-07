@@ -18,6 +18,18 @@ bash scripts/ci/check_no_hardcoded_env_values.sh
 bash scripts/ci/validate_runbook_links.sh
 ```
 
+Run focused Batch 1 smoke validation:
+
+```bash
+bash scripts/ci/validate_batch1_smoke.sh
+```
+
+Run focused Batch 2 smoke validation:
+
+```bash
+bash scripts/ci/validate_batch2_smoke.sh
+```
+
 Run focused Batch 3 smoke validation:
 
 ```bash
@@ -40,6 +52,12 @@ Run focused Batch 5 validation:
 
 ```bash
 bash scripts/ci/validate_logs_pipeline.sh
+```
+
+Run focused Batch 5 smoke validation:
+
+```bash
+bash scripts/ci/validate_batch5_smoke.sh
 ```
 
 Run focused Batch 6 validation:
