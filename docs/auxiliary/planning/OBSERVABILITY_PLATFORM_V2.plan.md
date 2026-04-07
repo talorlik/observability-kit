@@ -1652,9 +1652,9 @@ observability-kit/
     terraform-or-opentofu/
       optional/
   .github/workflows/
-    validate.yml
-    package.yml
-    gitops-update.yml
+    validate.yaml
+    package.yaml
+    gitops-update.yaml
   Makefile
 ```
 

@@ -102,7 +102,7 @@ helm template platform-core gitops/charts/platform-core
 
 ## CI Checks
 
-The `.github/workflows/ci.yml` workflow enforces:
+The `.github/workflows/ci.yaml` workflow enforces:
 
 - markdown lint
 - YAML lint

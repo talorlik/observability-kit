@@ -373,10 +373,10 @@ contains internal sub-phases for PoC -> pilot -> production -> hardening. Phases
    - Metrics scrape annotations toggles
 7. Create dashboards/alerts packages as versioned artifacts in Git.
 8. Implement GitHub Actions workflows:
-   - `plan.yml` (PR): fmt/validate, plan, policy checks
-   - `apply.yml` (merge): apply Terraform, render env overlay values, commit
+   - `plan.yaml` (PR): fmt/validate, plan, policy checks
+   - `apply.yaml` (merge): apply Terraform, render env overlay values, commit
      overlay changes to GitOps path
-   - `validate.yml` (post-deploy): deploy telemetry generator, assert
+   - `validate.yaml` (post-deploy): deploy telemetry generator, assert
      logs/metrics/traces present, cleanup
 9. Create a telemetry generator for smoke testing.
 
@@ -1567,9 +1567,9 @@ observability-kit/
       definitions/
     libraries/helm/observability-lib/
   .github/workflows/
-    plan.yml
-    apply.yml
-    validate.yml
+    plan.yaml
+    apply.yaml
+    validate.yaml
   Makefile
 ```
 
@@ -1599,17 +1599,17 @@ CI-generated values files.
 
 ### GitHub Actions Workflows
 
-- `plan.yml` (PR):
+- `plan.yaml` (PR):
   - fmt/validate
   - plan
   - policy checks (no hard-coded values, no secrets in repo)
   - Helm template lint
-- `apply.yml` (merge):
+- `apply.yaml` (merge):
   - Apply Terraform
   - Render env overlay values from non-sensitive outputs (endpoints, prefixes)
   - Commit overlay changes to GitOps path
   - ArgoCD auto-sync deploys updated configs
-- `validate.yml` (post-deploy):
+- `validate.yaml` (post-deploy):
   - Deploy telemetry generator
   - Assert logs/metrics/traces present in OpenSearch
   - Cleanup

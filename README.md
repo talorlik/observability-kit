@@ -53,7 +53,7 @@ Batch 1 establishes delivery controls and baseline artifacts mapped to
 - Default Argo CD application:
   `gitops/apps/platform-core-application.yaml`
 - CI workflow:
-  `.github/workflows/ci.yml`
+  `.github/workflows/ci.yaml`
 
 ## Batch 2 Compatibility And Modes
 
