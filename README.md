@@ -3,6 +3,18 @@
 A portable, plug-and-play observability intelligence platform for existing
 AWS EKS clusters.
 
+## Primary Implementation Languages
+
+Primary build and coding languages in this repository are:
+
+- Python
+- Bash
+- Terraform
+- Helm
+
+Supporting formats and languages are used when needed (for example JSON, YAML,
+and Markdown).
+
 ## Ultimate Goal
 
 Deliver one repeatable platform that can be installed from a personal machine
@@ -115,6 +127,21 @@ cardinality guardrails, sampling policy controls, and cross-signal pivots.
 - Operator guide:
   `docs/runbooks/METRICS_TRACES_PIPELINE_OPERATOR_GUIDE.md`
 
+## Batch 7 Onboarding And Subscription Model
+
+Batch 7 adds low-touch workload onboarding and subscription controls with
+validation coverage for one-block onboarding flow, mode behavior, required
+metadata policy checks, CI schema checks, and lead-time measurement.
+
+- Onboarding artifacts:
+  `contracts/onboarding/`
+- Batch 7 validation script:
+  `scripts/ci/validate_onboarding_subscription.sh`
+- Batch 7 smoke wrapper:
+  `scripts/ci/validate_batch7_smoke.sh`
+- Operator guide:
+  `docs/runbooks/ONBOARDING_SUBSCRIPTION_OPERATOR_GUIDE.md`
+
 ## Baseline Runbooks
 
 - `docs/runbooks/INSTALL_RUNBOOK.md`
@@ -125,3 +152,4 @@ cardinality guardrails, sampling policy controls, and cross-signal pivots.
 - `docs/runbooks/COLLECTOR_CORE_TOPOLOGY_OPERATOR_GUIDE.md`
 - `docs/runbooks/LOGS_PIPELINE_OPERATOR_GUIDE.md`
 - `docs/runbooks/METRICS_TRACES_PIPELINE_OPERATOR_GUIDE.md`
+- `docs/runbooks/ONBOARDING_SUBSCRIPTION_OPERATOR_GUIDE.md`

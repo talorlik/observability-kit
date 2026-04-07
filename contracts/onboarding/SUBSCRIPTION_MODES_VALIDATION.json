@@ -1,0 +1,63 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-07",
+  "validation_target": "subscription_modes",
+  "required_modes": [
+    "passive",
+    "low-touch",
+    "instrumentation"
+  ],
+  "mode_tests": [
+    {
+      "mode": "passive",
+      "status": "pass",
+      "expected_behavior": {
+        "stdout_stderr_logs": true,
+        "infrastructure_metrics": true,
+        "app_scrape_metrics": false,
+        "traces_enabled": false
+      },
+      "observed_behavior": {
+        "stdout_stderr_logs": true,
+        "infrastructure_metrics": true,
+        "app_scrape_metrics": false,
+        "traces_enabled": false
+      }
+    },
+    {
+      "mode": "low-touch",
+      "status": "pass",
+      "expected_behavior": {
+        "stdout_stderr_logs": true,
+        "infrastructure_metrics": true,
+        "app_scrape_metrics": true,
+        "traces_enabled": false
+      },
+      "observed_behavior": {
+        "stdout_stderr_logs": true,
+        "infrastructure_metrics": true,
+        "app_scrape_metrics": true,
+        "traces_enabled": false
+      }
+    },
+    {
+      "mode": "instrumentation",
+      "status": "pass",
+      "expected_behavior": {
+        "stdout_stderr_logs": true,
+        "infrastructure_metrics": true,
+        "app_scrape_metrics": true,
+        "traces_enabled": true
+      },
+      "observed_behavior": {
+        "stdout_stderr_logs": true,
+        "infrastructure_metrics": true,
+        "app_scrape_metrics": true,
+        "traces_enabled": true
+      }
+    }
+  ],
+  "validation_result": {
+    "status": "pass"
+  }
+}

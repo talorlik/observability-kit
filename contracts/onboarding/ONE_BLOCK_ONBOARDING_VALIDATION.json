@@ -1,0 +1,28 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-07",
+  "validation_target": "one_block_onboarding",
+  "onboarding_contract": {
+    "library_chart": "observability-lib",
+    "values_block_path": "observability",
+    "single_block_required_keys": [
+      "serviceName",
+      "environment",
+      "owner",
+      "subscriptionMode"
+    ],
+    "pilot_service": "checkout-api"
+  },
+  "pilot_render_result": {
+    "status": "pass",
+    "values_blocks_detected": 1,
+    "rendered_resources": [
+      "ConfigMap/checkout-api-observability",
+      "ServiceMonitor/checkout-api"
+    ]
+  },
+  "validation_result": {
+    "status": "pass",
+    "evidence": "Pilot service renders with a single observability values block."
+  }
+}

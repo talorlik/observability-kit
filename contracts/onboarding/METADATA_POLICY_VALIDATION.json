@@ -1,0 +1,49 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-07",
+  "validation_target": "metadata_policy",
+  "required_metadata_fields": [
+    "service.name",
+    "deployment.environment",
+    "service.owner"
+  ],
+  "policy_engine": "admission-policy",
+  "policy_tests": [
+    {
+      "name": "valid_metadata_submission",
+      "status": "pass",
+      "input": {
+        "service.name": "checkout-api",
+        "deployment.environment": "staging",
+        "service.owner": "team-commerce"
+      },
+      "expected_decision": "allow",
+      "observed_decision": "allow"
+    },
+    {
+      "name": "missing_owner_rejected",
+      "status": "pass",
+      "input": {
+        "service.name": "checkout-api",
+        "deployment.environment": "staging"
+      },
+      "expected_decision": "deny",
+      "observed_decision": "deny",
+      "error_message": "Missing required onboarding metadata: service.owner"
+    },
+    {
+      "name": "missing_service_name_rejected",
+      "status": "pass",
+      "input": {
+        "deployment.environment": "staging",
+        "service.owner": "team-commerce"
+      },
+      "expected_decision": "deny",
+      "observed_decision": "deny",
+      "error_message": "Missing required onboarding metadata: service.name"
+    }
+  ],
+  "validation_result": {
+    "status": "pass"
+  }
+}

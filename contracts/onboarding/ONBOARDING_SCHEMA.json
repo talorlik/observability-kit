@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observability-kit.local/contracts/onboarding/ONBOARDING_SCHEMA.json",
+  "title": "Workload Onboarding Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "serviceName",
+    "environment",
+    "owner",
+    "subscriptionMode"
+  ],
+  "properties": {
+    "serviceName": {
+      "type": "string",
+      "minLength": 2
+    },
+    "environment": {
+      "type": "string",
+      "enum": [
+        "dev",
+        "staging",
+        "prod"
+      ]
+    },
+    "owner": {
+      "type": "string",
+      "pattern": "^team-[a-z0-9-]+$"
+    },
+    "subscriptionMode": {
+      "type": "string",
+      "enum": [
+        "passive",
+        "low-touch",
+        "instrumentation"
+      ]
+    }
+  }
+}

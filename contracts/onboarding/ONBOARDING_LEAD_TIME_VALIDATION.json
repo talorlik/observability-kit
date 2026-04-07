@@ -1,0 +1,24 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-07",
+  "validation_target": "onboarding_lead_time",
+  "measurement_window": "2026-Q2-sprint-01",
+  "unit": "hours",
+  "lead_time_stages": [
+    "request_received",
+    "metadata_completed",
+    "configuration_opened",
+    "validation_passed",
+    "telemetry_verified"
+  ],
+  "baseline_cycle_time_hours": 12.5,
+  "current_cycle_time_hours": 6.8,
+  "friction_points_removed": [
+    "manual metadata back-and-forth",
+    "multi-file onboarding configuration"
+  ],
+  "validation_result": {
+    "status": "pass",
+    "improvement_percent": 45.6
+  }
+}

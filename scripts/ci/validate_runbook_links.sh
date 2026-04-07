@@ -9,7 +9,9 @@ required_docs=(
   "docs/runbooks/COMPATIBILITY_AND_MODE_OPERATOR_GUIDE.md"
   "docs/runbooks/PREFLIGHT_AND_DISCOVERY_OPERATOR_GUIDE.md"
   "docs/runbooks/COLLECTOR_CORE_TOPOLOGY_OPERATOR_GUIDE.md"
+  "docs/runbooks/LOGS_PIPELINE_OPERATOR_GUIDE.md"
   "docs/runbooks/METRICS_TRACES_PIPELINE_OPERATOR_GUIDE.md"
+  "docs/runbooks/ONBOARDING_SUBSCRIPTION_OPERATOR_GUIDE.md"
 )
 
 echo "Checking baseline runbook files..."
@@ -32,7 +34,9 @@ required = [
     "docs/runbooks/COMPATIBILITY_AND_MODE_OPERATOR_GUIDE.md",
     "docs/runbooks/PREFLIGHT_AND_DISCOVERY_OPERATOR_GUIDE.md",
     "docs/runbooks/COLLECTOR_CORE_TOPOLOGY_OPERATOR_GUIDE.md",
+    "docs/runbooks/LOGS_PIPELINE_OPERATOR_GUIDE.md",
     "docs/runbooks/METRICS_TRACES_PIPELINE_OPERATOR_GUIDE.md",
+    "docs/runbooks/ONBOARDING_SUBSCRIPTION_OPERATOR_GUIDE.md",
 ]
 
 content = Path("README.md").read_text()

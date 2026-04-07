@@ -14,22 +14,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          node-version: 20
+          python-version: "3.12"
+
+      - name: Setup Python virtual environment
+        run: bash scripts/ci/setup_python_env.sh
 
       - name: Setup Helm
         uses: azure/setup-helm@v4
 
       - name: Markdown lint
-        run: npx --yes markdownlint-cli "**/*.md"
+        run: bash scripts/ci/validate_markdown.sh
 
       - name: YAML lint
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install yamllint
-          yamllint .
+        run: bash scripts/ci/validate_yaml.sh
 
       - name: Helm lint
         run: helm lint gitops/charts/platform-core
@@ -54,6 +54,9 @@ jobs:
 
       - name: Metrics and traces pipeline checks
         run: bash scripts/ci/validate_metrics_traces_pipeline.sh
+
+      - name: Onboarding and subscription checks
+        run: bash scripts/ci/validate_onboarding_subscription.sh
 
       - name: GitOps structure checks
         run: bash scripts/ci/validate_gitops_structure.sh

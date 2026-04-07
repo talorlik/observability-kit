@@ -4,15 +4,24 @@ This runbook defines baseline verification entrypoints for Batch 1.
 
 ## Local Checks
 
+Create and activate the Python virtual environment first:
+
+```bash
+source scripts/ci/setup_python_env.sh
+```
+
 Run policy and structure checks:
 
 ```bash
+bash scripts/ci/validate_markdown.sh
+bash scripts/ci/validate_yaml.sh
 bash scripts/ci/validate_install_contract.sh
 bash scripts/ci/validate_compatibility_and_modes.sh
 bash scripts/ci/validate_preflight_and_discovery.sh
 bash scripts/ci/validate_collector_core_topology.sh
 bash scripts/ci/validate_logs_pipeline.sh
 bash scripts/ci/validate_metrics_traces_pipeline.sh
+bash scripts/ci/validate_onboarding_subscription.sh
 bash scripts/ci/validate_gitops_structure.sh
 bash scripts/ci/check_no_hardcoded_env_values.sh
 bash scripts/ci/validate_runbook_links.sh
@@ -72,6 +81,18 @@ Run focused Batch 6 smoke validation:
 bash scripts/ci/validate_batch6_smoke.sh
 ```
 
+Run focused Batch 7 validation:
+
+```bash
+bash scripts/ci/validate_onboarding_subscription.sh
+```
+
+Run focused Batch 7 smoke validation:
+
+```bash
+bash scripts/ci/validate_batch7_smoke.sh
+```
+
 Run chart validation:
 
 ```bash
@@ -92,6 +113,7 @@ The `.github/workflows/ci.yml` workflow enforces:
 - collector core topology validation
 - logs pipeline validation
 - metrics and traces pipeline validation
+- onboarding and subscription validation
 - GitOps structure checks
 - no hard-coded environment value checks
 - runbook baseline checks

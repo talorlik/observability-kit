@@ -71,6 +71,8 @@ The target system is a Kubernetes-native observability platform that is:
 - Provider-specific integrations must be implemented as adapters.
 - Install and runtime configuration must come from install contract inputs,
   generated overlays, and profile selections with no hard-coded environment values.
+- Primary implementation languages for automation and delivery artifacts are
+  Python, Bash, Terraform, and Helm. Supporting formats are allowed when needed.
 
 ## 3. Target Technical Architecture [TR-03]
 
