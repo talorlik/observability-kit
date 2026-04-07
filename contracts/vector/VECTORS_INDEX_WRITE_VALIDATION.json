@@ -1,0 +1,36 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-10",
+  "task": 3,
+  "validation_target": "vectors_index_writes",
+  "target_index_pattern": "vectors-*",
+  "indices_validated": [
+    "vectors-staging-ops-2026.04.06",
+    "vectors-staging-ops-2026.04.07"
+  ],
+  "embedding_model": {
+    "name": "text-embedding-3-large-compatible",
+    "dimensions": 3072
+  },
+  "write_pipeline_checks": [
+    {
+      "name": "bulk_write_success_rate",
+      "status": "pass",
+      "value_percent": 100
+    },
+    {
+      "name": "vector_field_mapping_type",
+      "status": "pass",
+      "expected": "knn_vector",
+      "observed": "knn_vector"
+    },
+    {
+      "name": "documents_queryable",
+      "status": "pass",
+      "sample_query_count": 20
+    }
+  ],
+  "validation_result": {
+    "status": "pass"
+  }
+}

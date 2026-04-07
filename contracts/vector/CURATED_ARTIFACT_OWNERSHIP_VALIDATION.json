@@ -1,0 +1,32 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-10",
+  "task": 1,
+  "validation_target": "curated_artifact_ownership",
+  "curated_artifact_types": [
+    {
+      "artifact_type": "incident_records",
+      "owner": "team-sre",
+      "refresh_rule": "hourly_incremental"
+    },
+    {
+      "artifact_type": "incident_summaries",
+      "owner": "team-ops-intelligence",
+      "refresh_rule": "daily_full"
+    },
+    {
+      "artifact_type": "runbook_documents",
+      "owner": "team-platform-reliability",
+      "refresh_rule": "on_merge_and_daily_full"
+    }
+  ],
+  "ownership_controls": {
+    "owner_required": true,
+    "refresh_rule_required": true,
+    "owner_approver_group": "observability-governance"
+  },
+  "validation_result": {
+    "status": "pass",
+    "evaluated_at": "2026-04-07T00:00:00Z"
+  }
+}

@@ -64,6 +64,9 @@ jobs:
       - name: Operator experience and SLO operations checks
         run: bash scripts/ci/validate_operator_experience_slo.sh
 
+      - name: Vector foundations checks
+        run: bash scripts/ci/validate_vector_foundations.sh
+
       - name: GitOps structure checks
         run: bash scripts/ci/validate_gitops_structure.sh
 

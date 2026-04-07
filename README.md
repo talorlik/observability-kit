@@ -173,6 +173,21 @@ tracking.
 - Operator guide:
   `docs/runbooks/OPERATOR_EXPERIENCE_SLO_OPERATIONS_GUIDE.md`
 
+## Batch 10 Vector Foundations
+
+Batch 10 adds governed semantic retrieval validation for curated operational
+evidence ownership, extraction snapshots, `vectors-*` writes, retrieval quality
+baselines, governance controls, and vector operations playbook rehearsal.
+
+- Vector foundation artifacts:
+  `contracts/vector/`
+- Batch 10 validation script:
+  `scripts/ci/validate_vector_foundations.sh`
+- Batch 10 smoke wrapper:
+  `scripts/ci/validate_batch10_smoke.sh`
+- Operator guide:
+  `docs/runbooks/VECTOR_FOUNDATIONS_OPERATOR_GUIDE.md`
+
 ## Baseline Runbooks
 
 - `docs/runbooks/INSTALL_RUNBOOK.md`
@@ -186,6 +201,7 @@ tracking.
 - `docs/runbooks/ONBOARDING_SUBSCRIPTION_OPERATOR_GUIDE.md`
 - `docs/runbooks/SECURITY_ISOLATION_RESILIENCE_OPERATOR_GUIDE.md`
 - `docs/runbooks/OPERATOR_EXPERIENCE_SLO_OPERATIONS_GUIDE.md`
+- `docs/runbooks/VECTOR_FOUNDATIONS_OPERATOR_GUIDE.md`
 
 ## Project-Local Snyk Path
 

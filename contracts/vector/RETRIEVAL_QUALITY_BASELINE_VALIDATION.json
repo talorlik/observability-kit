@@ -1,0 +1,26 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-10",
+  "task": 4,
+  "validation_target": "retrieval_quality_baseline",
+  "evaluation_window": "2026-04-07",
+  "queries_evaluated": 30,
+  "quality_metrics": {
+    "precision_at_5": 0.8,
+    "recall_at_10": 0.83,
+    "mean_reciprocal_rank": 0.76
+  },
+  "minimum_thresholds": {
+    "precision_at_5": 0.7,
+    "recall_at_10": 0.75,
+    "mean_reciprocal_rank": 0.65
+  },
+  "retrieval_endpoint": {
+    "path": "/api/v1/retrieval/semantic",
+    "returns_relevance_score": true
+  },
+  "validation_result": {
+    "status": "pass",
+    "evidence": "All baseline retrieval metrics meet or exceed threshold."
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-10",
+  "task": 5,
+  "validation_target": "governance_controls",
+  "pii_filtering": {
+    "enabled": true,
+    "blocked_patterns": [
+      "email",
+      "phone_number",
+      "credit_card",
+      "national_id"
+    ]
+  },
+  "retrieval_audit_events": {
+    "enabled": true,
+    "required_fields": [
+      "@timestamp",
+      "request_id",
+      "actor",
+      "query_hash",
+      "result_count",
+      "policy_decision"
+    ],
+    "retention_days": 90
+  },
+  "governance_tests": [
+    {
+      "name": "pii_document_excluded_from_embedding",
+      "status": "pass"
+    },
+    {
+      "name": "retrieval_event_audit_record_written",
+      "status": "pass"
+    },
+    {
+      "name": "runtime_policy_check_gate",
+      "status": "pass"
+    }
+  ],
+  "ci_policy_checks": {
+    "status": "pass",
+    "job": "vector-governance-policy-check"
+  },
+  "validation_result": {
+    "status": "pass"
+  }
+}
