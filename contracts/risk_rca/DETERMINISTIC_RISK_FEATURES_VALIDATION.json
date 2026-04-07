@@ -1,0 +1,41 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-12",
+  "task": 1,
+  "validation_target": "deterministic_risk_feature_definitions",
+  "feature_set_version": "2026.04.07",
+  "feature_definitions": [
+    {
+      "name": "incident_frequency_30d",
+      "source": "opensearch",
+      "deterministic": true,
+      "calculation": "count(incidents where service == target_service and timestamp >= now-30d)"
+    },
+    {
+      "name": "dependency_blast_radius_score",
+      "source": "neo4j",
+      "deterministic": true,
+      "calculation": "normalized(outbound_service_dependency_count + critical_path_weight)"
+    },
+    {
+      "name": "error_budget_burn_rate_6h",
+      "source": "opensearch",
+      "deterministic": true,
+      "calculation": "sli_error_budget_consumed_percent over rolling 6h window"
+    },
+    {
+      "name": "change_failure_rate_14d",
+      "source": "opensearch",
+      "deterministic": true,
+      "calculation": "failed_change_events / total_change_events over rolling 14d"
+    }
+  ],
+  "reproducibility_checks": {
+    "seed_locked": true,
+    "windowing_rules_versioned": true,
+    "run_to_run_hash_match": true
+  },
+  "validation_result": {
+    "status": "pass"
+  }
+}

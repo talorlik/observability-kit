@@ -26,6 +26,7 @@ bash scripts/ci/validate_security_isolation_resilience.sh
 bash scripts/ci/validate_operator_experience_slo.sh
 bash scripts/ci/validate_vector_foundations.sh
 bash scripts/ci/validate_graph_foundation.sh
+bash scripts/ci/validate_risk_scoring_assisted_rca.sh
 bash scripts/ci/validate_gitops_structure.sh
 bash scripts/ci/check_no_hardcoded_env_values.sh
 bash scripts/ci/validate_runbook_links.sh
@@ -157,6 +158,18 @@ Run focused Batch 11 smoke validation:
 bash scripts/ci/validate_batch11_smoke.sh
 ```
 
+Run focused Batch 12 validation:
+
+```bash
+bash scripts/ci/validate_risk_scoring_assisted_rca.sh
+```
+
+Run focused Batch 12 smoke validation:
+
+```bash
+bash scripts/ci/validate_batch12_smoke.sh
+```
+
 Run chart validation:
 
 ```bash
@@ -182,6 +195,7 @@ The `.github/workflows/ci.yaml` workflow enforces:
 - operator experience and SLO operations validation
 - vector foundations validation
 - graph foundation validation
+- risk scoring and assisted RCA readiness validation
 - GitOps structure checks
 - no hard-coded environment value checks
 - runbook baseline checks

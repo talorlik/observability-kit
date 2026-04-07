@@ -70,6 +70,9 @@ jobs:
       - name: Graph foundation checks
         run: bash scripts/ci/validate_graph_foundation.sh
 
+      - name: Risk scoring and assisted RCA readiness checks
+        run: bash scripts/ci/validate_risk_scoring_assisted_rca.sh
+
       - name: GitOps structure checks
         run: bash scripts/ci/validate_gitops_structure.sh
 

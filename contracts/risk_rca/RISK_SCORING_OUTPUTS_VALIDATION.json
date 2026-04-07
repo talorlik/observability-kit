@@ -1,0 +1,42 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-12",
+  "task": 2,
+  "validation_target": "risk_scoring_outputs_and_dashboard_views",
+  "scoring_job": {
+    "job_name": "risk_score_batch_job",
+    "schedule": "0 * * * *",
+    "status": "pass"
+  },
+  "risk_dashboard_views": [
+    "risk-overview-by-service",
+    "highest-risk-dependency-clusters",
+    "risk-score-trend-by-environment"
+  ],
+  "service_scores": [
+    {
+      "service": "checkout-api",
+      "environment": "staging",
+      "risk_score": 82,
+      "risk_level": "high",
+      "status": "pass"
+    },
+    {
+      "service": "inventory-api",
+      "environment": "staging",
+      "risk_score": 58,
+      "risk_level": "medium",
+      "status": "pass"
+    },
+    {
+      "service": "catalog-api",
+      "environment": "staging",
+      "risk_score": 36,
+      "risk_level": "low",
+      "status": "pass"
+    }
+  ],
+  "validation_result": {
+    "status": "pass"
+  }
+}

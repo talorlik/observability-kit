@@ -204,6 +204,22 @@ operations runbook dry-run evidence.
 - Operator guide:
   `docs/runbooks/GRAPH_FOUNDATION_OPERATOR_GUIDE.md`
 
+## Batch 12 Risk Scoring And Assisted RCA Readiness
+
+Batch 12 adds deterministic risk scoring and assisted RCA readiness validation
+for reproducible feature definitions, scored service outputs, backtesting
+evidence, hybrid evidence bundle traceability, human approval gates, and pilot
+go or hold decision records.
+
+- Risk scoring and RCA readiness artifacts:
+  `contracts/risk_rca/`
+- Batch 12 validation script:
+  `scripts/ci/validate_risk_scoring_assisted_rca.sh`
+- Batch 12 smoke wrapper:
+  `scripts/ci/validate_batch12_smoke.sh`
+- Operator guide:
+  `docs/runbooks/RISK_SCORING_ASSISTED_RCA_READINESS_GUIDE.md`
+
 ## Baseline Runbooks
 
 - `docs/runbooks/INSTALL_RUNBOOK.md`
@@ -219,6 +235,7 @@ operations runbook dry-run evidence.
 - `docs/runbooks/OPERATOR_EXPERIENCE_SLO_OPERATIONS_GUIDE.md`
 - `docs/runbooks/VECTOR_FOUNDATIONS_OPERATOR_GUIDE.md`
 - `docs/runbooks/GRAPH_FOUNDATION_OPERATOR_GUIDE.md`
+- `docs/runbooks/RISK_SCORING_ASSISTED_RCA_READINESS_GUIDE.md`
 
 ## Project-Local Snyk Path
 

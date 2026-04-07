@@ -1,0 +1,34 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-12",
+  "task": 6,
+  "validation_target": "controlled_pilot_go_or_hold_decision_record",
+  "pilot": {
+    "name": "assisted_rca_staging_pilot",
+    "environment": "staging",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-07",
+    "status": "pass"
+  },
+  "decision_record": {
+    "decision": "go",
+    "scope": "limited_production_enablement_for_three_services",
+    "signed_off": true,
+    "signatories": [
+      "platform_reliability_lead",
+      "incident_commander",
+      "security_reviewer"
+    ],
+    "open_risks": [
+      {
+        "risk_id": "RCA-RISK-12-01",
+        "description": "Model drift risk if incident taxonomy changes.",
+        "owner": "platform_reliability_lead",
+        "due_date": "2026-04-30"
+      }
+    ]
+  },
+  "validation_result": {
+    "status": "pass"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-12",
+  "task": 4,
+  "validation_target": "hybrid_retrieval_orchestrator_evidence_bundles",
+  "orchestrator": {
+    "name": "assisted_rca_hybrid_retrieval",
+    "sources": [
+      "opensearch_vectors",
+      "neo4j_graph"
+    ],
+    "status": "pass"
+  },
+  "evidence_bundles": [
+    {
+      "bundle_id": "RCA-BUNDLE-2026-04-07-001",
+      "incident_id": "INC-2026-0042",
+      "vector_evidence_links": [
+        "vectors-staging-ops-2026.04.07/doc-1982",
+        "vectors-staging-ops-2026.04.07/doc-2411"
+      ],
+      "graph_evidence_links": [
+        "neo4j://incident/INC-2026-0042/path/checkout-api->payment-gateway",
+        "neo4j://service/checkout-api/blast-radius"
+      ],
+      "traceable_lineage": true,
+      "status": "pass"
+    },
+    {
+      "bundle_id": "RCA-BUNDLE-2026-04-07-002",
+      "incident_id": "INC-2026-0049",
+      "vector_evidence_links": [
+        "vectors-staging-ops-2026.04.07/doc-3021"
+      ],
+      "graph_evidence_links": [
+        "neo4j://incident/INC-2026-0049/path/inventory-api->catalog-db"
+      ],
+      "traceable_lineage": true,
+      "status": "pass"
+    }
+  ],
+  "validation_result": {
+    "status": "pass"
+  }
+}
