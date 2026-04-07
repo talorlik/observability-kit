@@ -1,0 +1,31 @@
+{
+  "batch": 9,
+  "task": 6,
+  "validation_name": "alert_noise_reduction",
+  "validation_result": {
+    "status": "pass",
+    "evaluated_at": "2026-04-07T00:00:00Z"
+  },
+  "review_cycles": [
+    {
+      "cycle": "pilot-week-1",
+      "false_positive_rate_percent": 21.0,
+      "alerts_per_day": 42
+    },
+    {
+      "cycle": "pilot-week-2",
+      "false_positive_rate_percent": 15.0,
+      "alerts_per_day": 33
+    },
+    {
+      "cycle": "pilot-week-3",
+      "false_positive_rate_percent": 9.0,
+      "alerts_per_day": 25
+    }
+  ],
+  "improvement_checks": {
+    "minimum_review_cycles": 2,
+    "false_positive_trend_improving": true,
+    "alerts_per_day_trend_improving": true
+  }
+}

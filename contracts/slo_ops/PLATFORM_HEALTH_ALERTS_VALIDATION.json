@@ -1,0 +1,33 @@
+{
+  "batch": 9,
+  "task": 2,
+  "validation_name": "platform_health_alerts",
+  "validation_result": {
+    "status": "pass",
+    "evaluated_at": "2026-04-07T00:00:00Z"
+  },
+  "routing_channels": [
+    "oncall-platform",
+    "slack-platform-alerts"
+  ],
+  "alerts": [
+    {
+      "name": "collector_drop_rate_high",
+      "signal": "otelcol_receiver_dropped_metric_points",
+      "status": "pass",
+      "routed_to_expected_channel": true
+    },
+    {
+      "name": "ingest_lag_high",
+      "signal": "opensearch_ingest_lag_seconds",
+      "status": "pass",
+      "routed_to_expected_channel": true
+    },
+    {
+      "name": "backend_cluster_unhealthy",
+      "signal": "opensearch_cluster_health_status",
+      "status": "pass",
+      "routed_to_expected_channel": true
+    }
+  ]
+}

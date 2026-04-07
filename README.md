@@ -157,6 +157,22 @@ rollback drills, and hardening checklist completion.
 - Operator guide:
   `docs/runbooks/SECURITY_ISOLATION_RESILIENCE_OPERATOR_GUIDE.md`
 
+## Batch 9 Operator Experience And SLO Operations
+
+Batch 9 adds operator experience and SLO operations validation for dashboard
+taxonomy, platform health alerts, SLI and SLO query stability, burn-rate and
+symptom alerts, incident drill evidence capture, and alert-noise reduction
+tracking.
+
+- SLO operations artifacts:
+  `contracts/slo_ops/`
+- Batch 9 validation script:
+  `scripts/ci/validate_operator_experience_slo.sh`
+- Batch 9 smoke wrapper:
+  `scripts/ci/validate_batch9_smoke.sh`
+- Operator guide:
+  `docs/runbooks/OPERATOR_EXPERIENCE_SLO_OPERATIONS_GUIDE.md`
+
 ## Baseline Runbooks
 
 - `docs/runbooks/INSTALL_RUNBOOK.md`
@@ -169,3 +185,14 @@ rollback drills, and hardening checklist completion.
 - `docs/runbooks/METRICS_TRACES_PIPELINE_OPERATOR_GUIDE.md`
 - `docs/runbooks/ONBOARDING_SUBSCRIPTION_OPERATOR_GUIDE.md`
 - `docs/runbooks/SECURITY_ISOLATION_RESILIENCE_OPERATOR_GUIDE.md`
+- `docs/runbooks/OPERATOR_EXPERIENCE_SLO_OPERATIONS_GUIDE.md`
+
+## Project-Local Snyk Path
+
+Use this project-local wrapper to keep Snyk scans scoped to this repository:
+
+`bash scripts/ci/snyk_code_scan_project.sh`
+
+Optional subpath (must stay inside this repo):
+
+`bash scripts/ci/snyk_code_scan_project.sh scripts/ci`

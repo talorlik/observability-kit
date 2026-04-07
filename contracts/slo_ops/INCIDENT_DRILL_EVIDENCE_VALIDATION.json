@@ -1,0 +1,33 @@
+{
+  "batch": 9,
+  "task": 5,
+  "validation_name": "incident_drill_evidence",
+  "validation_result": {
+    "status": "pass",
+    "evaluated_at": "2026-04-07T00:00:00Z"
+  },
+  "drill": {
+    "scenario": "checkout-api latency regression with elevated error budget burn",
+    "environment": "non-production",
+    "status": "pass",
+    "response_timeline_minutes": 37
+  },
+  "evidence_artifacts": [
+    "artifacts/drills/batch9/incident-timeline.md",
+    "artifacts/drills/batch9/dashboard-snapshots/",
+    "artifacts/drills/batch9/alert-routing-log.json",
+    "artifacts/drills/batch9/follow-up-actions.json"
+  ],
+  "follow_ups": [
+    {
+      "owner": "platform-observability",
+      "action": "reduce collector drop-rate warning threshold flapping",
+      "status": "open"
+    },
+    {
+      "owner": "service-checkout",
+      "action": "improve timeout budget for dependent payment call",
+      "status": "open"
+    }
+  ]
+}

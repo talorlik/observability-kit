@@ -61,6 +61,9 @@ jobs:
       - name: Security, isolation, and resilience checks
         run: bash scripts/ci/validate_security_isolation_resilience.sh
 
+      - name: Operator experience and SLO operations checks
+        run: bash scripts/ci/validate_operator_experience_slo.sh
+
       - name: GitOps structure checks
         run: bash scripts/ci/validate_gitops_structure.sh
 

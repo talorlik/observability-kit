@@ -1,0 +1,51 @@
+{
+  "batch": 9,
+  "task": 3,
+  "validation_name": "sli_slo_query_stability",
+  "validation_result": {
+    "status": "pass",
+    "evaluated_at": "2026-04-07T00:00:00Z"
+  },
+  "pilot_services": [
+    "checkout-api",
+    "payments-worker",
+    "frontend-web"
+  ],
+  "sli_queries": [
+    {
+      "name": "availability_ratio_28d",
+      "query": "sum(rate(http_requests_total{status=~\"2..|3..\"}[5m])) / sum(rate(http_requests_total[5m]))",
+      "evaluation_runs": 10,
+      "success_runs": 10
+    },
+    {
+      "name": "latency_p95_5m",
+      "query": "histogram_quantile(0.95, sum by (le, service) (rate(http_request_duration_seconds_bucket[5m])))",
+      "evaluation_runs": 10,
+      "success_runs": 10
+    },
+    {
+      "name": "error_rate_5m",
+      "query": "sum(rate(http_requests_total{status=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m]))",
+      "evaluation_runs": 10,
+      "success_runs": 10
+    }
+  ],
+  "slo_targets": [
+    {
+      "service": "checkout-api",
+      "objective": "availability",
+      "target_percent": 99.9
+    },
+    {
+      "service": "payments-worker",
+      "objective": "successful_job_completion",
+      "target_percent": 99.5
+    },
+    {
+      "service": "frontend-web",
+      "objective": "latency_p95",
+      "target_ms": 300
+    }
+  ]
+}

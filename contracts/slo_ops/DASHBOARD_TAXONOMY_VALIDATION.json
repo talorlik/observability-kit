@@ -1,0 +1,41 @@
+{
+  "batch": 9,
+  "task": 1,
+  "validation_name": "dashboard_taxonomy",
+  "validation_result": {
+    "status": "pass",
+    "evaluated_at": "2026-04-07T00:00:00Z"
+  },
+  "taxonomy_domains": [
+    "platform",
+    "service",
+    "governance"
+  ],
+  "required_prefixes": [
+    "platform-",
+    "service-",
+    "governance-"
+  ],
+  "folder_structure": [
+    "00-platform-health",
+    "10-service-sli-slo",
+    "20-governance-and-audit"
+  ],
+  "dashboards": [
+    {
+      "name": "platform-collector-health",
+      "folder": "00-platform-health",
+      "status": "pass"
+    },
+    {
+      "name": "service-api-latency-slo",
+      "folder": "10-service-sli-slo",
+      "status": "pass"
+    },
+    {
+      "name": "governance-alert-quality",
+      "folder": "20-governance-and-audit",
+      "status": "pass"
+    }
+  ]
+}

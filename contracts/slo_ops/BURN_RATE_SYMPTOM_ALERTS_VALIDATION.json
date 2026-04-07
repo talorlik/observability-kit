@@ -1,0 +1,33 @@
+{
+  "batch": 9,
+  "task": 4,
+  "validation_name": "burn_rate_symptom_alerts",
+  "validation_result": {
+    "status": "pass",
+    "evaluated_at": "2026-04-07T00:00:00Z"
+  },
+  "runbook_link_required": true,
+  "alerts": [
+    {
+      "name": "checkout-api-burn-rate-fast",
+      "type": "burn_rate",
+      "window": "5m",
+      "status": "pass",
+      "runbook_link": "docs/runbooks/OPERATOR_EXPERIENCE_SLO_OPERATIONS_GUIDE.md"
+    },
+    {
+      "name": "checkout-api-burn-rate-slow",
+      "type": "burn_rate",
+      "window": "1h",
+      "status": "pass",
+      "runbook_link": "docs/runbooks/OPERATOR_EXPERIENCE_SLO_OPERATIONS_GUIDE.md"
+    },
+    {
+      "name": "checkout-api-symptom-latency",
+      "type": "symptom",
+      "window": "10m",
+      "status": "pass",
+      "runbook_link": "docs/runbooks/OPERATOR_EXPERIENCE_SLO_OPERATIONS_GUIDE.md"
+    }
+  ]
+}
