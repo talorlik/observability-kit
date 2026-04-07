@@ -142,6 +142,21 @@ metadata policy checks, CI schema checks, and lead-time measurement.
 - Operator guide:
   `docs/runbooks/ONBOARDING_SUBSCRIPTION_OPERATOR_GUIDE.md`
 
+## Batch 8 Security Isolation And Resilience
+
+Batch 8 adds security and resilience validation for team and environment
+isolation, encryption controls, audit logging, backup and restore drills,
+rollback drills, and hardening checklist completion.
+
+- Security and resilience artifacts:
+  `contracts/security/`
+- Batch 8 validation script:
+  `scripts/ci/validate_security_isolation_resilience.sh`
+- Batch 8 smoke wrapper:
+  `scripts/ci/validate_batch8_smoke.sh`
+- Operator guide:
+  `docs/runbooks/SECURITY_ISOLATION_RESILIENCE_OPERATOR_GUIDE.md`
+
 ## Baseline Runbooks
 
 - `docs/runbooks/INSTALL_RUNBOOK.md`
@@ -153,3 +168,4 @@ metadata policy checks, CI schema checks, and lead-time measurement.
 - `docs/runbooks/LOGS_PIPELINE_OPERATOR_GUIDE.md`
 - `docs/runbooks/METRICS_TRACES_PIPELINE_OPERATOR_GUIDE.md`
 - `docs/runbooks/ONBOARDING_SUBSCRIPTION_OPERATOR_GUIDE.md`
+- `docs/runbooks/SECURITY_ISOLATION_RESILIENCE_OPERATOR_GUIDE.md`

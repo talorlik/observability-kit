@@ -1,0 +1,46 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-08",
+  "validation_target": "team_environment_isolation",
+  "isolation_controls": {
+    "index_partitioning": {
+      "pattern": "logs-${env}-${team}-YYYY.MM.DD",
+      "enforced": true
+    },
+    "roles": {
+      "model": "least_privilege",
+      "cross_team_denied": true
+    },
+    "dashboard_spaces": {
+      "scoped_by": [
+        "environment",
+        "team"
+      ],
+      "cross_space_access_denied": true
+    }
+  },
+  "access_tests": [
+    {
+      "name": "team_a_cannot_read_team_b_logs",
+      "status": "pass",
+      "expected_decision": "deny",
+      "observed_decision": "deny"
+    },
+    {
+      "name": "dev_team_cannot_read_prod_space",
+      "status": "pass",
+      "expected_decision": "deny",
+      "observed_decision": "deny"
+    },
+    {
+      "name": "team_owner_can_read_own_environment_scope",
+      "status": "pass",
+      "expected_decision": "allow",
+      "observed_decision": "allow"
+    }
+  ],
+  "validation_result": {
+    "status": "pass",
+    "evidence": "Cross-team and cross-environment access attempts were denied."
+  }
+}

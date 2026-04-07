@@ -22,6 +22,7 @@ bash scripts/ci/validate_collector_core_topology.sh
 bash scripts/ci/validate_logs_pipeline.sh
 bash scripts/ci/validate_metrics_traces_pipeline.sh
 bash scripts/ci/validate_onboarding_subscription.sh
+bash scripts/ci/validate_security_isolation_resilience.sh
 bash scripts/ci/validate_gitops_structure.sh
 bash scripts/ci/check_no_hardcoded_env_values.sh
 bash scripts/ci/validate_runbook_links.sh
@@ -93,6 +94,18 @@ Run focused Batch 7 smoke validation:
 bash scripts/ci/validate_batch7_smoke.sh
 ```
 
+Run focused Batch 8 validation:
+
+```bash
+bash scripts/ci/validate_security_isolation_resilience.sh
+```
+
+Run focused Batch 8 smoke validation:
+
+```bash
+bash scripts/ci/validate_batch8_smoke.sh
+```
+
 Run chart validation:
 
 ```bash
@@ -114,6 +127,7 @@ The `.github/workflows/ci.yaml` workflow enforces:
 - logs pipeline validation
 - metrics and traces pipeline validation
 - onboarding and subscription validation
+- security, isolation, and resilience validation
 - GitOps structure checks
 - no hard-coded environment value checks
 - runbook baseline checks

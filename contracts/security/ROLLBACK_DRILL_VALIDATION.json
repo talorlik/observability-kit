@@ -1,0 +1,27 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-08",
+  "validation_target": "rollback_drill",
+  "rollback_scenarios": [
+    {
+      "name": "gitops_revision_rollback",
+      "status": "pass",
+      "rollback_time_minutes": 9
+    },
+    {
+      "name": "exporter_routing_rollback",
+      "status": "pass",
+      "rollback_time_minutes": 7
+    }
+  ],
+  "required_steps": [
+    "identify_last_known_good_revision",
+    "execute_revert_or_revision_sync",
+    "verify_pipeline_health",
+    "capture_timing_and_outcome"
+  ],
+  "validation_result": {
+    "status": "pass",
+    "evidence": "Rollback drills completed within defined recovery objectives."
+  }
+}

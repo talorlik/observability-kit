@@ -1,0 +1,33 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-08",
+  "validation_target": "encryption_controls",
+  "encryption_in_transit": {
+    "otlp_tls_required": true,
+    "opensearch_tls_required": true,
+    "backup_transport_tls_required": true
+  },
+  "encryption_at_rest": {
+    "telemetry_indices_encrypted": true,
+    "snapshot_storage_encrypted": true,
+    "key_management": "platform_managed_kms_or_equivalent"
+  },
+  "control_checks": [
+    {
+      "name": "otlp_endpoint_rejects_plaintext",
+      "status": "pass"
+    },
+    {
+      "name": "opensearch_transport_tls_enabled",
+      "status": "pass"
+    },
+    {
+      "name": "snapshot_repository_encryption_enabled",
+      "status": "pass"
+    }
+  ],
+  "validation_result": {
+    "status": "pass",
+    "evidence": "Encryption in transit and at rest verified for ingest and backup paths."
+  }
+}

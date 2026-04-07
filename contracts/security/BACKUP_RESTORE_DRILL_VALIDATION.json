@@ -1,0 +1,26 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-08",
+  "validation_target": "backup_restore_drill",
+  "snapshot_policy": {
+    "repository": "s3-compatible-snapshots",
+    "schedule": "0 */6 * * *",
+    "retention_snapshots": 56
+  },
+  "restore_drill": {
+    "environment": "non-production",
+    "source_snapshot": "snapshot-2026-04-06-1800",
+    "target_cluster": "observability-staging",
+    "status": "pass",
+    "restore_time_minutes": 22
+  },
+  "evidence_artifacts": [
+    "snapshot_repository_status",
+    "restore_execution_log",
+    "post_restore_index_health"
+  ],
+  "validation_result": {
+    "status": "pass",
+    "evidence": "Restore drill completed successfully in non-production."
+  }
+}

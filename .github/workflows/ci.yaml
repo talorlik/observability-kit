@@ -58,6 +58,9 @@ jobs:
       - name: Onboarding and subscription checks
         run: bash scripts/ci/validate_onboarding_subscription.sh
 
+      - name: Security, isolation, and resilience checks
+        run: bash scripts/ci/validate_security_isolation_resilience.sh
+
       - name: GitOps structure checks
         run: bash scripts/ci/validate_gitops_structure.sh
 

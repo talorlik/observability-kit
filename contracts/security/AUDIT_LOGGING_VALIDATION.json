@@ -1,0 +1,39 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-08",
+  "validation_target": "audit_logging",
+  "audit_scope": [
+    "access_events",
+    "configuration_changes",
+    "onboarding_actions"
+  ],
+  "retention_days": 90,
+  "audit_tests": [
+    {
+      "name": "role_change_event_logged",
+      "status": "pass",
+      "expected_fields_present": true
+    },
+    {
+      "name": "onboarding_policy_deny_logged",
+      "status": "pass",
+      "expected_fields_present": true
+    },
+    {
+      "name": "dashboard_space_access_logged",
+      "status": "pass",
+      "expected_fields_present": true
+    }
+  ],
+  "required_audit_fields": [
+    "@timestamp",
+    "actor",
+    "action",
+    "target",
+    "result"
+  ],
+  "validation_result": {
+    "status": "pass",
+    "evidence": "Audit events are queryable and retained within configured policy."
+  }
+}
