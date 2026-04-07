@@ -1,0 +1,33 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-11",
+  "task": 4,
+  "validation_target": "graph_freshness_and_sync_quality_alerts",
+  "freshness_slo": {
+    "max_graph_lag_minutes": 20,
+    "target_percentile": "p95"
+  },
+  "alerts": [
+    {
+      "name": "graph_freshness_lag_high",
+      "signal": "graph_data_lag_minutes",
+      "threshold": ">= 20",
+      "status": "pass",
+      "triggered_in_test": true
+    },
+    {
+      "name": "graph_sync_failure_rate_high",
+      "signal": "graph_sync_failure_rate_percent",
+      "threshold": ">= 5",
+      "status": "pass",
+      "triggered_in_test": true
+    }
+  ],
+  "routing_channels": [
+    "pagerduty-observability",
+    "slack-ops-graph-alerts"
+  ],
+  "validation_result": {
+    "status": "pass"
+  }
+}

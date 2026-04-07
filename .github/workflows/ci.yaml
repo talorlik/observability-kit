@@ -67,6 +67,9 @@ jobs:
       - name: Vector foundations checks
         run: bash scripts/ci/validate_vector_foundations.sh
 
+      - name: Graph foundation checks
+        run: bash scripts/ci/validate_graph_foundation.sh
+
       - name: GitOps structure checks
         run: bash scripts/ci/validate_gitops_structure.sh
 

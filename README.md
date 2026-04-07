@@ -188,6 +188,22 @@ baselines, governance controls, and vector operations playbook rehearsal.
 - Operator guide:
   `docs/runbooks/VECTOR_FOUNDATIONS_OPERATOR_GUIDE.md`
 
+## Batch 11 Graph Foundation
+
+Batch 11 adds optional derived graph intelligence validation for module
+enable or disable behavior, graph schema versioning, idempotent sync jobs,
+graph freshness alerts, dependency and blast-radius queries, and graph
+operations runbook dry-run evidence.
+
+- Graph foundation artifacts:
+  `contracts/graph/`
+- Batch 11 validation script:
+  `scripts/ci/validate_graph_foundation.sh`
+- Batch 11 smoke wrapper:
+  `scripts/ci/validate_batch11_smoke.sh`
+- Operator guide:
+  `docs/runbooks/GRAPH_FOUNDATION_OPERATOR_GUIDE.md`
+
 ## Baseline Runbooks
 
 - `docs/runbooks/INSTALL_RUNBOOK.md`
@@ -202,6 +218,7 @@ baselines, governance controls, and vector operations playbook rehearsal.
 - `docs/runbooks/SECURITY_ISOLATION_RESILIENCE_OPERATOR_GUIDE.md`
 - `docs/runbooks/OPERATOR_EXPERIENCE_SLO_OPERATIONS_GUIDE.md`
 - `docs/runbooks/VECTOR_FOUNDATIONS_OPERATOR_GUIDE.md`
+- `docs/runbooks/GRAPH_FOUNDATION_OPERATOR_GUIDE.md`
 
 ## Project-Local Snyk Path
 

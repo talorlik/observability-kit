@@ -24,6 +24,8 @@ bash scripts/ci/validate_metrics_traces_pipeline.sh
 bash scripts/ci/validate_onboarding_subscription.sh
 bash scripts/ci/validate_security_isolation_resilience.sh
 bash scripts/ci/validate_operator_experience_slo.sh
+bash scripts/ci/validate_vector_foundations.sh
+bash scripts/ci/validate_graph_foundation.sh
 bash scripts/ci/validate_gitops_structure.sh
 bash scripts/ci/check_no_hardcoded_env_values.sh
 bash scripts/ci/validate_runbook_links.sh
@@ -131,6 +133,30 @@ Run focused Batch 9 smoke validation:
 bash scripts/ci/validate_batch9_smoke.sh
 ```
 
+Run focused Batch 10 validation:
+
+```bash
+bash scripts/ci/validate_vector_foundations.sh
+```
+
+Run focused Batch 10 smoke validation:
+
+```bash
+bash scripts/ci/validate_batch10_smoke.sh
+```
+
+Run focused Batch 11 validation:
+
+```bash
+bash scripts/ci/validate_graph_foundation.sh
+```
+
+Run focused Batch 11 smoke validation:
+
+```bash
+bash scripts/ci/validate_batch11_smoke.sh
+```
+
 Run chart validation:
 
 ```bash
@@ -154,6 +180,8 @@ The `.github/workflows/ci.yaml` workflow enforces:
 - onboarding and subscription validation
 - security, isolation, and resilience validation
 - operator experience and SLO operations validation
+- vector foundations validation
+- graph foundation validation
 - GitOps structure checks
 - no hard-coded environment value checks
 - runbook baseline checks

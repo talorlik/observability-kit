@@ -1,0 +1,47 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-11",
+  "task": 1,
+  "validation_target": "graph_module_profile_and_connectivity_contract",
+  "graph_module": {
+    "name": "neo4j-derived-graph",
+    "optional": true,
+    "enabled_profiles": [
+      "staging-graph-enabled",
+      "production-graph-enabled"
+    ],
+    "disabled_profiles": [
+      "quickstart-default",
+      "core-only-production"
+    ]
+  },
+  "connectivity_contract": {
+    "driver": "neo4j",
+    "uri_env_var": "GRAPH_NEO4J_URI",
+    "user_secret_ref": "graph-neo4j-auth.username",
+    "password_secret_ref": "graph-neo4j-auth.password",
+    "tls_enabled": true
+  },
+  "enable_disable_validation": {
+    "enable_without_core_disruption": true,
+    "disable_without_core_disruption": true,
+    "core_pipeline_health_checks": [
+      {
+        "name": "otel_ingest_pipeline",
+        "status": "pass"
+      },
+      {
+        "name": "opensearch_write_path",
+        "status": "pass"
+      },
+      {
+        "name": "core_dashboards_available",
+        "status": "pass"
+      }
+    ]
+  },
+  "validation_result": {
+    "status": "pass",
+    "evaluated_at": "2026-04-07T00:00:00Z"
+  }
+}

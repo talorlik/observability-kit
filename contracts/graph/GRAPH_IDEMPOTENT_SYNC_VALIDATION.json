@@ -1,0 +1,40 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-11",
+  "task": 3,
+  "validation_target": "idempotent_sync_jobs",
+  "sync_source": {
+    "telemetry_store": "opensearch",
+    "metadata_inputs": [
+      "service_catalog",
+      "ownership_registry",
+      "incident_log"
+    ]
+  },
+  "sync_runs": [
+    {
+      "run_id": "graph-sync-2026-04-07T00:15:00Z",
+      "mode": "full",
+      "nodes_upserted": 420,
+      "relationships_upserted": 1186,
+      "duplicates_detected": 0,
+      "status": "pass"
+    },
+    {
+      "run_id": "graph-sync-2026-04-07T00:45:00Z",
+      "mode": "replay",
+      "nodes_upserted": 420,
+      "relationships_upserted": 1186,
+      "duplicates_detected": 0,
+      "status": "pass"
+    }
+  ],
+  "convergence_checks": {
+    "repeated_runs_converge": true,
+    "run_to_run_hash_match": true,
+    "late_out_of_order_handling_defined": true
+  },
+  "validation_result": {
+    "status": "pass"
+  }
+}
