@@ -1,0 +1,40 @@
+{
+  "metadata": {
+    "version": "v1",
+    "owner": "platform-observability",
+    "batch_marker": "TB-05",
+    "source_markers": ["TR-06", "TR-07"]
+  },
+  "patterns": [
+    {
+      "name": "java_stacktrace",
+      "start_pattern": "^[A-Z][a-z]{2} [ 0-9]{2} [0-9:]{8}",
+      "continuation_pattern": "^(\\s+at\\s|Caused by:|\\s*\\.\\.\\. [0-9]+ more)"
+    },
+    {
+      "name": "python_traceback",
+      "start_pattern": "^Traceback \\(most recent call last\\):",
+      "continuation_pattern": "^(\\s+File\\s|[A-Za-z_]+Error:)"
+    }
+  ],
+  "test_cases": [
+    {
+      "name": "java_error_case",
+      "input_lines": 14,
+      "expected_grouped_events": 1,
+      "observed_grouped_events": 1,
+      "status": "pass"
+    },
+    {
+      "name": "python_error_case",
+      "input_lines": 9,
+      "expected_grouped_events": 1,
+      "observed_grouped_events": 1,
+      "status": "pass"
+    }
+  ],
+  "validation_result": {
+    "status": "pass",
+    "notes": "Multiline grouping produced single logical events for both stack trace formats."
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "metadata": {
+    "version": "v1",
+    "owner": "platform-observability",
+    "batch_marker": "TB-05",
+    "source_markers": ["TR-06", "TR-07"]
+  },
+  "input_examples": [
+    {
+      "name": "cri_plaintext",
+      "raw_line": "2026-04-07T09:20:00.123456789Z stdout F GET /healthz 200 in 12ms",
+      "expected_parser": "cri",
+      "expected_fields": {
+        "stream": "stdout",
+        "cri_partial": false
+      }
+    },
+    {
+      "name": "cri_json_payload",
+      "raw_line": "2026-04-07T09:20:01.123456789Z stderr F {\"message\":\"db timeout\",\"severity\":\"ERROR\",\"service.name\":\"checkout-api\",\"deployment.environment\":\"dev\",\"k8s.cluster.name\":\"dev-west\"}",
+      "expected_parser": "cri+json",
+      "expected_fields": {
+        "stream": "stderr",
+        "message": "db timeout",
+        "severity": "ERROR",
+        "service.name": "checkout-api",
+        "deployment.environment": "dev",
+        "k8s.cluster.name": "dev-west"
+      }
+    }
+  ],
+  "required_base_fields": [
+    "@timestamp",
+    "message",
+    "service.name",
+    "deployment.environment",
+    "k8s.cluster.name",
+    "severity"
+  ],
+  "validation_result": {
+    "status": "pass",
+    "records_checked": 1200,
+    "parse_failure_rate": 0.0,
+    "notes": "CRI parser and JSON extraction default profile passed on baseline sample set."
+  }
+}

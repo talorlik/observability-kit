@@ -11,6 +11,7 @@ bash scripts/ci/validate_install_contract.sh
 bash scripts/ci/validate_compatibility_and_modes.sh
 bash scripts/ci/validate_preflight_and_discovery.sh
 bash scripts/ci/validate_collector_core_topology.sh
+bash scripts/ci/validate_logs_pipeline.sh
 bash scripts/ci/validate_gitops_structure.sh
 bash scripts/ci/check_no_hardcoded_env_values.sh
 bash scripts/ci/validate_runbook_links.sh
@@ -34,6 +35,12 @@ Run focused Batch 4 smoke validation:
 bash scripts/ci/validate_batch4_smoke.sh
 ```
 
+Run focused Batch 5 validation:
+
+```bash
+bash scripts/ci/validate_logs_pipeline.sh
+```
+
 Run chart validation:
 
 ```bash
@@ -52,6 +59,7 @@ The `.github/workflows/ci.yml` workflow enforces:
 - compatibility matrix and mode decision validation
 - preflight and discovery output validation
 - collector core topology validation
+- logs pipeline validation
 - GitOps structure checks
 - no hard-coded environment value checks
 - runbook baseline checks

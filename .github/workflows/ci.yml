@@ -49,6 +49,9 @@ jobs:
       - name: Collector core topology checks
         run: bash scripts/ci/validate_collector_core_topology.sh
 
+      - name: Logs pipeline checks
+        run: bash scripts/ci/validate_logs_pipeline.sh
+
       - name: GitOps structure checks
         run: bash scripts/ci/validate_gitops_structure.sh
 

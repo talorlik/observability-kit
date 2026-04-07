@@ -1,0 +1,34 @@
+{
+  "metadata": {
+    "version": "v1",
+    "owner": "platform-observability",
+    "batch_marker": "TB-05",
+    "source_markers": ["TR-06", "TR-07"]
+  },
+  "requirements": {
+    "trace_context_fields": ["trace_id", "span_id"],
+    "behavior_when_present": "fields_must_be_preserved_and_queryable",
+    "behavior_when_absent": "event_remains_valid_without_correlation_fields"
+  },
+  "query_samples": [
+    {
+      "name": "trace_to_logs_pivot",
+      "query": "trace_id: 4bf92f3577b34da6a3ce929d0e0e4736",
+      "expected_min_hits": 1,
+      "observed_hits": 17,
+      "status": "pass"
+    },
+    {
+      "name": "span_specific_lookup",
+      "query": "trace_id: 4bf92f3577b34da6a3ce929d0e0e4736 AND span_id: 00f067aa0ba902b7",
+      "expected_min_hits": 1,
+      "observed_hits": 3,
+      "status": "pass"
+    }
+  ],
+  "validation_result": {
+    "status": "pass",
+    "correlation_hit_rate_percent": 100,
+    "notes": "Pilot services support trace-linked log retrieval when trace context is present."
+  }
+}

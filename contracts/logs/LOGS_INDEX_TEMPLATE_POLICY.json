@@ -1,0 +1,40 @@
+{
+  "metadata": {
+    "version": "v1",
+    "owner": "platform-observability",
+    "batch_marker": "TB-05",
+    "source_markers": ["TR-06", "TR-07"]
+  },
+  "index_template": {
+    "index_patterns": ["logs-*"],
+    "composed_of": ["logs-mappings-v1", "logs-settings-v1", "logs-ilm-v1"],
+    "template_settings": {
+      "index.lifecycle.name": "logs-default-30d",
+      "index.lifecycle.rollover_alias": "logs-write"
+    }
+  },
+  "naming_strategy": {
+    "recommended_pattern": "logs-${env}-${team}-YYYY.MM.DD",
+    "valid_examples": [
+      "logs-dev-platform-2026.04.07",
+      "logs-prod-payments-2026.04.07"
+    ]
+  },
+  "mapping_policy": {
+    "dynamic": "strict",
+    "required_keywords": [
+      "service.name",
+      "deployment.environment",
+      "k8s.cluster.name",
+      "severity",
+      "trace_id",
+      "span_id"
+    ]
+  },
+  "validation_result": {
+    "status": "pass",
+    "template_match_for_new_index": true,
+    "rollover_policy_attached": true,
+    "notes": "New logs indices match logs-* template and inherit mapping and lifecycle controls."
+  }
+}

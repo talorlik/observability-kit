@@ -83,6 +83,19 @@ behavior.
 - Operator guide:
   `docs/runbooks/COLLECTOR_CORE_TOPOLOGY_OPERATOR_GUIDE.md`
 
+## Batch 5 Logs Pipeline
+
+Batch 5 adds governed log ingestion validation for CRI and JSON parsing,
+multiline grouping, sensitive field redaction, `logs-*` template enforcement,
+and trace correlation behavior.
+
+- Logs pipeline artifacts:
+  `contracts/logs/`
+- Batch 5 validation script:
+  `scripts/ci/validate_logs_pipeline.sh`
+- Operator guide:
+  `docs/runbooks/LOGS_PIPELINE_OPERATOR_GUIDE.md`
+
 ## Baseline Runbooks
 
 - `docs/runbooks/INSTALL_RUNBOOK.md`
@@ -91,3 +104,4 @@ behavior.
 - `docs/runbooks/COMPATIBILITY_AND_MODE_OPERATOR_GUIDE.md`
 - `docs/runbooks/PREFLIGHT_AND_DISCOVERY_OPERATOR_GUIDE.md`
 - `docs/runbooks/COLLECTOR_CORE_TOPOLOGY_OPERATOR_GUIDE.md`
+- `docs/runbooks/LOGS_PIPELINE_OPERATOR_GUIDE.md`

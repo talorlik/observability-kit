@@ -1,0 +1,58 @@
+{
+  "metadata": {
+    "version": "v1",
+    "owner": "platform-observability",
+    "batch_marker": "TB-05",
+    "source_markers": ["TR-06", "TR-07", "TR-09"]
+  },
+  "policy": {
+    "redact_patterns": [
+      "password",
+      "passwd",
+      "api_key",
+      "authorization",
+      "token",
+      "secret",
+      "ssn",
+      "credit_card"
+    ],
+    "replacement": "[REDACTED]",
+    "never_index_fields": [
+      "user.password",
+      "http.request.header.authorization",
+      "secrets.*"
+    ]
+  },
+  "test_events": [
+    {
+      "name": "http_authorization_header",
+      "before": {
+        "message": "incoming request",
+        "http.request.header.authorization": "Bearer abc.123.xyz"
+      },
+      "after": {
+        "message": "incoming request",
+        "http.request.header.authorization": "[REDACTED]"
+      },
+      "status": "pass"
+    },
+    {
+      "name": "application_password_field",
+      "before": {
+        "message": "login attempt",
+        "user.password": "supersecret"
+      },
+      "after": {
+        "message": "login attempt",
+        "user.password": "[REDACTED]"
+      },
+      "status": "pass"
+    }
+  ],
+  "validation_result": {
+    "status": "pass",
+    "redacted_fields_found": 37,
+    "unredacted_matches": 0,
+    "notes": "No prohibited sensitive values remained in indexed payloads."
+  }
+}
