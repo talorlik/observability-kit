@@ -13,6 +13,7 @@ Ultimate goal alignment for this PRD:
 - Guided installation with preflight validation and capability discovery
 - OpenTelemetry-only collection path for logs, metrics, and traces
 - OpenSearch as default telemetry and vector backend
+- Multi-tool visualization plane with explicit signal ownership
 - Neo4j as an optional derived graph intelligence tier
 - Phased progression from core observability to optional LLM-assisted RCA
 
@@ -32,6 +33,7 @@ The platform must provide:
 - Multi-environment support: `dev`, `stage`, `prod` or custom labels
 - Multi-cluster telemetry onboarding and environment-scoped tenancy
 - Logs, metrics, traces, dashboards, alerting, and SLO operations
+- Secure externalized admin GUI access for operations and investigation
 - Policy-driven onboarding and schema governance
 - AI foundations: vectors, semantic retrieval, anomaly detection
 - Graph foundations: topology graph, risk scoring, graph-aware RCA
@@ -297,6 +299,54 @@ LLM-assisted RCA capability is enabled.
 The product shall provide an optional graph-aware RCA service with hybrid
 retrieval from OpenSearch and Neo4j and explicit governance controls.
 
+#### FR-027 Visualization Plane and Core UI Requirements
+
+The product shall treat visualization as a first-class product capability with
+the following core requirements:
+
+- OpenSearch Dashboards is core.
+- Grafana is core and mandatory, not optional.
+- Neo4j Browser is core when graph module capability is enabled.
+- Jaeger UI is optional specialist trace UI.
+- Neo4j Bloom is optional specialist graph UI.
+- Signal ownership shall be explicit for logs, metrics, traces, and graph use
+  cases.
+
+#### FR-028 Externalized Admin Access Plane
+
+The product shall provide secure, operator-friendly external access to admin
+GUIs without requiring direct cluster shell access.
+
+Required capabilities:
+
+- ingress and or Gateway API exposure modes
+- TLS on all externally reachable admin endpoints
+- centralized authn (OIDC preferred, SAML adapter path supported)
+- role and group to tool-RBAC mapping
+- private access defaults with documented internet-facing hardening controls
+- break-glass access workflow with auditability
+
+#### FR-029 Dashboard and Saved Object Provisioning
+
+The product shall provision dashboards and saved objects as code, grouped by
+tool and use case, and versioned through GitOps delivery paths.
+
+Acceptance baseline must include:
+
+- Grafana dashboards for metrics-first operations and executive views
+- OpenSearch Dashboards assets for logs and trace analytics
+- graph investigation entry assets for Neo4j Browser when graph is enabled
+
+#### FR-030 Admin GUI Validation and Smoke Tests
+
+The product shall include post-install validation for enabled admin GUIs:
+
+- endpoint reachability checks
+- TLS and certificate checks
+- login flow checks
+- role-scoped access checks for at least read-only and admin personas
+- traceable output in readiness reports
+
 ### 6.2 Non-Functional Requirements
 
 #### NFR-001 Reliability
@@ -446,6 +496,7 @@ The product is accepted when:
 
 - Phase 1 success criteria and non-functional gates are met in production
 - Discovery and guided install outcomes are reproducible across environments
+- Admin GUI reachability, login, and role-based access checks pass for enabled UIs
 - Required operational documentation and handover are complete
 - Security and compliance review artifacts are approved
 

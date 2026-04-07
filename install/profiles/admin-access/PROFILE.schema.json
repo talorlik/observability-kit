@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Admin Access Profile",
+  "type": "object",
+  "required": [
+    "mode",
+    "tls",
+    "authn",
+    "role_mapping",
+    "endpoints"
+  ],
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": [
+        "ingress",
+        "gateway"
+      ]
+    },
+    "tls": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "source"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "const": true
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "cert-manager",
+            "external-secret"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "authn": {
+      "type": "object",
+      "required": [
+        "provider",
+        "mfa_required"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "enum": [
+            "oidc",
+            "saml-adapter"
+          ]
+        },
+        "mfa_required": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "role_mapping": {
+      "type": "object",
+      "required": [
+        "readonly_group",
+        "admin_group"
+      ],
+      "properties": {
+        "readonly_group": {
+          "type": "string",
+          "minLength": 1
+        },
+        "admin_group": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "break_glass": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "expiry_minutes"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "expiry_minutes": {
+          "type": "integer",
+          "minimum": 15,
+          "maximum": 240
+        }
+      },
+      "additionalProperties": false
+    },
+    "endpoints": {
+      "type": "object",
+      "required": [
+        "opensearch_dashboards",
+        "grafana"
+      ],
+      "properties": {
+        "opensearch_dashboards": {
+          "type": "string",
+          "minLength": 1
+        },
+        "grafana": {
+          "type": "string",
+          "minLength": 1
+        },
+        "neo4j_browser": {
+          "type": "string"
+        },
+        "jaeger": {
+          "type": "string"
+        },
+        "neo4j_bloom": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

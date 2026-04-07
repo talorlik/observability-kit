@@ -69,7 +69,7 @@ Preferred component categories:
 - GitOps: ArgoCD or Flux
 - Packaging: Helm
 - Search and analytics: OpenSearch
-- Dashboards/UI: OpenSearch Dashboards, Grafana when justified
+- Dashboards/UI: OpenSearch Dashboards and Grafana as core, multi-tool baseline
 - Policy: Kyverno, OPA Gatekeeper, or equivalent
 - Discovery/config UX: Kubernetes-native controllers, jobs, CLI wrappers, CRDs,
   operators
@@ -232,8 +232,8 @@ When adapting documents, use the following baseline unless the user overrides it
   - node-level agent/DaemonSet where useful
   - central gateway/Deployment for routing, sampling, redaction, and policy
 - OpenSearch as the default open-source telemetry and search backend
-- OpenSearch Dashboards as default UI
-- Grafana optional when it materially improves UX
+- OpenSearch Dashboards as core UI for logs and trace analytics
+- Grafana as core UI for metrics-first, SLO, NOC, and executive workflows
 - Optional graph intelligence module as a separate derived layer
 - Policy engine for admission and standards enforcement
 - Guided install and discovery engine

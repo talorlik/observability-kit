@@ -173,6 +173,24 @@ tracking.
 - Operator guide:
   `docs/runbooks/OPERATOR_EXPERIENCE_SLO_OPERATIONS_GUIDE.md`
 
+## Batch 9A Visualization And Admin Access Plane
+
+Batch 9A adds multi-tool visualization ownership and admin GUI access-plane
+validation for signal-to-UI mapping, mandatory Grafana core posture, UI
+provisioning paths, admin access profile contracts, and admin GUI TLS plus
+login smoke behavior.
+
+- Visualization artifacts:
+  `contracts/visualization/`
+- Admin access profile schema:
+  `install/profiles/admin-access/PROFILE.schema.json`
+- Batch 9A validation script:
+  `scripts/ci/validate_visualization_admin_access.sh`
+- Batch 9A smoke wrapper:
+  `scripts/ci/validate_batch9a_smoke.sh`
+- Operator guide:
+  `docs/runbooks/VISUALIZATION_ADMIN_ACCESS_PLANE_GUIDE.md`
+
 ## Batch 10 Vector Foundations
 
 Batch 10 adds governed semantic retrieval validation for curated operational
@@ -220,6 +238,18 @@ go or hold decision records.
 - Operator guide:
   `docs/runbooks/RISK_SCORING_ASSISTED_RCA_READINESS_GUIDE.md`
 
+## Unified Validation Reporting
+
+Run all implemented batch smoke tests and generate developer and QA friendly
+reports:
+
+`bash scripts/ci/validate_all_batches_with_report.sh`
+
+Report outputs:
+
+- `docs/reports/validation/BATCH_VALIDATION_REPORT_LATEST.md`
+- `docs/reports/validation/BATCH_VALIDATION_REPORT_LATEST.json`
+
 ## Baseline Runbooks
 
 - `docs/runbooks/INSTALL_RUNBOOK.md`
@@ -233,6 +263,7 @@ go or hold decision records.
 - `docs/runbooks/ONBOARDING_SUBSCRIPTION_OPERATOR_GUIDE.md`
 - `docs/runbooks/SECURITY_ISOLATION_RESILIENCE_OPERATOR_GUIDE.md`
 - `docs/runbooks/OPERATOR_EXPERIENCE_SLO_OPERATIONS_GUIDE.md`
+- `docs/runbooks/VISUALIZATION_ADMIN_ACCESS_PLANE_GUIDE.md`
 - `docs/runbooks/VECTOR_FOUNDATIONS_OPERATOR_GUIDE.md`
 - `docs/runbooks/GRAPH_FOUNDATION_OPERATOR_GUIDE.md`
 - `docs/runbooks/RISK_SCORING_ASSISTED_RCA_READINESS_GUIDE.md`

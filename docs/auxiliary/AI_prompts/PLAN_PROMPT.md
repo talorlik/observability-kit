@@ -46,10 +46,9 @@ in the cluster.
   multi-hop analytics, risk scoring, and advanced topology workloads - not a substitute
   for storing raw telemetry. If both stores carry vectors, the plan must justify
   roles and avoid redundant pipelines.
-- Use the most appropriate visualization tools for each signal while keeping
-  operational overhead low (default: **OpenSearch Dashboards** with Observability
-  and Trace Analytics; **Grafana** only when clearly justified as a UI on top of
-  OpenSearch).
+- Use a multi-tool visualization model with explicit signal ownership:
+  **OpenSearch Dashboards** is core for logs and trace analytics, and
+  **Grafana** is core for metrics-first, SLO, NOC, and executive dashboards.
 - We want to later add ML and AI capabilities to correlate signals, predict issues,
   and accelerate RCA, with a **practical ordering**: deterministic graph construction
   and **risk/topology scoring** before heavy **LLM-assisted RCA** on top of that
@@ -222,9 +221,9 @@ D) Detailed Technical Steps (AWS + EKS)
   - Propagation standard (W3C tracecontext), correlation with logs
   - Sampling strategy (head vs tail), and how it impacts storage/AI
 - Visualization:
-  - Recommend tools given OpenSearch storage (**OpenSearch Dashboards**
-    Observability + Trace Analytics as default; **Amazon Managed Grafana** or
-    self-managed Grafana only if justified as query UI on OpenSearch)
+  - Recommend tools given OpenSearch storage with multi-tool baseline
+    (**OpenSearch Dashboards** for logs and traces; **Grafana** for metrics,
+    SLO, NOC, and executive views)
   - Explain trade-offs and minimal-overhead path
   - Dashboard structure, naming conventions, golden signals, service overview pages
 - **Neo4j operational slice** (if in scope): sync cadence, idempotency, graph schema

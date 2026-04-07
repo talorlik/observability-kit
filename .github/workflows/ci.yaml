@@ -64,6 +64,9 @@ jobs:
       - name: Operator experience and SLO operations checks
         run: bash scripts/ci/validate_operator_experience_slo.sh
 
+      - name: Visualization and admin access plane checks
+        run: bash scripts/ci/validate_visualization_admin_access.sh
+
       - name: Vector foundations checks
         run: bash scripts/ci/validate_vector_foundations.sh
 

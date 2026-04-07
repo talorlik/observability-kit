@@ -79,8 +79,12 @@ and open-source-first.
   - each cluster runs its own agents and local platform components where required
   - environments may aggregate multiple clusters into one OpenSearch and/or Neo4j
     topology if capacity and governance permit
-- Primary visualization is OpenSearch Dashboards.
-- Grafana is optional and only used where it materially improves the operator UX.
+- Visualization is multi-tool by design with explicit ownership:
+  - OpenSearch Dashboards is core for logs, event analytics, and trace analytics.
+  - Grafana is core for metrics-first, SLO, NOC, and executive dashboards.
+  - Neo4j Browser is core when the graph module is enabled.
+  - Jaeger UI is optional for specialist trace investigation.
+  - Neo4j Bloom is optional for specialist graph exploration.
 - Retention defaults:
   - Logs: 30 days
   - Metrics: 30 days with downsampling after 7 days
@@ -1461,12 +1465,50 @@ service:
 
 **Default:**
 
-- OpenSearch Dashboards for logs, metrics, traces, alerting, and evidence views
+- OpenSearch Dashboards for logs, event analytics, trace analytics, alerting,
+  and evidence views
+- Grafana for metrics-first dashboards, SLO and NOC operations, and executive
+  health boards
+- Neo4j Browser for dependency traversal and blast-radius investigation when the
+  graph module is enabled
 
 **Optional:**
 
-- Grafana only if it materially improves UX and still uses OpenSearch as a backend
-  or companion query layer where supported
+- Jaeger UI for specialist deep trace troubleshooting
+- Neo4j Bloom for richer graph exploration and presentation workflows
+
+**Signal-to-UI ownership:**
+
+- Logs -> OpenSearch Dashboards
+- Metrics -> Grafana
+- Traces -> OpenSearch Dashboards by default; Jaeger UI optional
+- Topology and dependency graph -> Neo4j Browser by default; Neo4j Bloom optional
+- Executive service health and SLO views -> Grafana
+
+### 7.7.1 Admin Access Plane and Externalized GUIs
+
+The platform must externalize admin GUIs so operators can perform day-two
+operations without direct shell access to cluster nodes.
+
+Externally reachable admin GUIs include:
+
+- OpenSearch Dashboards
+- Grafana
+- Neo4j Browser
+- Jaeger UI when enabled
+- Neo4j Bloom when enabled
+- Argo CD UI
+
+Access requirements:
+
+- ingress and or Gateway API exposure modes
+- TLS mandatory on all endpoints
+- OIDC preferred for centralized authn
+- SAML supported as an adapter path when required
+- role and group to tool-RBAC mapping
+- private or internal exposure as default posture
+- internet-facing access allowed only with strict SSO and MFA controls
+- audit logging and break-glass workflows documented and tested
 
 **Dashboard taxonomy:**
 

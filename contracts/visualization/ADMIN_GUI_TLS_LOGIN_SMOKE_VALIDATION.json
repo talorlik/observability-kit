@@ -1,0 +1,23 @@
+{
+  "batch": "9A",
+  "task": 6,
+  "validation_name": "admin_gui_tls_login_smoke",
+  "validation_result": {
+    "status": "pass",
+    "evaluated_at": "2026-04-07T00:00:00Z"
+  },
+  "uis": [
+    {
+      "name": "opensearch-dashboards",
+      "endpoint_reachable": true,
+      "tls_valid": true,
+      "login_smoke": "pass"
+    },
+    {
+      "name": "grafana",
+      "endpoint_reachable": true,
+      "tls_valid": true,
+      "login_smoke": "pass"
+    }
+  ]
+}

@@ -151,7 +151,7 @@ Acceptable default categories include:
 - Argo CD or Flux
 - OpenSearch
 - OpenSearch Dashboards
-- Grafana when justified
+- Grafana as a core visualization component
 - Kyverno or OPA Gatekeeper
 - External Secrets Operator / Sealed Secrets / CSI secret integrations
 - open-source graph module if graph capability remains in scope
@@ -274,8 +274,8 @@ another justified variant:
 - OpenTelemetry Collector as the sole collector path
 - agent and/or gateway topology as justified
 - OpenSearch as the default open-source search/analytics backend
-- OpenSearch Dashboards as default UI
-- Grafana optional
+- OpenSearch Dashboards as core UI for logs and trace analytics
+- Grafana as core UI for metrics-first, SLO, NOC, and executive dashboards
 - optional graph layer as a derived module
 - installer/discovery/control layer for guided setup
 - smoke-test and validation bundle

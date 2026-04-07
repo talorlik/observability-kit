@@ -1,0 +1,18 @@
+{
+  "batch": "9A",
+  "task": 3,
+  "validation_name": "core_ui_provisioning_paths",
+  "validation_result": {
+    "status": "pass",
+    "evaluated_at": "2026-04-07T00:00:00Z"
+  },
+  "required_paths": [
+    "gitops/platform/search/dashboards/saved-objects",
+    "gitops/platform/observability/grafana/dashboards",
+    "gitops/platform/observability/grafana/provisioning"
+  ],
+  "core_components": {
+    "opensearch_dashboards": "required",
+    "grafana": "required"
+  }
+}

@@ -72,9 +72,11 @@ store, and Neo4j as the derived graph intelligence layer.
 - Multi-cluster supported: each cluster runs its own collectors; all clusters in
   an env write to the env's OSI endpoint and OpenSearch store with cluster
   identity tags for routing and analysis.
-- Primary visualization is OpenSearch Dashboards for all signals to minimize
-  overhead. Grafana is optional and only as a UI on top of OpenSearch if
-  mandated.
+- Visualization is multi-tool by design:
+  - OpenSearch Dashboards is core for logs and trace analytics.
+  - Grafana is core for metrics-first, SLO, NOC, and executive dashboards.
+  - Neo4j Browser is core when graph capabilities are enabled.
+  - Jaeger UI and Neo4j Bloom remain optional specialist UIs.
 - Retention defaults (can be overridden):
   - Logs: 30 days
   - Metrics: 30 days with downsampling after 7 days

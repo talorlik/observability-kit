@@ -31,16 +31,16 @@ corresponding execution batches in `TASKS.md`.
 | ---- | ---- |
 | `TR-01` | Reference context only |
 | `TR-02` | Constraint baseline across all batches |
-| `TR-03` | Architecture baseline across all batches |
+| `TR-03` | `TB-09A` |
 | `TR-04` | `TB-02`, `TB-03` |
 | `TR-05` | `TB-02`, `TB-03` |
 | `TR-06` | `TB-04`, `TB-05`, `TB-06`, `TB-07`, `TB-09` |
 | `TR-07` | `TB-05`, `TB-06`, `TB-08` |
 | `TR-08` | `TB-10`, `TB-11`, `TB-12` |
-| `TR-09` | `TB-07`, `TB-08`, `TB-10`, `TB-12` |
+| `TR-09` | `TB-07`, `TB-08`, `TB-09A`, `TB-10`, `TB-12` |
 | `TR-10` | `TB-01`, `TB-03`, `TB-09` |
 | `TR-11` | `TB-04`, `TB-11` |
-| `TR-12` | `TB-07`, `TB-08`, `TB-09` |
+| `TR-12` | `TB-07`, `TB-08`, `TB-09`, `TB-09A` |
 | `TR-13` | `TB-12` |
 | `TR-14` | `TB-01`, `TB-02` |
 
@@ -64,7 +64,14 @@ The target system is a Kubernetes-native observability platform that is:
 - OpenTelemetry is the only baseline collector path for logs, metrics, and traces.
 - The core architecture must remain valid across cloud and on-prem Kubernetes.
 - OpenSearch is the default telemetry and vector store.
-- OpenSearch Dashboards is the default visualization tier.
+- Visualization is multi-tool by design:
+  - OpenSearch Dashboards is core for log search, event analytics, and trace
+    analytics workflows.
+  - Grafana is core for metrics-first dashboards, SLO and NOC views, and
+    alerting workflows.
+  - Neo4j Browser is core when the graph module is enabled.
+  - Jaeger UI is optional for specialist trace investigation.
+  - Neo4j Bloom is optional for specialist graph exploration.
 - Neo4j is an optional, derived graph module, not a raw telemetry sink.
 - All in-cluster components are delivered with Helm and reconciled via GitOps.
 - No provider-specific service is mandatory in the core architecture.
@@ -88,6 +95,17 @@ The target system is a Kubernetes-native observability platform that is:
   - OpenTelemetry operator and collectors
   - OpenSearch
   - OpenSearch Dashboards
+- Visualization plane:
+  - OpenSearch Dashboards (core)
+  - Grafana (core)
+  - Neo4j Browser (core when graph module is enabled)
+  - Jaeger UI (optional)
+  - Neo4j Bloom (optional)
+- Admin access plane:
+  - ingress and Gateway API exposure patterns for admin GUIs
+  - centralized authn via OIDC by default, SAML via adapter when needed
+  - role or group to tool-RBAC mapping per UI
+  - session security, audit, and break-glass access controls
 - Platform services plane:
   - policy, secret, identity, certificate, storage, backup, and networking modules
     selected by profile
@@ -307,6 +325,19 @@ Required controls:
 - sampling policy must be explicitly set per environment and service tier.
 - trace and log correlation requires shared identifiers.
 
+### 6.6 Signal-To-UI Ownership Model
+
+Signal and use-case ownership must be explicit and stable:
+
+- logs: OpenSearch Dashboards
+- metrics: Grafana
+- traces: OpenSearch Dashboards by default, Jaeger UI optional
+- topology and blast radius: Neo4j Browser by default, Neo4j Bloom optional
+- executive, SLO, and NOC boards: Grafana
+
+Dashboards-as-code and saved-objects provisioning must be split by tool and
+stored in tool-specific paths to keep delivery deterministic.
+
 ## 7. Storage, Schema, and Backend Strategy [TR-07]
 
 ### 7.1 OpenSearch Index Strategy
@@ -383,6 +414,19 @@ Neo4j must not duplicate raw telemetry storage responsibilities.
 - maintain audit evidence for access, configuration, and incident operations
 - enforce AI governance controls before enabling LLM RCA
 
+### 9.1 Admin GUI Authn, Authz, and Exposure Model
+
+- externalize admin GUIs for OpenSearch Dashboards, Grafana, Neo4j Browser, and
+  optional Jaeger UI and Neo4j Bloom
+- expose admin GUIs through Kubernetes-native ingress and or Gateway API
+- enforce TLS for every externally reachable admin endpoint
+- prefer private or internal exposure with VPN or ZTNA access paths
+- if internet-facing exposure is approved, require SSO and MFA controls
+- centralize authentication with OIDC by default; SAML is supported via adapter
+- map identity groups to each tool's RBAC model with least privilege defaults
+- enforce audit logging for login, config changes, and privileged actions
+- document and test break-glass access workflow and expiry controls
+
 ## 10. GitOps, IaC, and CI/CD Requirements [TR-10]
 
 ### 10.1 GitOps Delivery Model
@@ -440,6 +484,7 @@ Reusable module categories should include:
 - trace-log correlation checks
 - ingestion lag and drop-rate checks
 - dashboard and alert health checks
+- admin GUI reachability and login smoke tests for all enabled core UIs
 - backup and restore drill evidence
 
 ### 12.2 Meta-Monitoring Requirements

@@ -26,6 +26,7 @@ Use these markers to trace each batch to `TECHNICAL.md`.
 | Batch 7 | `TR-06`, `TR-09`, `TR-12` |
 | Batch 8 | `TR-07`, `TR-09`, `TR-12` |
 | Batch 9 | `TR-06`, `TR-10`, `TR-12` |
+| Batch 9A | `TR-03`, `TR-09`, `TR-12` |
 | Batch 10 | `TR-08`, `TR-09` |
 | Batch 11 | `TR-08`, `TR-11` |
 | Batch 12 | `TR-08`, `TR-09`, `TR-13` |
@@ -46,6 +47,7 @@ Use this index first when actioning tasks so the correct section in
 | `TB-07` | Batch 7 - Onboarding and Subscription Model | `TR-06`, `TR-09`, `TR-12` |
 | `TB-08` | Batch 8 - Security, Isolation, and Resilience | `TR-07`, `TR-09`, `TR-12` |
 | `TB-09` | Batch 9 - Operator Experience and SLO Operations | `TR-06`, `TR-10`, `TR-12` |
+| `TB-09A` | Batch 9A - Visualization and Admin Access Plane | `TR-03`, `TR-09`, `TR-12` |
 | `TB-10` | Batch 10 - Vector Foundations | `TR-08`, `TR-09` |
 | `TB-11` | Batch 11 - Graph Foundation | `TR-08`, `TR-11` |
 | `TB-12` | Batch 12 - Risk Scoring and Assisted RCA Readiness | `TR-08`, `TR-09`, `TR-13` |
@@ -260,6 +262,33 @@ Goal: make telemetry actionable and reduce incident response effort.
 6. Tune alert noise and false-positive rate based on pilot feedback.
    - Dependencies: Task 5.
    - Completion check: alert noise trend improves over two review cycles.
+
+## Batch 9A - Visualization and Admin Access Plane [TB-09A | TR-03, TR-09, TR-12]
+
+Goal: make visualization explicitly multi-tool and deliver secure external admin
+GUI access.
+
+1. Define and publish signal-to-UI ownership model for logs, metrics, traces,
+   graph workflows, and executive views.
+   - Dependencies: Batch 9.
+   - Completion check: ownership matrix is published and cross-linked in runbooks.
+2. Make Grafana a mandatory core component in baseline deployment profiles.
+   - Dependencies: Task 1.
+   - Completion check: baseline profile installs Grafana with no optional flag.
+3. Define OpenSearch Dashboards and Grafana provisioning paths as code.
+   - Dependencies: Tasks 1-2.
+   - Completion check: saved objects and dashboards render from versioned assets.
+4. Define Neo4j Browser exposure and auth requirements for graph-enabled mode.
+   - Dependencies: Batch 11 Task 1 may remain pending for rollout, but
+     requirements and placeholders are created in this batch.
+   - Completion check: graph-enabled profile has clear UI endpoint and RBAC plan.
+5. Implement admin access plane profile contract (ingress/gateway, TLS, authn,
+   role mapping, break-glass path).
+   - Dependencies: Batch 3, Batch 8.
+   - Completion check: profile schema and operator guidance are published.
+6. Add admin GUI smoke tests for endpoint reachability and login flow checks.
+   - Dependencies: Tasks 2-5.
+   - Completion check: readiness suite reports pass or fail by enabled UI.
 
 ## Batch 10 - Vector Foundations [TB-10 | TR-08, TR-09]
 

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Admin GUI Readiness",
+  "type": "object",
+  "required": [
+    "status",
+    "uis"
+  ],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "fail"
+      ]
+    },
+    "uis": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "endpoint_reachable",
+          "tls_valid",
+          "login_smoke"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "endpoint_reachable": {
+            "type": "boolean"
+          },
+          "tls_valid": {
+            "type": "boolean"
+          },
+          "login_smoke": {
+            "type": "string",
+            "enum": [
+              "pass",
+              "fail"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

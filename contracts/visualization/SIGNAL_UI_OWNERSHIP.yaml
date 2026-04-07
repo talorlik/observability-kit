@@ -1,0 +1,23 @@
+version: 1
+batch: 9A
+ownership:
+  logs: opensearch-dashboards
+  metrics: grafana
+  traces:
+    default: opensearch-dashboards
+    optional: jaeger
+  topology:
+    default: neo4j-browser
+    optional: neo4j-bloom
+  executive_slo_noc: grafana
+controls:
+  grafana_mandatory_core: true
+  required_signals:
+    - logs
+    - metrics
+    - traces
+    - topology
+    - executive_slo_noc
+validation:
+  status: pass
+  evaluated_at: 2026-04-07T00:00:00Z

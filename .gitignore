@@ -70,3 +70,7 @@ terraform.rc
 
 # Snyk Security Extension - AI Rules (auto-generated)
 .cursor/rules/snyk_rules.mdc
+
+# Generated validation reports
+docs/reports/validation/*
+!docs/reports/validation/.gitkeep
