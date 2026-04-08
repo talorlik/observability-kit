@@ -30,6 +30,7 @@ Use these markers to trace each batch to `TECHNICAL.md`.
 | Batch 10 | `TR-08`, `TR-09` |
 | Batch 11 | `TR-08`, `TR-11` |
 | Batch 12 | `TR-08`, `TR-09`, `TR-13` |
+| Batch 13 | `TR-03`, `TR-09`, `TR-10` |
 
 ## Agent Cross-Reference Index
 
@@ -51,6 +52,7 @@ Use this index first when actioning tasks so the correct section in
 | `TB-10` | Batch 10 - Vector Foundations | `TR-08`, `TR-09` |
 | `TB-11` | Batch 11 - Graph Foundation | `TR-08`, `TR-11` |
 | `TB-12` | Batch 12 - Risk Scoring and Assisted RCA Readiness | `TR-08`, `TR-09`, `TR-13` |
+| `TB-13` | Batch 13 - Core Adapter Integrations | `TR-03`, `TR-09`, `TR-10` |
 
 ## Batch 1 - Delivery Foundation [TB-01 | TR-10, TR-14]
 
@@ -358,6 +360,34 @@ Goal: deliver deterministic risk scoring before controlled RCA assistance.
 6. Run controlled pilot and decide go or hold for full assisted RCA release.
    - Dependencies: Tasks 1-5.
    - Completion check: pilot decision record is signed off by stakeholders.
+
+## Batch 13 - Core Adapter Integrations [TB-13 | TR-03, TR-09, TR-10]
+
+Goal: finalize adapter extension points while preserving core contract stability.
+
+1. Define adapter contract for provider, backend, identity, secrets, and network
+   classes.
+   - Dependencies: Batch 2 Task 2, Batch 3 Task 5.
+   - Completion check: adapter schema validates supported and invalid examples.
+2. Implement adapter registration and profile activation model.
+   - Dependencies: Task 1.
+   - Completion check: profile-driven activation enables adapters without changing
+     core contracts.
+3. Add adapter stubs for identity, secrets, and network integrations.
+   - Dependencies: Task 2.
+   - Completion check: stubs expose required metadata, prerequisites, and fallback
+     behavior.
+4. Add CI contract checks for adapter definitions and activation safety.
+   - Dependencies: Tasks 1-3.
+   - Completion check: CI blocks invalid adapter definitions and unsafe mutations.
+5. Add CI/CD neutrality checks to keep Argo CD as reference while remaining
+   tool-neutral.
+   - Dependencies: Task 4.
+   - Completion check: core manifests remain vendor-neutral with and without
+     adapters enabled.
+6. Publish adapter enablement, validation, disablement, and rollback guide.
+   - Dependencies: Tasks 1-5.
+   - Completion check: operator guide is complete and linked from platform docs.
 
 ## Batch Completion Gate
 

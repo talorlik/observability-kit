@@ -1,0 +1,10 @@
+{
+  "validation_result": {
+    "status": "pass"
+  },
+  "checks": [
+    "activation_requires_explicit_profile_selection",
+    "core_contract_mutation_blocked",
+    "safe_disable_path_verified"
+  ]
+}

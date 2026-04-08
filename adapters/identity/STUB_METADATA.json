@@ -1,0 +1,17 @@
+{
+  "adapter_class": "identity",
+  "stub_name": "default-identity-stub",
+  "status": "ready_for_profile_wiring",
+  "prerequisites": [
+    "identity_profile_selected",
+    "contract_validation_passed"
+  ],
+  "generated_values": [
+    "identity.enabled",
+    "identity.mode"
+  ],
+  "fallback_behavior": {
+    "strategy": "disable_adapter_keep_core",
+    "notes": "Revert to core defaults without mutating core contracts."
+  }
+}

@@ -76,6 +76,28 @@ The platform execution path targets these repository areas:
 
 ## 7. Implementation Batches
 
+### Resource Handoff Contract (From `TASKS.md` To Implementation)
+
+Implementation work must consume the reusable planning resources created in
+`TASKS.md` before producing platform components.
+
+| Batch | Resources Produced In `TASKS.md` | Consumed By Implementation Tasks |
+| ---- | ---- | ---- |
+| `TB-01` | Install contract schema, GitOps directory baseline, CI gates, runbook baseline | `IMP-01.1` to `IMP-01.4`, then as shared inputs for all later batches |
+| `TB-02` | Compatibility matrix, profile catalogs, mode decision table, remediation catalog | `IMP-02.1` to `IMP-02.3`, then discovery and profile-driven rendering in Batches 3+ |
+| `TB-03` | Preflight checks, discovery probes, report outputs, readiness scaffold | `IMP-03.1` to `IMP-03.3`, then collector and admin access rollout gates |
+| `TB-04` | Agent and gateway topology, mandatory processor chain, failure simulation baseline | `IMP-04.1` to `IMP-04.3`, then logs, metrics, traces, and alert operations |
+| `TB-05` | Logs parsing, multiline, redaction, mappings, log operations dashboards | `IMP-05.1` to `IMP-05.3`, plus correlation and isolation tasks in Batches 6-9 |
+| `TB-06` | Metrics and trace ingestion contracts, sampling policy, correlation validation | `IMP-06.1` to `IMP-06.3`, plus SLO and operator workflows in Batch 9 |
+| `TB-07` | Onboarding library, metadata policy, onboarding guide and examples | `IMP-07.1` to `IMP-07.3`, plus adapter integration policy hooks in Batch 13 |
+| `TB-08` | Isolation controls, encryption and audit evidence, restore and rollback drills | `IMP-08.1` to `IMP-08.3`, plus admin access security in Batch 9A |
+| `TB-09` | Dashboard taxonomy, SLI/SLO definitions, alerting and incident drill evidence | `IMP-09.1` to `IMP-09.3`, plus vector curation inputs in Batch 10 |
+| `TB-09A` | Signal-to-UI ownership, UI provisioning model, admin access profile and smoke checks | `IMP-09A.1` to `IMP-09A.4` for production GUI delivery |
+| `TB-10` | Curated artifacts, embeddings, retrieval governance controls | `IMP-10.1` to `IMP-10.3`, then hybrid retrieval in Batch 12 |
+| `TB-11` | Graph profile, schema, sync quality and freshness controls | `IMP-11.1` to `IMP-11.3`, then deterministic risk features in Batch 12 |
+| `TB-12` | Risk features, backtesting evidence, hybrid bundle, approval control | `IMP-12.1` to `IMP-12.3` as RCA readiness gate outputs |
+| `TB-13` | Adapter contract, activation model, neutral CI/CD checks, adapter runbooks | `IMP-ADP.1` to `IMP-ADP.3` to deliver extension-safe platform integrations |
+
 ### Batch 1 - Delivery Foundation (`TB-01`)
 
 Batch goal: establish productized repository structure, install contract, CI

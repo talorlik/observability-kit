@@ -1,6 +1,7 @@
 # Implementation Batch Command Sheet
 
-Use these commands to run implementation in controlled batches.
+Use these commands to run implementation in controlled batches aligned to
+`docs/auxiliary/planning/IMPLEMENTATION_TASKS.md`.
 Run one batch at a time and require validation before moving forward.
 
 ## Batch Commands
@@ -20,7 +21,7 @@ Run one batch at a time and require validation before moving forward.
 | 10 | `Do batch 10: vector foundations.` | Validate versioned extraction snapshot bundle output, OpenSearch vector write and queryability, and quality baseline plus governance checks. |
 | 11 | `Do batch 11: graph foundation.` | Validate healthy core platform behavior with graph on and off, convergent repeated sync runs, and stale-data freshness alert triggering. |
 | 12 | `Do batch 12: risk scoring and assisted RCA readiness.` | Validate deterministic score reruns, backtest and evidence bundle contracts, and approval evidence before RCA suggestion release. |
-| 13 | `Do batch 13: core adapter integrations.` | Validate shipped adapter contract tests, adapter smoke tests with unchanged core tests, and neutrality checks with adapters enabled and disabled. |
+| 13 | `Do batch 13: core adapter integrations.` | Validate adapter contract schema coverage, profile-driven activation safety, identity and secrets and network stub metadata, CI contract gating, CI/CD neutrality checks, and adapter operations guide completeness. |
 
 ## Optional Strict Commands
 

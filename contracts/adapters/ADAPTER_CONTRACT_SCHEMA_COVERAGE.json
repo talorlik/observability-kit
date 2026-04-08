@@ -1,0 +1,10 @@
+{
+  "validation_result": {
+    "status": "pass"
+  },
+  "checks": [
+    "provider_backend_identity_secrets_network_classes_covered",
+    "supported_and_invalid_examples_evaluated",
+    "required_fields_and_fallback_enforced"
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Core Adapter Contract",
+  "type": "object",
+  "required": [
+    "adapter_id",
+    "adapter_class",
+    "profile",
+    "registration",
+    "fallback_behavior"
+  ],
+  "properties": {
+    "adapter_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{2,63}$"
+    },
+    "adapter_class": {
+      "type": "string",
+      "enum": [
+        "provider",
+        "backend",
+        "identity",
+        "secrets",
+        "network",
+        "cicd"
+      ]
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "profile": {
+      "type": "object",
+      "required": [
+        "activation_mode",
+        "safe_disable_supported"
+      ],
+      "properties": {
+        "activation_mode": {
+          "type": "string",
+          "enum": [
+            "explicit_profile_selection"
+          ]
+        },
+        "safe_disable_supported": {
+          "type": "boolean"
+        },
+        "allow_core_contract_mutation": {
+          "type": "boolean",
+          "const": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "registration": {
+      "type": "object",
+      "required": [
+        "prerequisites",
+        "generated_values",
+        "fallback_refs"
+      ],
+      "properties": {
+        "prerequisites": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "generated_values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fallback_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "fallback_behavior": {
+      "type": "object",
+      "required": [
+        "strategy",
+        "rollback_command"
+      ],
+      "properties": {
+        "strategy": {
+          "type": "string",
+          "enum": [
+            "revert_to_core_defaults",
+            "disable_adapter_keep_core"
+          ]
+        },
+        "rollback_command": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

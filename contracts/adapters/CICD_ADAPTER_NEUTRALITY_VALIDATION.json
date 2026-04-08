@@ -1,0 +1,10 @@
+{
+  "validation_result": {
+    "status": "pass"
+  },
+  "checks": [
+    "argocd_reference_default_preserved",
+    "no_vendor_specific_core_manifest_dependencies",
+    "neutrality_valid_with_and_without_adapters"
+  ]
+}

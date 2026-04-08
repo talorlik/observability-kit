@@ -1,0 +1,17 @@
+{
+  "adapter_class": "network",
+  "stub_name": "default-network-stub",
+  "status": "ready_for_profile_wiring",
+  "prerequisites": [
+    "network_profile_selected",
+    "contract_validation_passed"
+  ],
+  "generated_values": [
+    "network.enabled",
+    "network.mode"
+  ],
+  "fallback_behavior": {
+    "strategy": "disable_adapter_keep_core",
+    "notes": "Revert to core defaults without mutating core contracts."
+  }
+}

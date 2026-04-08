@@ -1,0 +1,10 @@
+{
+  "validation_result": {
+    "status": "pass"
+  },
+  "checks": [
+    "invalid_adapter_definitions_blocked",
+    "unsafe_profile_mutations_blocked",
+    "batch13_smoke_included_in_ci"
+  ]
+}

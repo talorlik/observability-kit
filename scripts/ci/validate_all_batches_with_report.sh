@@ -26,6 +26,7 @@ declare -a BATCH_IDS=(
   "10"
   "11"
   "12"
+  "13"
 )
 
 declare -a BATCH_NAMES=(
@@ -42,6 +43,7 @@ declare -a BATCH_NAMES=(
   "Vector Foundations"
   "Graph Foundation"
   "Risk Scoring and Assisted RCA Readiness"
+  "Core Adapter Integrations"
 )
 
 declare -a VALIDATION_CRITERIA=(
@@ -58,6 +60,7 @@ declare -a VALIDATION_CRITERIA=(
   "Validate versioned extraction snapshot bundle output, OpenSearch vector write and queryability, and quality baseline plus governance checks."
   "Validate healthy core platform behavior with graph on and off, convergent repeated sync runs, and stale-data freshness alert triggering."
   "Validate deterministic score reruns, backtest and evidence bundle contracts, and approval evidence before RCA suggestion release."
+  "Validate adapter contract schema coverage, profile-driven activation safety, identity and secrets and network stub metadata, CI contract gating, CI/CD neutrality checks, and adapter operations guide completeness."
 )
 
 declare -a SCRIPT_PATHS=(
@@ -74,6 +77,7 @@ declare -a SCRIPT_PATHS=(
   "scripts/ci/validate_batch10_smoke.sh"
   "scripts/ci/validate_batch11_smoke.sh"
   "scripts/ci/validate_batch12_smoke.sh"
+  "scripts/ci/validate_batch13_smoke.sh"
 )
 
 declare -a STATUSES=()
@@ -128,7 +132,7 @@ fi
   echo "# Batch Validation Report"
   echo ""
   echo "- Generated at (UTC): \`$TIMESTAMP_UTC\`"
-  echo "- Scope: Batch smoke validation scripts (\`1-12\` + \`9A\`)"
+  echo "- Scope: Batch smoke validation scripts (\`1-13\` + \`9A\`)"
   echo "- Source criteria: \`docs/auxiliary/task_execution/IMPLEMENTATION_BATCH_COMMAND_SHEET.md\`"
   echo "- Overall status: \`$OVERALL_STATUS\`"
   echo "- Passed: \`$PASSED_COUNT\`"

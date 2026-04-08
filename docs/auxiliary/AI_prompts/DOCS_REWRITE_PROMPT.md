@@ -243,6 +243,129 @@ They must explicitly instruct the model to:
 - require discovery-led install and onboarding
 - maintain technical rigor
 
+## AI Layer Rewrite Requirements (Kagent + Khook)
+
+When the source includes AI automation, event-driven workflows, or agent
+orchestration, enforce the following requirements so rewritten docs remain
+aligned with the Kagent + Khook architecture model.
+
+### 1. Keep AI as a decoupled extension layer
+
+Rewrite architecture so AI automation is an extension layer, not the
+observability data plane.
+
+Require:
+
+- replaceable Kagent/Khook modules by contract
+- stable MCP and platform API boundaries
+- datastore ownership retained by platform services
+
+### 2. Enforce MCP-only agent access
+
+Rewrite all AI-facing access paths to use MCP-facing interfaces.
+
+Disallow direct agent or hook access to:
+
+- OpenSearch APIs
+- Neo4j APIs
+- SQL/datastore backends
+- raw provider-specific data APIs bypassing platform mediation
+
+Required access chain:
+
+- `Agent -> MCP tool -> platform query/action API -> datastore`
+
+### 3. Enforce Kagent/Khook role separation
+
+Rewrite responsibilities so:
+
+- Khook handles watch/filter/deduplicate/enrich/dispatch
+- Kagent handles reasoning/orchestration/delegation/synthesis
+- MCP services expose approved business capabilities
+
+Do not allow Khook to become a reasoning or remediation engine.
+
+### 4. Require governed multi-agent topology
+
+When multi-agent content is present, require:
+
+- orchestrator (CEO) agent
+- manager agents
+- specialist agents
+- isolated executor agents for write actions
+
+Also require:
+
+- bounded communication graph
+- explicit allow-lists for agent-to-agent calls
+- explicit tool attachment rules per agent class
+
+### 5. Require case-file shared-state contract
+
+Rewrite workflows to use a platform-owned case-file contract, not unbounded
+cross-agent chat memory.
+
+Require structured outputs containing at least:
+
+- `task_id`, `case_id`, `agent_name`
+- `summary`, `findings`, `evidence_handles`
+- `confidence`, `assumptions`, `risk_level`
+- `requested_next_agents`, `recommended_actions`, `status`
+
+### 6. Prefer gatewayed MCP in production narratives
+
+For production architectures, rewrite toward MCP/A2A gateway mediation.
+
+Require docs to call out:
+
+- centralized auth, policy, audit, and rate limiting
+- federated endpoint pattern for Kagent consumption
+- disabling direct discovery where gateway-fronted MCP services are used
+
+### 7. Enforce read-first and approval-gated rollout
+
+Rewrite AI automation phases in this maturity order:
+
+1. read-only triage
+2. read-only investigation
+3. proposed bounded actions
+4. approval-gated execution
+5. low-risk autonomous actions only after validation
+
+Require explicit approval for high-risk write tools.
+
+### 8. Require business-capability MCP contracts
+
+Rewrite MCP service docs to expose business-level capabilities, not raw DB
+query wrappers.
+
+Require:
+
+- semantic tool versioning
+- bounded response shapes
+- evidence handles over large raw payload defaults
+- tenant/namespace scope and redaction controls
+
+### 9. Require AI-layer security and audit controls
+
+Rewrite to include:
+
+- dedicated service accounts per agent class and MCP service
+- namespace segmentation and NetworkPolicies
+- secrets via platform secret integrations only
+- policy checks on write-path actions
+- auditable logs of tool calls, approvals, and outcomes
+
+### 10. Require AI-layer validation categories
+
+If AI layer is in scope, rewritten docs must include tests for:
+
+- functional user-query and event-triggered workflows
+- multi-agent boundary and routing behavior
+- safety and abuse scenarios (prompt injection, malformed tool output)
+- performance under event bursts and fan-out
+- upgrade compatibility for Kagent, Khook, kmcp, and gateway contracts
+
 ## Preserve and Improve
 
 While rewriting, preserve what is still useful from the existing documents,

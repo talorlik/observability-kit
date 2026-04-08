@@ -31,14 +31,14 @@ corresponding execution batches in `TASKS.md`.
 | ---- | ---- |
 | `TR-01` | Reference context only |
 | `TR-02` | Constraint baseline across all batches |
-| `TR-03` | `TB-09A` |
+| `TR-03` | `TB-09A`, `TB-13` |
 | `TR-04` | `TB-02`, `TB-03` |
 | `TR-05` | `TB-02`, `TB-03` |
 | `TR-06` | `TB-04`, `TB-05`, `TB-06`, `TB-07`, `TB-09` |
 | `TR-07` | `TB-05`, `TB-06`, `TB-08` |
 | `TR-08` | `TB-10`, `TB-11`, `TB-12` |
-| `TR-09` | `TB-07`, `TB-08`, `TB-09A`, `TB-10`, `TB-12` |
-| `TR-10` | `TB-01`, `TB-03`, `TB-09` |
+| `TR-09` | `TB-07`, `TB-08`, `TB-09A`, `TB-10`, `TB-12`, `TB-13` |
+| `TR-10` | `TB-01`, `TB-03`, `TB-09`, `TB-13` |
 | `TR-11` | `TB-04`, `TB-11` |
 | `TR-12` | `TB-07`, `TB-08`, `TB-09`, `TB-09A` |
 | `TR-13` | `TB-12` |

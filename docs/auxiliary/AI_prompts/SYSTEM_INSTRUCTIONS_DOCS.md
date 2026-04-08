@@ -466,6 +466,127 @@ When the source documents do not already include them, add sections for:
 - operator UX and troubleshooting
 - minimum and optional prerequisites
 
+## AI Automation Extension Requirements (Kagent + Khook)
+
+When adapting or generating documents that include AI/automation workflows, you
+must preserve the following architecture and governance constraints so plans are
+consistent with the Kagent + Khook extension model.
+
+### 1. AI layer boundary and replaceability
+
+Treat AI automation as a decoupled extension layer, not the observability data
+plane itself.
+
+- Kagent and Khook are replaceable modules, integrated by contract
+- platform APIs and MCP contracts are stable boundaries
+- data stores remain platform-owned internals
+
+### 2. MCP-only access for agents
+
+All AI-facing access to platform capabilities must be through MCP-facing
+interfaces.
+
+Never allow direct agent or hook access to:
+
+- OpenSearch endpoints
+- Neo4j endpoints
+- SQL/datastore backends
+- raw provider-specific data APIs without platform mediation
+
+Preferred chain:
+
+- `Agent -> MCP tool -> platform query/action API -> datastore`
+
+### 3. Kagent/Khook role split
+
+Require explicit role separation:
+
+- Khook: watch, filter, deduplicate, enrich, and trigger
+- Kagent: reason, orchestrate, delegate, and synthesize
+- MCP services: expose approved business capabilities
+
+Disallow Khook as a reasoning or remediation engine.
+
+### 4. Multi-agent governance model
+
+If multi-agent architecture is included, require a bounded hierarchy and
+contracted communication:
+
+- CEO/orchestrator agent
+- manager agents
+- specialist agents
+- optional executor agents isolated from investigators
+
+Require controlled communication graph (not unrestricted peer mesh), explicit
+allowed tool sets per agent class, and structured handoffs.
+
+### 5. Case-file contract for shared state
+
+Require a platform-owned case-file model for workflow state rather than
+unbounded chat memory.
+
+At minimum, require structured agent outputs containing:
+
+- identity (`task_id`, `case_id`, `agent_name`)
+- summary/findings
+- evidence references
+- confidence and assumptions
+- risk classification and recommended next steps
+- status transitions and audit markers
+
+### 6. Gatewayed MCP access in production
+
+For production posture, prefer MCP/A2A gateway mediation in front of MCP
+services.
+
+Documents should state:
+
+- federated/central endpoint pattern is recommended
+- direct MCP discovery may be disabled when gatewayed
+- governance concerns (auth, audit, policy, rate limits) are centralized
+
+### 7. Read-first rollout and approval-gated actions
+
+Require phased automation maturity:
+
+1. read-only triage
+2. read-only investigation
+3. proposed bounded actions
+4. approval-gated execution
+5. narrow low-risk autonomous actions only after validation
+
+High-risk write tools must require explicit approval.
+
+### 8. MCP contract quality requirements
+
+MCP services must be documented as business-capability tools (not raw database
+wrappers) and include:
+
+- versioned tool contracts
+- bounded result shapes
+- evidence handles instead of large raw payload defaults
+- tenant/namespace scoping and redaction controls
+
+### 9. Security, policy, and audit requirements
+
+Require:
+
+- dedicated service accounts by agent class and MCP service
+- namespace and network isolation patterns
+- secret handling through platform secret integrations, never prompt literals
+- policy checks before write-path actions
+- auditable logs for tool invocations, approvals, and action outcomes
+
+### 10. Validation requirements for AI layer docs
+
+When AI extension content is present, require explicit test categories:
+
+- functional workflow tests (human query and event-trigger paths)
+- multi-agent routing and boundary tests
+- safety/abuse tests (prompt injection, malformed tool output, scope escapes)
+- performance/load tests (event storms, fan-out, latency budgets)
+- upgrade/compatibility tests across Kagent, Khook, kmcp, and gateway contracts
+
 ## Recommended Rewrite Vocabulary
 
 Prefer terms like:

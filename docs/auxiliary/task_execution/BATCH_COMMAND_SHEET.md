@@ -25,6 +25,7 @@ phased delivery toward optional assisted RCA.
 | 10 | `Do batch 10: vector foundations.` | Validate curated artifact ownership, extraction snapshots, `vectors-*` writes, retrieval quality baseline, governance controls, and vector operations playbook rehearsal. |
 | 11 | `Do batch 11: graph foundation.` | Validate optional graph module enable and disable behavior, schema versioning, idempotent sync jobs, freshness alerts, dependency queries, and graph runbook dry run. |
 | 12 | `Do batch 12: risk scoring and assisted RCA readiness.` | Validate deterministic feature definitions, risk scoring outputs, backtesting evidence, hybrid retrieval evidence bundles, human approval workflow, and pilot go or hold record. |
+| 13 | `Do batch 13: core adapter integrations.` | Validate adapter contract schema coverage, profile-driven activation safety, identity/secrets/network stub metadata, CI contract gating, CI/CD neutrality checks, and adapter operations guide completeness. |
 
 ## Optional Strict Commands
 
