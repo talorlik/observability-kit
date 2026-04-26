@@ -12,11 +12,37 @@ gateway_registration:
     - service_name
     - gateway_endpoint
     - catalog_visibility
+    - tenancy_profile
+    - tool_response_schema
+  optional_fields:
+    - max_concurrent_requests
+    - request_timeout_ms
+    - heartbeat_interval_seconds
 
 discovery_constraints:
   direct_discovery_disabled_for_backend_mcpserver: true
   remote_mcpserver_reference_required: true
   federated_endpoint_only_for_kagent: true
 
+heartbeat_policy:
+  required_for_registered_services: true
+  default_interval_seconds: 30
+  unhealthy_threshold_missed_heartbeats: 3
+  remove_from_catalog_after_unhealthy: true
+  emit_audit_event_on_state_change: true
+
+timeout_policy:
+  default_request_timeout_ms: 5000
+  upper_bound_request_timeout_ms: 30000
+  on_timeout: deny
+  emit_audit_event_on_timeout: true
+
+failover_policy:
+  fallback_mode: deny
+  retry_attempts: 0
+  notify_on_failover: true
+
 compliance:
   fail_if_direct_backend_discovery_enabled: true
+  fail_if_heartbeat_disabled_on_registered_service: true
+  fail_if_request_timeout_unbounded: true

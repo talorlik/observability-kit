@@ -33,3 +33,35 @@ execution_gates:
   evaluate_policy_before_write: true
   deny_on_missing_preconditions: true
   feed_rejection_into_casefile: true
+
+timeout_rules:
+  write.low-risk:
+    pending_timeout_minutes: 0
+    on_timeout: not-applicable
+  write.high-risk:
+    pending_timeout_minutes: 60
+    warning_threshold_minutes: 30
+    on_timeout: deny-and-escalate
+    requires_audit_event: true
+  write.critical:
+    pending_timeout_minutes: 120
+    warning_threshold_minutes: 60
+    on_timeout: deny-and-escalate
+    requires_audit_event: true
+    requires_change_management_callback: true
+
+escalation_rules:
+  default_escalation_chain:
+    - role: oncall-sre
+      sla_minutes: 30
+    - role: incident-commander
+      sla_minutes: 60
+    - role: platform-director
+      sla_minutes: 120
+  on_unresolved_after_chain: deny
+  notify_on_escalation:
+    channels:
+      - audit-log
+      - paging-service
+      - casefile-comment
+  escalation_audit_event_required: true

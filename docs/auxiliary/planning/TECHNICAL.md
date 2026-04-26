@@ -21,6 +21,7 @@ implementation requirements in this document.
 | `TR-12` | Validation, Upgrade, Rollback, and Uninstall |
 | `TR-13` | Implementation Phase Gates |
 | `TR-14` | Required Technical Artifacts |
+| `TR-15` | AI/MCP Runtime Layer Requirements |
 
 ## 0.1 Task Batch Reverse Lookup
 
@@ -41,8 +42,9 @@ corresponding execution batches in `TASKS.md`.
 | `TR-10` | `TB-01`, `TB-03`, `TB-09`, `TB-13` |
 | `TR-11` | `TB-04`, `TB-11` |
 | `TR-12` | `TB-07`, `TB-08`, `TB-09`, `TB-09A` |
-| `TR-13` | `TB-12` |
+| `TR-13` | `TB-12`, `TB-14` |
 | `TR-14` | `TB-01`, `TB-02` |
+| `TR-15` | `TB-14` |
 
 ## 1. Purpose [TR-01]
 
@@ -557,3 +559,37 @@ The implementation must produce versioned artifacts:
 - Neo4j schema and sync specifications
 - runbooks for install, validation, upgrade, rollback, uninstall, DR, and on-call
 - security and governance evidence artifacts
+
+## 15. AI/MCP Runtime Layer Requirements [TR-15]
+
+The AI/MCP runtime layer (Batch 14) builds on the core platform and must
+remain cloud-agnostic. It is a higher-order tier — the core platform must be
+fully operational with the AI/MCP layer disabled.
+
+- Agent boundary, governance, and shared-state contracts under `contracts/ai/`
+  and `contracts/policy/` are authoritative for what agents may do, when they
+  may do it, and what evidence they must capture.
+- The MCP catalog under `contracts/mcp/MCP_CATALOG_V1.yaml` lists every MCP
+  service exposed to agents, with every tool referencing
+  `TOOL_RESPONSE_SCHEMA_V1.json` and a tenancy redaction profile.
+- The gateway discovery contract enforces explicit registration, heartbeat
+  health, bounded request timeouts, and a deny-on-failover posture.
+- Identity, access, and tool risk classification under `contracts/policy/`
+  must cover every MCP service in the catalog. The default access policy is
+  deny.
+- Approval flow under `contracts/policy/APPROVAL_FLOW_V1.yaml` must define
+  preconditions, timeout rules, and escalation rules per risk class.
+  Write-path tools may not bypass these.
+- Action preconditions under `contracts/policy/ACTION_PRECONDITIONS_V1.yaml`
+  must enumerate execution requirements for every write-path tool.
+- KAgent persistence (`contracts/ai/KAGENT_PERSISTENCE_CONTRACT_V1.yaml`)
+  is in-cluster only, with backups, point-in-time recovery, and
+  restore-drill cadence.
+- KHook triggers must use read-only dispatch by default and enforce dedupe
+  and burst control.
+- The GitOps surface for the AI/MCP layer (`gitops/platform/ai/`) must
+  include namespaces, deployments, network policies, and per-environment
+  overlays. Dashboards (`AI_RUNTIME_HEALTH`, `MCP_GATEWAY_HEALTH`) and
+  alerts (`approval_flow_rules`, `mcp_health_rules`) are required.
+- Operator runbooks for AI/MCP (approval flow, KHook troubleshooting,
+  MCP gateway operations, casefile review) must accompany delivery.

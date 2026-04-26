@@ -1,0 +1,69 @@
+metadata:
+  contract: kagent-persistence
+  version: v1
+  marker_coverage:
+    - KK-C18
+    - KK-C19
+  description: >-
+    Persistence contract for the KAgent control plane. Cloud-agnostic; backed by any
+    Kubernetes-resident PostgreSQL deployment (operator-managed or self-managed).
+    The contract specifies the schema namespace, retention semantics, and backup &
+    restore guarantees that the AI runtime depends on.
+
+backing_store:
+  engine: postgresql
+  minimum_engine_version: "14"
+  high_availability_required: true
+  in_cluster_only: true
+  external_managed_services_allowed: false
+  encryption:
+    at_rest_required: true
+    in_transit_required: true
+    key_rotation_max_days: 90
+
+schema_namespaces:
+  - name: kagent_core
+    purpose: agent registry, role bindings, dispatch state
+    retention_days: 365
+  - name: kagent_runs
+    purpose: per-run state machine and step records
+    retention_days: 90
+  - name: kagent_audit
+    purpose: governance audit trail (write-once)
+    retention_days: 730
+    write_once: true
+
+connection:
+  connection_secret_ref:
+    namespace: ai-runtime
+    name: kagent-postgres-credentials
+    required_keys:
+      - host
+      - port
+      - database
+      - username
+      - password
+      - sslmode
+  pool:
+    min_connections: 2
+    max_connections: 50
+    idle_timeout_seconds: 300
+
+backups:
+  required: true
+  scheduled_full_backup_hours: 24
+  point_in_time_recovery_required: true
+  retention_days: 30
+  off_cluster_replica_required: true
+  restore_drill_cadence_days: 90
+
+migrations:
+  managed_by: kagent-operator
+  forward_only: true
+  verify_checksum_on_apply: true
+  fail_if_drift_detected: true
+
+failure_behavior:
+  on_unavailable: deny-new-writes-allow-reads
+  emit_audit_event_on_outage: true
+  do_not_buffer_audit_writes: true

@@ -1,0 +1,64 @@
+{
+  "index_patterns": [
+    "traces-*"
+  ],
+  "template": {
+    "settings": {
+      "index.lifecycle.name": "traces-default-14d",
+      "index.lifecycle.rollover_alias": "traces-write"
+    },
+    "mappings": {
+      "dynamic": "strict",
+      "properties": {
+        "@timestamp": {
+          "type": "date"
+        },
+        "trace_id": {
+          "type": "keyword"
+        },
+        "span_id": {
+          "type": "keyword"
+        },
+        "parent_span_id": {
+          "type": "keyword"
+        },
+        "service.name": {
+          "type": "keyword"
+        },
+        "deployment.environment": {
+          "type": "keyword"
+        },
+        "k8s.cluster.name": {
+          "type": "keyword"
+        },
+        "k8s.namespace.name": {
+          "type": "keyword"
+        },
+        "span.name": {
+          "type": "keyword"
+        },
+        "span.kind": {
+          "type": "keyword"
+        },
+        "span.duration_ms": {
+          "type": "double"
+        },
+        "span.status_code": {
+          "type": "keyword"
+        },
+        "span.status_message": {
+          "type": "text"
+        },
+        "span.attributes": {
+          "type": "flattened"
+        },
+        "resource.attributes": {
+          "type": "flattened"
+        },
+        "event.attributes": {
+          "type": "flattened"
+        }
+      }
+    }
+  }
+}

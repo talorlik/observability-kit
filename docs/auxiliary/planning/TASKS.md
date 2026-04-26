@@ -31,6 +31,7 @@ Use these markers to trace each batch to `TECHNICAL.md`.
 | Batch 11 | `TR-08`, `TR-11` |
 | Batch 12 | `TR-08`, `TR-09`, `TR-13` |
 | Batch 13 | `TR-03`, `TR-09`, `TR-10` |
+| Batch 14 | `TR-03`, `TR-08`, `TR-09`, `TR-13`, `TR-15` |
 
 ## Agent Cross-Reference Index
 
@@ -53,6 +54,7 @@ Use this index first when actioning tasks so the correct section in
 | `TB-11` | Batch 11 - Graph Foundation | `TR-08`, `TR-11` |
 | `TB-12` | Batch 12 - Risk Scoring and Assisted RCA Readiness | `TR-08`, `TR-09`, `TR-13` |
 | `TB-13` | Batch 13 - Core Adapter Integrations | `TR-03`, `TR-09`, `TR-10` |
+| `TB-14` | Batch 14 - AI/MCP Runtime Validation and Productization | `TR-03`, `TR-08`, `TR-09`, `TR-13`, `TR-15` |
 
 ## Batch 1 - Delivery Foundation [TB-01 | TR-10, TR-14]
 
@@ -388,6 +390,71 @@ Goal: finalize adapter extension points while preserving core contract stability
 6. Publish adapter enablement, validation, disablement, and rollback guide.
    - Dependencies: Tasks 1-5.
    - Completion check: operator guide is complete and linked from platform docs.
+
+## Batch 14 - AI/MCP Runtime Validation and Productization [TB-14 | TR-03, TR-08, TR-09, TR-13, TR-15]
+
+Goal: formalize the AI/MCP runtime layer that builds on the core platform.
+Batch 14 covers agent boundary contracts, governance and approval flow,
+casefile state, MCP catalog and tool response contracts, KAgent / KHook /
+KMcp scaffolding, and action-gate release readiness. This batch is
+cloud-agnostic: it depends only on Kubernetes-resident components.
+
+The AI/MCP sub-plan and detailed tasks live in
+`docs/auxiliary/planning/kagent_khook/`.
+
+1. Establish AI agent boundary, governance, and shared-state contracts.
+   - Dependencies: Batch 8 Task 4, Batch 9 Task 1.
+   - Completion check: `validate_ai_boundary_contracts.sh`,
+     `validate_ai_governance_contracts.sh`, and `validate_ai_state_contracts.sh`
+     pass.
+2. Establish MCP catalog, tool response, and gateway-discovery contracts.
+   - Dependencies: Task 1.
+   - Completion check: `validate_mcp_contracts.sh` passes; gateway discovery
+     contract enforces heartbeat, timeout, and failover policy.
+3. Land AI runtime base scaffolding (KAgent, persistence backing store).
+   - Dependencies: Task 1, Batch 13 Task 6.
+   - Completion check: `validate_ai_runtime_base_scaffolding.sh` passes;
+     `KAGENT_PERSISTENCE_CONTRACT_V1.yaml` defines schema namespaces,
+     retention, backups, and restore-drill cadence.
+4. Land MCP read-path and multi-agent scaffolding.
+   - Dependencies: Tasks 2-3.
+   - Completion check: `validate_mcp_read_path_scaffolding.sh` and
+     `validate_multi_agent_scaffolding.sh` pass; agent catalog and tool
+     bindings cover triage director, investigation manager, and action
+     governor roles.
+5. Land KHook trigger scaffolding with dedupe and burst control.
+   - Dependencies: Task 4.
+   - Completion check: `validate_khook_trigger_scaffolding.sh` passes;
+     read-only dispatch policy enforced.
+6. Land action-gate scaffolding with approval flow timeouts and escalation.
+   - Dependencies: Tasks 4-5; Batch 12 Task 5.
+   - Completion check: `validate_action_gate_scaffolding.sh` passes;
+     `APPROVAL_FLOW_V1.yaml` `timeout_rules` and `escalation_rules`
+     reflected in `gitops/platform/search/dashboards/alerts/approval_flow_rules.ndjson`.
+7. Add AI/MCP smoke wrapper and unified-report wiring.
+   - Dependencies: Tasks 1-6.
+   - Completion check: `scripts/ci/validate_batch14_smoke.sh` exists and is
+     executable; Batch 14 entry present in
+     `validate_all_batches_with_report.sh` (BATCH_IDS, BATCH_NAMES,
+     VALIDATION_CRITERIA, SCRIPT_PATHS).
+8. Add AI/MCP GitOps artifacts.
+   - Dependencies: Tasks 1-6.
+   - Completion check: `gitops/apps/ai-runtime-application.yaml`,
+     `gitops/platform/ai/base/namespaces/namespaces.yaml`,
+     `gitops/platform/search/dashboards/saved-objects/AI_RUNTIME_HEALTH.ndjson`
+     and `MCP_GATEWAY_HEALTH.ndjson`, and the `approval_flow_rules.ndjson`
+     and `mcp_health_rules.ndjson` alert files are present.
+9. Land KAgent/KHook release readiness.
+   - Dependencies: Tasks 1-8.
+   - Completion check: `validate_kagent_khook_release.sh` passes;
+     production activation signoff workflow has documented go/no-go
+     thresholds.
+10. Publish AI/MCP operator runbooks.
+    - Dependencies: Tasks 1-9.
+    - Completion check: `docs/runbooks/AI_APPROVAL_FLOW_RUNBOOK.md`,
+      `KHOOK_TROUBLESHOOTING_RUNBOOK.md`,
+      `MCP_GATEWAY_OPERATIONS_RUNBOOK.md`, and `CASEFILE_REVIEW_RUNBOOK.md`
+      are linked from `README.md` and `docs/auxiliary/planning/AI_MCP_MARKER_COVERAGE.md`.
 
 ## Batch Completion Gate
 

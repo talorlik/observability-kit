@@ -25,6 +25,9 @@ jobs:
       - name: Setup Helm
         uses: azure/setup-helm@v4
 
+      - name: Script-permission preflight
+        run: bash scripts/ci/check_script_permissions.sh
+
       - name: Markdown lint
         run: bash scripts/ci/validate_markdown.sh
 
@@ -111,6 +114,9 @@ jobs:
 
       - name: Risk scoring and assisted RCA readiness checks
         run: bash scripts/ci/validate_risk_scoring_assisted_rca.sh
+
+      - name: Core adapter integrations checks (Batch 13)
+        run: bash scripts/ci/validate_core_adapter_integrations.sh
 
       - name: GitOps structure checks
         run: bash scripts/ci/validate_gitops_structure.sh

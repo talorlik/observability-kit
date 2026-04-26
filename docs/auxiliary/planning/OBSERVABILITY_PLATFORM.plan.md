@@ -1,10 +1,19 @@
-# Observability Platform Plan
+# Observability Platform Plan (DEPRECATED — v1, AWS-specific)
 
-**Target**: A portable, plug-and-play observability intelligence platform for
-any existing EKS cluster in any AWS account, deployable from a personal machine
-or GitHub Actions, using Terraform + Helm + ArgoCD Capability, with
-OpenTelemetry as the sole collector, Amazon OpenSearch as the single telemetry
-store, and Neo4j as the derived graph intelligence layer.
+> **Deprecated.** This document is the original AWS-EKS-specific plan for the
+> Observability Kit and is retained for historical reference only. The
+> authoritative, cloud-agnostic plan is
+> `docs/auxiliary/planning/OBSERVABILITY_PLATFORM_V2.plan.md`. New work and
+> all delivered artifacts (contracts, scripts, runbooks, and GitOps manifests)
+> follow the V2 plan. Do not extend this v1 document — open changes against
+> V2 instead.
+
+**Target (v1, deprecated)**: A portable, plug-and-play observability
+intelligence platform for any existing EKS cluster in any AWS account,
+deployable from a personal machine or GitHub Actions, using Terraform + Helm
++ ArgoCD Capability, with OpenTelemetry as the sole collector, Amazon
+OpenSearch as the single telemetry store, and Neo4j as the derived graph
+intelligence layer.
 
 ## 1. Executive Summary
 

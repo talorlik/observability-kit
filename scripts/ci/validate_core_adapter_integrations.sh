@@ -92,4 +92,14 @@ for token in ("enable", "validate", "disable", "rollback"):
 print("Batch 13 adapter integration checks passed.")
 PY
 
+# Adapter sub-validators (one per adapter class). These are run from the parent
+# Batch 13 script so that adapter contract drift is caught even when the
+# sub-validators are not individually wired into the CI workflow.
+bash scripts/ci/validate_identity_backend_adapters.sh
+bash scripts/ci/validate_secrets_backend_adapters.sh
+bash scripts/ci/validate_storage_backend_adapters.sh
+bash scripts/ci/validate_network_ingress_adapters.sh
+bash scripts/ci/validate_cicd_adapter_templates.sh
+bash scripts/ci/validate_provider_event_source_adapters.sh
+
 bash scripts/ci/validate_gitops_neutrality.sh

@@ -176,5 +176,105 @@
       "to": "specialist",
       "type": "communication-edge"
     }
-  ]
+  ],
+  "invalid_fixtures": {
+    "missing_lineage": {
+      "schema_version": "v1",
+      "case_id": "CASE-9001",
+      "status": "open",
+      "incident_context": {
+        "tenant": "team-observability",
+        "namespace": "payments-prod",
+        "summary": "Casefile rejected: missing lineage block"
+      },
+      "agent_outputs": [],
+      "evidence_handles": [
+        "ev://logs/payments-prod/pod-checkout-1"
+      ],
+      "approval_state": {
+        "required": false,
+        "status": "not-required"
+      },
+      "action_journal": [],
+      "created_at": "2026-04-26T12:00:00Z",
+      "updated_at": "2026-04-26T12:00:00Z",
+      "expected_rejection_reason": "lineage.required-block-absent"
+    },
+    "approval_state_inconsistent_for_status": {
+      "schema_version": "v1",
+      "case_id": "CASE-9002",
+      "status": "executing",
+      "incident_context": {
+        "tenant": "team-observability",
+        "namespace": "payments-prod",
+        "summary": "Casefile rejected: executing without approved approval_state"
+      },
+      "agent_outputs": [],
+      "evidence_handles": [
+        "ev://logs/payments-prod/pod-checkout-1"
+      ],
+      "approval_state": {
+        "required": true,
+        "status": "pending"
+      },
+      "action_journal": [],
+      "lineage": {
+        "correlation_id": "corr-9002",
+        "workflow_id": "wf-9002"
+      },
+      "created_at": "2026-04-26T12:00:00Z",
+      "updated_at": "2026-04-26T12:00:00Z",
+      "expected_rejection_reason": "approval-state.invariant-violated"
+    },
+    "evidence_handle_malformed": {
+      "schema_version": "v1",
+      "case_id": "CASE-9003",
+      "status": "investigating",
+      "incident_context": {
+        "tenant": "team-observability",
+        "namespace": "payments-prod",
+        "summary": "Casefile rejected: evidence handle uses unsupported scheme"
+      },
+      "agent_outputs": [],
+      "evidence_handles": [
+        "http://untrusted-host/evidence/1"
+      ],
+      "approval_state": {
+        "required": false,
+        "status": "not-required"
+      },
+      "action_journal": [],
+      "lineage": {
+        "correlation_id": "corr-9003",
+        "workflow_id": "wf-9003"
+      },
+      "created_at": "2026-04-26T12:00:00Z",
+      "updated_at": "2026-04-26T12:00:00Z",
+      "expected_rejection_reason": "evidence-handle.unsupported-scheme"
+    },
+    "schema_version_mismatch": {
+      "schema_version": "v0",
+      "case_id": "CASE-9004",
+      "status": "open",
+      "incident_context": {
+        "tenant": "team-observability",
+        "namespace": "payments-prod",
+        "summary": "Casefile rejected: unsupported schema_version"
+      },
+      "agent_outputs": [],
+      "evidence_handles": [],
+      "approval_state": {
+        "required": false,
+        "status": "not-required"
+      },
+      "action_journal": [],
+      "lineage": {
+        "correlation_id": "corr-9004",
+        "workflow_id": "wf-9004"
+      },
+      "created_at": "2026-04-26T12:00:00Z",
+      "updated_at": "2026-04-26T12:00:00Z",
+      "expected_rejection_reason": "schema-version.unsupported"
+    }
+  }
 }

@@ -61,6 +61,40 @@ service_accounts:
         - observability-system
       permissions:
         - read_graph_api
+    - component: trace-investigation-mcp
+      namespace: mcp-services
+      serviceAccount: sa-mcp-trace-investigation
+      allowedNamespaces:
+        - mcp-services
+        - observability-system
+      permissions:
+        - read_trace_api
+    - component: metrics-correlation-mcp
+      namespace: mcp-services
+      serviceAccount: sa-mcp-metrics-correlation
+      allowedNamespaces:
+        - mcp-services
+        - observability-system
+      permissions:
+        - read_metrics_api
+    - component: change-intelligence-mcp
+      namespace: mcp-services
+      serviceAccount: sa-mcp-change-intelligence
+      allowedNamespaces:
+        - mcp-services
+        - observability-system
+      permissions:
+        - read_change_api
+    - component: incident-casefile-mcp
+      namespace: mcp-services
+      serviceAccount: sa-mcp-incident-casefile
+      allowedNamespaces:
+        - mcp-services
+        - ai-runtime
+        - observability-system
+      permissions:
+        - read_casefile_api
+        - write_casefile_api_low_risk
     - component: runbook-execution-mcp
       namespace: mcp-services
       serviceAccount: sa-mcp-runbook-execution

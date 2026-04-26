@@ -7,6 +7,12 @@ metadata:
     - KK-C27
 
 write_path_tools:
+  - tool: incident-casefile.update.v1
+    risk_class: write.low-risk
+    execution_requirements:
+      requires_policy_decision: allow
+      requires_approval_status: not-required
+      requires_valid_target: true
   - tool: runbook-plan.v1
     risk_class: write.high-risk
     execution_requirements:

@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: security-policies
+  namespace: argocd
+  labels:
+    app.kubernetes.io/component: security
+    observability-kit.io/batch: "8"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/example/observability-kit.git
+    targetRevision: main
+    path: gitops/platform/security
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability-security
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

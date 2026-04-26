@@ -1,0 +1,56 @@
+service:
+  name: incident-casefile-mcp
+  version: v1
+  # Mixed read/low-risk write surface: read tools are unrestricted within
+  # tenancy redaction, update tools require policy allow but no human approval.
+  mode: read-and-low-risk-write
+  gateway_served: true
+  gateway_contract:
+    endpoint_mode: gateway
+    remote_mcp_server_ref:
+      name: ai-gateway-catalog
+      namespace: ai-gateway
+    health_path: /healthz
+  response_schema: contracts/mcp/TOOL_RESPONSE_SCHEMA_V1.json
+  casefile_access_contract: services/mcp/incident-casefile/CASEFILE_ACCESS_CONTRACT_V1.yaml
+  casefile_schema: contracts/ai/CASEFILE_SCHEMA_V1.yaml
+  casefile_fixtures: contracts/ai/CASEFILE_FIXTURES_V1.json
+  resume_contract: contracts/ai/REPLAY_RESUME_RULES_V1.yaml
+  redaction_scope_profile: services/mcp/common/REDACTION_SCOPE_PROFILE_V1.yaml
+  action_preconditions_contract: contracts/policy/ACTION_PRECONDITIONS_V1.yaml
+  marker_coverage:
+    - KK-C03
+    - KK-C10
+    - KK-C12
+  execution_bounds:
+    timeout_ms: 4500
+    quota:
+      max_requests_per_minute: 60
+      max_concurrent_requests: 10
+
+tools:
+  - name: incident-casefile.read.v1
+    risk_class: read.sensitive
+    requires_approval: false
+  - name: incident-casefile.update.v1
+    risk_class: write.low-risk
+    requires_approval: false
+
+enforcement:
+  require_policy_engine: true
+  require_approval_service: false
+  require_audit_event_per_write: true
+  deny_on_missing_dependencies: true
+
+persistence_contract:
+  required_operations:
+    - casefile.create.v1
+    - casefile.read.v1
+    - casefile.update.v1
+  retrieval_guarantees:
+    - by_case_id
+    - by_correlation_id
+  invariants:
+    - approval_state_consistent_with_status
+    - lineage_block_required
+    - evidence_handles_use_supported_scheme

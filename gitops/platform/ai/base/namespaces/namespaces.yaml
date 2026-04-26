@@ -1,0 +1,66 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai-runtime
+  labels:
+    app.kubernetes.io/component: ai-runtime
+    observability-kit.io/batch: "14"
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mcp-system
+  labels:
+    app.kubernetes.io/component: mcp-system
+    observability-kit.io/batch: "14"
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai-triggers
+  labels:
+    app.kubernetes.io/component: ai-triggers
+    observability-kit.io/batch: "14"
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai-gateway
+  labels:
+    app.kubernetes.io/component: ai-gateway
+    observability-kit.io/batch: "14"
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai-policy
+  labels:
+    app.kubernetes.io/component: ai-policy
+    observability-kit.io/batch: "14"
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mcp-services
+  labels:
+    app.kubernetes.io/component: mcp-services
+    observability-kit.io/batch: "14"
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted

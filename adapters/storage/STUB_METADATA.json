@@ -1,0 +1,17 @@
+{
+  "adapter_class": "storage",
+  "stub_name": "default-storage-stub",
+  "status": "ready_for_profile_wiring",
+  "prerequisites": [
+    "storage_profile_selected",
+    "contract_validation_passed"
+  ],
+  "generated_values": [
+    "storage.enabled",
+    "storage.mode"
+  ],
+  "fallback_behavior": {
+    "strategy": "disable_adapter_keep_core",
+    "notes": "Revert to core OpenSearch index template and ILM defaults without mutating core contracts."
+  }
+}

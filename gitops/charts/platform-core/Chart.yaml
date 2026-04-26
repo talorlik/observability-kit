@@ -1,6 +1,27 @@
 apiVersion: v2
 name: platform-core
-description: Baseline chart for observability platform core components.
+description: |
+  Baseline chart for the Observability Kit core. Cloud-agnostic: targets any
+  conformant Kubernetes cluster. Provides the OpenTelemetry collector tier
+  (agent + gateway), the optional Neo4j graph tier, and the namespace and
+  RBAC scaffolding that downstream Applications layer onto.
 type: application
-version: 0.1.0
-appVersion: "0.1.0"
+version: 0.2.0
+appVersion: "0.2.0"
+home: https://github.com/example/observability-kit
+sources:
+  - https://github.com/example/observability-kit
+maintainers:
+  - name: platform-observability
+keywords:
+  - observability
+  - opentelemetry
+  - opensearch
+  - neo4j
+  - kubernetes
+annotations:
+  observability-kit.io/upstream-images: |
+    Hard-pins the upstream OpenTelemetry Collector and Neo4j images by
+    repository and tag in values.yaml. Subcharts are intentionally not used
+    so that the chart remains air-gap-friendly and explicit. Image versions
+    are documented in docs/auxiliary/planning/TECHNICAL.md.

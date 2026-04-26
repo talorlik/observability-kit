@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observability-kit.local/contracts/discovery/preflight/v1",
+  "title": "Preflight Report",
+  "description": "Result of preflight verification checks before install. Cloud-agnostic.",
+  "type": "object",
+  "required": ["metadata", "cluster", "checks", "summary"],
+  "additionalProperties": false,
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "required": ["version", "owner", "source_marker"],
+      "additionalProperties": true,
+      "properties": {
+        "version": { "type": "string", "pattern": "^v[0-9]+$" },
+        "owner": { "type": "string" },
+        "source_marker": { "type": "string" }
+      }
+    },
+    "cluster": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": true,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "kubernetes_version": { "type": "string" },
+        "distribution": { "type": "string" }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "status"],
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "description": { "type": "string" },
+          "status": { "enum": ["pass", "warn", "fail", "skip"] },
+          "reason_code": { "type": "string" }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["total_checks", "pass", "fail", "outcome"],
+      "additionalProperties": true,
+      "properties": {
+        "total_checks": { "type": "integer", "minimum": 0 },
+        "pass": { "type": "integer", "minimum": 0 },
+        "warn": { "type": "integer", "minimum": 0 },
+        "fail": { "type": "integer", "minimum": 0 },
+        "skip": { "type": "integer", "minimum": 0 },
+        "outcome": { "enum": ["pass", "warn", "fail"] }
+      }
+    }
+  }
+}

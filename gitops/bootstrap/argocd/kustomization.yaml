@@ -1,3 +1,15 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-resources: []
+# ArgoCD bootstrap. Applies the ArgoCD Application CRDs that own the rest of
+# the platform's GitOps state. Cloud-agnostic: targets any conformant
+# Kubernetes cluster running ArgoCD.
+namespace: argocd
+resources:
+  - ../../apps/platform-core-application.yaml
+  - ../../apps/observability-pipelines-application.yaml
+  - ../../apps/search-stack-application.yaml
+  - ../../apps/graph-stack-application.yaml
+  - ../../apps/ai-runtime-application.yaml
+  - ../../apps/access-layer-application.yaml
+  - ../../apps/security-policies-application.yaml
+  - ../../apps/storage-backups-application.yaml

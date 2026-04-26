@@ -1,0 +1,23 @@
+# Quickstart overlay — single-node Kubernetes (kind, minikube, k3d, etc).
+# Smallest footprint that still exercises the full pipeline shape.
+namespace: observability
+collector:
+  agent:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+  gateway:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 250m
+        memory: 256Mi
+graph:
+  enabled: false

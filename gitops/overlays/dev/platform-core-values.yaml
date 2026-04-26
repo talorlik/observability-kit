@@ -1,0 +1,22 @@
+# Dev overlay — minimal footprint for shared development clusters.
+namespace: observability
+collector:
+  agent:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 250m
+        memory: 256Mi
+  gateway:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+graph:
+  enabled: false

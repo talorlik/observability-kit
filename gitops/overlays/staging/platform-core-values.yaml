@@ -1,0 +1,22 @@
+# Staging overlay — production-shaped resources, lower replica counts.
+namespace: observability
+collector:
+  agent:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+  gateway:
+    replicas: 2
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+graph:
+  enabled: true

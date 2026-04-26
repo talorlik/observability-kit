@@ -1,0 +1,49 @@
+{
+  "index_patterns": [
+    "metrics-*"
+  ],
+  "template": {
+    "settings": {
+      "index.lifecycle.name": "metrics-default-30d",
+      "index.lifecycle.rollover_alias": "metrics-write"
+    },
+    "mappings": {
+      "dynamic": "strict",
+      "properties": {
+        "@timestamp": {
+          "type": "date"
+        },
+        "service.name": {
+          "type": "keyword"
+        },
+        "deployment.environment": {
+          "type": "keyword"
+        },
+        "k8s.cluster.name": {
+          "type": "keyword"
+        },
+        "k8s.namespace.name": {
+          "type": "keyword"
+        },
+        "metric.name": {
+          "type": "keyword"
+        },
+        "metric.unit": {
+          "type": "keyword"
+        },
+        "metric.type": {
+          "type": "keyword"
+        },
+        "metric.value": {
+          "type": "double"
+        },
+        "metric.attributes": {
+          "type": "flattened"
+        },
+        "resource.attributes": {
+          "type": "flattened"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: access-layer
+  namespace: argocd
+  labels:
+    app.kubernetes.io/component: access
+    observability-kit.io/batch: "9A"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/example/observability-kit.git
+    targetRevision: main
+    path: gitops/platform/access
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability-access
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

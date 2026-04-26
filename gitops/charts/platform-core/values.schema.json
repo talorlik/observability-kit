@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observability-kit.local/charts/platform-core/values/v1",
+  "title": "platform-core values",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["namespace", "collector", "graph", "opensearch"],
+  "properties": {
+    "namespace": { "type": "string", "minLength": 1 },
+    "collector": {
+      "type": "object",
+      "required": ["enabled", "image", "agent", "gateway"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "image": {
+          "type": "object",
+          "required": ["repository", "tag"],
+          "properties": {
+            "repository": { "type": "string" },
+            "tag": { "type": "string" }
+          }
+        },
+        "agent": {
+          "type": "object",
+          "required": ["enabled", "processors", "exporters"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "processors": { "type": "array", "items": { "type": "string" } },
+            "exporters": { "type": "array", "items": { "type": "string" } },
+            "resources": { "type": "object" }
+          }
+        },
+        "gateway": {
+          "type": "object",
+          "required": ["enabled", "replicas", "processors", "exporters"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "replicas": { "type": "integer", "minimum": 1 },
+            "processors": { "type": "array", "items": { "type": "string" } },
+            "exporters": { "type": "array", "items": { "type": "string" } },
+            "resources": { "type": "object" }
+          }
+        }
+      }
+    },
+    "graph": {
+      "type": "object",
+      "required": ["enabled", "namespace", "neo4j"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "namespace": { "type": "string" },
+        "neo4j": {
+          "type": "object",
+          "required": ["image", "auth"],
+          "properties": {
+            "image": {
+              "type": "object",
+              "required": ["repository", "tag"],
+              "properties": {
+                "repository": { "type": "string" },
+                "tag": { "type": "string" }
+              }
+            },
+            "auth": {
+              "type": "object",
+              "required": ["username", "password"],
+              "properties": {
+                "username": { "type": "string" },
+                "password": { "type": "string" }
+              }
+            },
+            "resources": { "type": "object" }
+          }
+        }
+      }
+    },
+    "opensearch": {
+      "type": "object",
+      "required": ["endpoint", "authSecretRef", "ilmPolicies", "indexTemplates"],
+      "properties": {
+        "endpoint": { "type": "string", "format": "uri" },
+        "authSecretRef": {
+          "type": "object",
+          "required": ["name", "namespace"],
+          "properties": {
+            "name": { "type": "string" },
+            "namespace": { "type": "string" }
+          }
+        },
+        "ilmPolicies": { "type": "object" },
+        "indexTemplates": { "type": "object" }
+      }
+    },
+    "pipelines": { "type": "object" }
+  }
+}

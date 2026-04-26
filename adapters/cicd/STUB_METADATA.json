@@ -1,0 +1,17 @@
+{
+  "adapter_class": "cicd",
+  "stub_name": "default-cicd-stub",
+  "status": "ready_for_profile_wiring",
+  "prerequisites": [
+    "cicd_profile_selected",
+    "contract_validation_passed"
+  ],
+  "generated_values": [
+    "cicd.enabled",
+    "cicd.mode"
+  ],
+  "fallback_behavior": {
+    "strategy": "disable_adapter_keep_core",
+    "notes": "Revert to manual deployment path; core deploy contracts remain authoritative."
+  }
+}

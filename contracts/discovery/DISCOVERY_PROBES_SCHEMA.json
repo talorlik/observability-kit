@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observability-kit.local/contracts/discovery/probes/v1",
+  "title": "Discovery Probes Report",
+  "description": "Snapshot of probed cluster capabilities feeding compatibility evaluation. Cloud-agnostic: applies to any conformant Kubernetes cluster.",
+  "type": "object",
+  "required": ["metadata", "cluster", "probes"],
+  "additionalProperties": false,
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "required": ["version", "owner", "source_marker"],
+      "additionalProperties": true,
+      "properties": {
+        "version": { "type": "string", "pattern": "^v[0-9]+$" },
+        "owner": { "type": "string" },
+        "source_marker": { "type": "string" }
+      }
+    },
+    "cluster": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": true,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "kubernetes_version": { "type": "string" },
+        "distribution": { "type": "string" }
+      }
+    },
+    "probes": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "storage_and_ingress": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "storage_classes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "default": { "type": "boolean" }
+                }
+              }
+            },
+            "ingress_controllers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "detected": { "type": "boolean" }
+                }
+              }
+            },
+            "gateway_api_crds": {
+              "type": "object",
+              "properties": {
+                "present": { "type": "boolean" }
+              }
+            }
+          }
+        },
+        "gitops_and_secrets": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "gitops_controllers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "detected": { "type": "boolean" }
+                }
+              }
+            },
+            "secret_integrations": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "detected": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "workload_inventory": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "namespaces": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "controllers": {
+              "type": "object",
+              "additionalProperties": { "type": "integer", "minimum": 0 }
+            },
+            "services": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["namespace", "name"],
+                "properties": {
+                  "namespace": { "type": "string" },
+                  "name": { "type": "string" },
+                  "ports": {
+                    "type": "array",
+                    "items": { "type": "integer" }
+                  },
+                  "onboardable_candidate": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

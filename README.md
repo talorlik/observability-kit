@@ -1,7 +1,8 @@
 # Observability Kit
 
-A portable, plug-and-play observability intelligence platform for existing
-AWS EKS clusters.
+A portable, plug-and-play observability intelligence platform for any
+conformant Kubernetes cluster — cloud or on-prem. Cloud-agnostic by design;
+provider-specific integrations are handled by adapters under `adapters/`.
 
 ## Primary Implementation Languages
 
@@ -18,13 +19,15 @@ and Markdown).
 ## Ultimate Goal
 
 Deliver one repeatable platform that can be installed from a personal machine
-or GitHub Actions with consistent outcomes, while enforcing these constraints:
+or any CI runner with consistent outcomes, while enforcing these constraints:
 
 - OpenTelemetry is the sole collector for logs, metrics, and traces
-- Amazon OpenSearch is the single telemetry and vector store
-- Amazon OpenSearch Ingestion (OSI) is the managed ingest path
+- OpenSearch is the single telemetry and vector store
+- Managed ingest is OpenTelemetry-native (e.g., OpenSearch Ingestion where the
+  cluster supports it; otherwise the OpenTelemetry collector writes directly)
 - Neo4j is a derived graph tier, not a raw telemetry store
 - Delivery is Terraform plus Helm plus ArgoCD Applications
+- No provider-specific service is mandatory in the core architecture
 
 The platform also provides a phased path from core observability to
 AI-assisted incident analysis, with deterministic graph and risk capabilities
@@ -32,7 +35,10 @@ before optional LLM-assisted RCA.
 
 ## Primary Planning Documents
 
-- `docs/auxiliary/planning/OBSERVABILITY_PLATFORM.plan.md`
+- `docs/auxiliary/planning/OBSERVABILITY_PLATFORM_V2.plan.md` (authoritative,
+  cloud-agnostic plan)
+- `docs/auxiliary/planning/OBSERVABILITY_PLATFORM.plan.md` (deprecated v1,
+  AWS-specific; retained for historical reference only)
 - `docs/auxiliary/planning/PRD.md`
 - `docs/auxiliary/planning/TECHNICAL.md`
 - `docs/auxiliary/planning/TASKS.md`
@@ -238,6 +244,66 @@ go or hold decision records.
 - Operator guide:
   `docs/runbooks/RISK_SCORING_ASSISTED_RCA_READINESS_GUIDE.md`
 
+## Batch 13 Core Adapter Integrations
+
+Batch 13 adds the adapter framework: profile-scoped, additive, reversible
+extensions for provider event sources, identity, secrets, storage, network
+ingress, and CI/CD. Core contracts remain unchanged whether adapters are
+enabled or disabled.
+
+- Adapter contracts:
+  `contracts/adapters/`
+- Adapter implementations:
+  `adapters/identity/`, `adapters/secrets/`, `adapters/storage/`,
+  `adapters/network/`, `adapters/providers/`, `adapters/cicd/`
+- Batch 13 validation script:
+  `scripts/ci/validate_core_adapter_integrations.sh`
+- Per-adapter sub-validators:
+  `scripts/ci/validate_identity_backend_adapters.sh`,
+  `scripts/ci/validate_secrets_backend_adapters.sh`,
+  `scripts/ci/validate_storage_backend_adapters.sh`,
+  `scripts/ci/validate_network_ingress_adapters.sh`,
+  `scripts/ci/validate_cicd_adapter_templates.sh`,
+  `scripts/ci/validate_provider_event_source_adapters.sh`
+- Batch 13 smoke wrapper:
+  `scripts/ci/validate_batch13_smoke.sh`
+- Operator guide:
+  `docs/runbooks/CORE_ADAPTER_INTEGRATIONS_OPERATOR_GUIDE.md`
+- Adapter enablement guide:
+  `docs/adapters/ADAPTER_ENABLEMENT_GUIDE.md`
+
+## Batch 14 AI/MCP Runtime Validation And Productization
+
+Batch 14 covers the AI/MCP layer that builds on the core platform: agent
+boundary contracts, governance and approval flow, casefile state, MCP catalog
+and tool response contracts, KAgent/KHook/KMcp scaffolding, and action-gate
+release readiness.
+
+- AI contracts:
+  `contracts/ai/`
+- Policy contracts:
+  `contracts/policy/`
+- MCP contracts:
+  `contracts/mcp/`
+- Batch 14 smoke wrapper (aggregates all 10 AI/MCP validators):
+  `scripts/ci/validate_batch14_smoke.sh`
+- Per-area validators:
+  `scripts/ci/validate_ai_boundary_contracts.sh`,
+  `scripts/ci/validate_ai_governance_contracts.sh`,
+  `scripts/ci/validate_ai_state_contracts.sh`,
+  `scripts/ci/validate_mcp_contracts.sh`,
+  `scripts/ci/validate_ai_runtime_base_scaffolding.sh`,
+  `scripts/ci/validate_mcp_read_path_scaffolding.sh`,
+  `scripts/ci/validate_multi_agent_scaffolding.sh`,
+  `scripts/ci/validate_khook_trigger_scaffolding.sh`,
+  `scripts/ci/validate_action_gate_scaffolding.sh`,
+  `scripts/ci/validate_kagent_khook_release.sh`
+- Operator runbooks:
+  `docs/runbooks/AI_APPROVAL_FLOW_RUNBOOK.md`,
+  `docs/runbooks/KHOOK_TROUBLESHOOTING_RUNBOOK.md`,
+  `docs/runbooks/MCP_GATEWAY_OPERATIONS_RUNBOOK.md`,
+  `docs/runbooks/CASEFILE_REVIEW_RUNBOOK.md`
+
 ## Unified Validation Reporting
 
 Run all implemented batch smoke tests and generate developer and QA friendly
@@ -267,6 +333,11 @@ Report outputs:
 - `docs/runbooks/VECTOR_FOUNDATIONS_OPERATOR_GUIDE.md`
 - `docs/runbooks/GRAPH_FOUNDATION_OPERATOR_GUIDE.md`
 - `docs/runbooks/RISK_SCORING_ASSISTED_RCA_READINESS_GUIDE.md`
+- `docs/runbooks/CORE_ADAPTER_INTEGRATIONS_OPERATOR_GUIDE.md`
+- `docs/runbooks/AI_APPROVAL_FLOW_RUNBOOK.md`
+- `docs/runbooks/KHOOK_TROUBLESHOOTING_RUNBOOK.md`
+- `docs/runbooks/MCP_GATEWAY_OPERATIONS_RUNBOOK.md`
+- `docs/runbooks/CASEFILE_REVIEW_RUNBOOK.md`
 
 ## Project-Local Snyk Path
 

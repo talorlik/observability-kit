@@ -1,4 +1,8 @@
+# platform-core default values.
+# Cloud-agnostic; overridden per-environment via gitops/overlays/<env>/.
+
 namespace: observability
+
 collector:
   enabled: true
   image:
@@ -13,6 +17,13 @@ collector:
       - batch
     exporters:
       - otlp/gateway
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
   gateway:
     enabled: true
     replicas: 2
@@ -23,6 +34,14 @@ collector:
       - batch
     exporters:
       - otlp/backend
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+
 graph:
   enabled: false
   namespace: observability-graph
@@ -40,3 +59,37 @@ graph:
       limits:
         cpu: "1"
         memory: 2Gi
+
+# OpenSearch backend connection. Cloud-agnostic; targets any conformant
+# OpenSearch endpoint reachable from the cluster.
+opensearch:
+  endpoint: https://opensearch.observability.svc.cluster.local:9200
+  authSecretRef:
+    name: opensearch-credentials
+    namespace: observability
+  ilmPolicies:
+    logs: logs-default-30d
+    metrics: metrics-default-30d
+    traces: traces-default-14d
+  indexTemplates:
+    logs: logs-template
+    metrics: metrics-template
+    traces: traces-template
+    vectors: vectors-template
+
+# Pipeline value files are mounted into the collector via Kustomize overlays
+# in gitops/platform/observability/values/. The chart consumes the rendered
+# OpenTelemetry collector config; pipelines are not declared inline here.
+pipelines:
+  logs:
+    enabled: true
+    valuesRef: gitops/platform/observability/values/logs-pipeline.yaml
+  metrics:
+    enabled: true
+    valuesRef: gitops/platform/observability/values/metrics-pipeline.yaml
+  traces:
+    enabled: true
+    valuesRef: gitops/platform/observability/values/traces-pipeline.yaml
+  graph:
+    enabled: false
+    valuesRef: gitops/platform/observability/values/graph-pipeline.yaml

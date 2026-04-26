@@ -11,7 +11,12 @@ spec:
     path: gitops/charts/platform-core
     helm:
       valueFiles:
-        - ../../../overlays/base/platform-core-values.yaml
+        # Repo-root-relative path; ArgoCD resolves this from the source repoURL
+        # rather than relative to the Application spec, which is more robust to
+        # bootstrap-time path nesting.
+        - $values/gitops/overlays/base/platform-core-values.yaml
+  # Reference the same repo for valueFiles via Helm's $values mechanism.
+  sources: []
   destination:
     server: https://kubernetes.default.svc
     namespace: observability
