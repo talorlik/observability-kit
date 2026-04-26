@@ -74,3 +74,7 @@ terraform.rc
 # Generated validation reports
 docs/reports/validation/*
 !docs/reports/validation/.gitkeep
+
+# scripts/dev/sandbox_validate.sh leaves these only if cleanup fails (rare;
+# only on sandbox mounts that block unlink). Safe to delete.
+**/*.sandbox_bak.*
