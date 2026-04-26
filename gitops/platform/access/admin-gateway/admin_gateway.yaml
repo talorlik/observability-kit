@@ -1,0 +1,46 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: admin-ui-gateway
+  namespace: observability
+spec:
+  gatewayClassName: nginx
+  listeners:
+    - name: https
+      protocol: HTTPS
+      port: 443
+      hostname: admin.example.internal
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: admin-ui-tls
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: dashboards-admin-route
+  namespace: observability
+spec:
+  parentRefs:
+    - name: admin-ui-gateway
+  hostnames:
+    - dashboards.admin.example.internal
+  rules:
+    - backendRefs:
+        - name: opensearch-dashboards
+          port: 5601
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: grafana-admin-route
+  namespace: observability
+spec:
+  parentRefs:
+    - name: admin-ui-gateway
+  hostnames:
+    - grafana.admin.example.internal
+  rules:
+    - backendRefs:
+        - name: grafana
+          port: 3000

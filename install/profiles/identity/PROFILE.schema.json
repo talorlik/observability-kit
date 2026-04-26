@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Identity Profile",
+  "type": "object",
+  "required": [
+    "profile_id",
+    "provider",
+    "group_claim",
+    "prerequisites"
+  ],
+  "properties": {
+    "profile_id": {
+      "type": "string",
+      "enum": [
+        "oidc",
+        "saml",
+        "static-users"
+      ]
+    },
+    "provider": {
+      "type": "string",
+      "enum": [
+        "oidc",
+        "saml",
+        "local"
+      ]
+    },
+    "group_claim": {
+      "type": "string",
+      "minLength": 1
+    },
+    "prerequisites": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "additionalProperties": false
+}

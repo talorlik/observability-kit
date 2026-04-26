@@ -2,6 +2,7 @@
   "metadata": {
     "version": "v1",
     "template_owner": "platform-observability",
+    "generated_by": "contracts/discovery/READINESS_REPORT_SCAFFOLD.json",
     "emitted_after": "dry-run-install"
   },
   "input_refs": {

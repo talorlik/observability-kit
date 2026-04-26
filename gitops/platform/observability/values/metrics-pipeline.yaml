@@ -1,0 +1,17 @@
+metricsPipeline:
+  enabled: true
+  scrapeDiscovery:
+    annotationKey: observability.opentelemetry.io/scrape
+    labelKey: observability.opentelemetry.io/scrape-enabled
+    optInValue: "true"
+  otlp:
+    metricsReceiver:
+      protocols:
+        grpc: {}
+        http:
+          endpoint: 0.0.0.0:4318
+  processors:
+    - k8sattributes
+    - resource
+    - memory_limiter
+    - batch

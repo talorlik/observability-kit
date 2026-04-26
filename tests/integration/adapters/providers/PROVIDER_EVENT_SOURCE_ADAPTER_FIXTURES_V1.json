@@ -1,0 +1,44 @@
+{
+  "suite": "provider-event-source-adapter-fixtures-v1",
+  "fixtures": [
+    {
+      "provider": "aws",
+      "source": "eventbridge",
+      "normalized_hook_id": "pod-restart",
+      "dispatch_mode": "read-only",
+      "payload_bytes": 1024
+    },
+    {
+      "provider": "gcp",
+      "source": "eventarc",
+      "normalized_hook_id": "probe-failed",
+      "dispatch_mode": "read-only",
+      "payload_bytes": 1536
+    },
+    {
+      "provider": "azure",
+      "source": "event_grid",
+      "normalized_hook_id": "oom-kill",
+      "dispatch_mode": "read-only",
+      "payload_bytes": 1200
+    }
+  ],
+  "negative_fixtures": [
+    {
+      "id": "invalid-write-dispatch",
+      "provider": "aws",
+      "source": "eventbridge",
+      "normalized_hook_id": "pod-restart",
+      "dispatch_mode": "approval-gated-write",
+      "expected_result": "rejected"
+    },
+    {
+      "id": "oversized-payload",
+      "provider": "gcp",
+      "source": "eventarc",
+      "normalized_hook_id": "probe-failed",
+      "payload_bytes": 20000,
+      "expected_result": "rejected"
+    }
+  ]
+}

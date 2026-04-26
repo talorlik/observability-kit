@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kagent-controller
+  namespace: ai-runtime
+  labels:
+    app.kubernetes.io/name: kagent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kagent
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kagent
+      annotations:
+        instrumentation.opentelemetry.io/inject-sdk: "true"
+    spec:
+      serviceAccountName: sa-agent-ceo
+      containers:
+        - name: kagent-controller
+          image: ghcr.io/kagent-dev/kagent:v0.1.0
+          ports:
+            - name: http
+              containerPort: 8080
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          env:
+            - name: KAGENT_POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: ai-runtime-postgres
+                  key: host
+            - name: KAGENT_POSTGRES_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: ai-runtime-postgres
+                  key: port
+            - name: KAGENT_POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: ai-runtime-postgres
+                  key: database
+            - name: KAGENT_POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: ai-runtime-postgres
+                  key: username
+            - name: KAGENT_POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ai-runtime-postgres
+                  key: password
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kagent-controller
+  namespace: ai-runtime
+spec:
+  selector:
+    app.kubernetes.io/name: kagent
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

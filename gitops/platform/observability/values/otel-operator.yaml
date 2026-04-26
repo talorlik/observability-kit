@@ -1,0 +1,16 @@
+otelOperator:
+  enabled: true
+  namespace: observability
+  image:
+    repository: ghcr.io/open-telemetry/opentelemetry-operator/opentelemetry-operator
+    tag: "0.99.0"
+  admissionWebhooks:
+    enabled: true
+  manager:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi

@@ -1,0 +1,21 @@
+{
+  "suite": "release-validation-v1",
+  "coverage": {
+    "functional": [
+      "scripts/ci/validate_multi_agent_scaffolding.sh",
+      "scripts/ci/validate_khook_trigger_scaffolding.sh",
+      "scripts/ci/validate_action_gate_scaffolding.sh"
+    ],
+    "safety": [
+      "scripts/ci/validate_ai_governance_contracts.sh",
+      "scripts/ci/validate_ai_state_contracts.sh",
+      "tests/safety/action_gates/ACTION_GATE_SCENARIOS_V1.json"
+    ],
+    "performance": [
+      "tests/perf/ai_runtime/PERF_UPGRADE_SUITE_V1.json"
+    ],
+    "upgrade": [
+      "tests/perf/ai_runtime/PERF_UPGRADE_SUITE_V1.json"
+    ]
+  }
+}

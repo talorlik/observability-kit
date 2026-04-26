@@ -1,0 +1,11 @@
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: observability-nightly
+  namespace: velero
+spec:
+  schedule: "0 2 * * *"
+  template:
+    includedNamespaces:
+      - observability
+    ttl: 240h0m0s

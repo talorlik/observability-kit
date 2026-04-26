@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Graph Profile",
+  "type": "object",
+  "required": [
+    "profile_id",
+    "graph_enabled",
+    "backend",
+    "sync_interval_minutes",
+    "freshness_slo_minutes",
+    "prerequisites"
+  ],
+  "properties": {
+    "profile_id": {
+      "type": "string",
+      "enum": [
+        "graph-disabled",
+        "graph-enabled"
+      ]
+    },
+    "graph_enabled": {
+      "type": "boolean"
+    },
+    "backend": {
+      "type": "string",
+      "enum": [
+        "neo4j"
+      ]
+    },
+    "sync_interval_minutes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "freshness_slo_minutes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "prerequisites": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "profile_id": {
+            "const": "graph-disabled"
+          }
+        },
+        "required": [
+          "profile_id"
+        ]
+      },
+      "then": {
+        "properties": {
+          "graph_enabled": {
+            "const": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "profile_id": {
+            "const": "graph-enabled"
+          }
+        },
+        "required": [
+          "profile_id"
+        ]
+      },
+      "then": {
+        "properties": {
+          "graph_enabled": {
+            "const": true
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

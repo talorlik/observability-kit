@@ -1,0 +1,32 @@
+metadata:
+  policy: khook-dedupe-burst-control
+  version: v1
+  marker_coverage:
+    - KK-C22
+    - KK-C24
+
+deduplication:
+  key_fields:
+    - incident_correlation_key
+    - reason
+    - object_kind
+    - object_name
+  window_seconds: 300
+  behavior_on_duplicate: suppress_new_investigation
+
+burst_control:
+  per_key_max_events_per_window: 10
+  window_seconds: 60
+  overflow_behavior: aggregate_and_emit_single_summary
+  summary_fields:
+    - suppressed_event_count
+    - first_seen_at
+    - last_seen_at
+
+resilience:
+  policy_on_store_unavailable: fail_closed
+  max_retry_attempts: 3
+  retry_backoff_seconds:
+    - 1
+    - 2
+    - 5

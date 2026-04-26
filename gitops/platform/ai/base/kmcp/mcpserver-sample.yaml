@@ -1,0 +1,16 @@
+apiVersion: mcp.kagent.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: incident-search-mcp
+  namespace: mcp-services
+spec:
+  discovery:
+    enabled: false
+  endpoint:
+    mode: gateway
+    remoteMCPServerRef:
+      name: ai-gateway-catalog
+      namespace: ai-gateway
+  healthCheck:
+    path: /healthz
+    intervalSeconds: 30

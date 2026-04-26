@@ -4,6 +4,80 @@ set -euo pipefail
 
 echo "Validating Batch 4 collector core topology artifacts..."
 
+echo "Running Helm template render..."
+helm template platform-core gitops/charts/platform-core >/tmp/batch4-helm-render.yaml
+
+echo "Running Kubernetes client dry-run apply..."
+if command -v kubectl >/dev/null 2>&1; then
+  if kubectl cluster-info >/dev/null 2>&1; then
+    kubectl apply --dry-run=client --validate=false \
+      -f /tmp/batch4-helm-render.yaml >/dev/null
+  else
+    echo "Cluster API unavailable, running offline structural dry-run fallback..."
+    python3 - <<'PY'
+from pathlib import Path
+import sys
+
+content = Path("/tmp/batch4-helm-render.yaml").read_text(encoding="utf-8")
+docs = [doc.strip() for doc in content.split("---") if doc.strip()]
+if not docs:
+    print("ERROR: Helm render produced no manifests.")
+    sys.exit(1)
+
+for idx, doc in enumerate(docs, start=1):
+    for required in ("apiVersion:", "kind:", "metadata:"):
+        if required not in doc:
+            print(f"ERROR: manifest {idx} missing required field token: {required}")
+            sys.exit(1)
+
+print("Offline structural dry-run checks passed.")
+PY
+  fi
+else
+  echo "ERROR: kubectl is required for dry-run apply validation."
+  exit 1
+fi
+
+echo "Validating required collector chains and exporters from values..."
+python3 - <<'PY'
+from pathlib import Path
+import sys
+
+required_tokens = [
+    "k8sattributes",
+    "resource",
+    "memory_limiter",
+    "batch",
+]
+
+agent_text = Path("gitops/platform/observability/values/otel-agent.yaml").read_text(
+    encoding="utf-8"
+)
+gateway_text = Path("gitops/platform/observability/values/otel-gateway.yaml").read_text(
+    encoding="utf-8"
+)
+pipeline_text = Path(
+    "gitops/platform/observability/values/collector-pipelines.yaml"
+).read_text(encoding="utf-8")
+
+for token in required_tokens:
+    if token not in agent_text:
+        print(f"ERROR: otel-agent values missing required processor token: {token}")
+        sys.exit(1)
+    if token not in gateway_text:
+        print(f"ERROR: otel-gateway values missing required processor token: {token}")
+        sys.exit(1)
+    if token not in pipeline_text:
+        print(f"ERROR: collector pipelines values missing processor token: {token}")
+        sys.exit(1)
+
+if "otlp/backend" not in pipeline_text:
+    print("ERROR: collector pipelines values missing otlp/backend exporter token.")
+    sys.exit(1)
+
+print("Collector chains and exporters validation passed.")
+PY
+
 python3 - <<'PY'
 import json
 from pathlib import Path
@@ -103,3 +177,6 @@ for sim in simulations:
 
 print("Batch 4 collector core topology checks passed.")
 PY
+
+echo "Validating bounded-loss simulation metrics..."
+python3 tests/failure/collector_failure_simulations/validate_bounded_loss.py

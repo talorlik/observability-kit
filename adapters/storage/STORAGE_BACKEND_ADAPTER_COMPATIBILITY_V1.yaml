@@ -1,0 +1,95 @@
+metadata:
+  contract: storage-backend-adapter-compatibility
+  version: v1
+  optional_batch: IKAD-04
+
+scope:
+  adapter_domain: storage
+  intent: map optional storage backends to core OpenSearch lifecycle contracts
+  core_contracts_unchanged: true
+  unchanged_core_contract_refs:
+    - contracts/ai/BOUNDARY_CONTRACT_V1.yaml
+    - contracts/logs/LOGS_INDEX_TEMPLATE_POLICY.json
+    - contracts/policy/NO_DIRECT_DATASTORE_ACCESS.rego
+
+storage_backends:
+  - name: opensearch-hot-warm
+    mode: opensearch-managed
+    supported_profiles:
+      - quickstart
+      - dev
+      - staging
+      - prod
+    required_fields:
+      - backend
+      - namespace
+      - index_prefix
+      - ilm_policy
+      - retention_days
+    outputs:
+      generated_values:
+        - storage.enabled
+        - storage.mode
+        - storage.indexTemplateOverride
+      bounded_policies:
+        max_templates: 6
+  - name: s3-snapshot-repository
+    mode: snapshot-only
+    supported_profiles:
+      - staging
+      - prod
+    required_fields:
+      - backend
+      - namespace
+      - repository_name
+      - bucket_ref
+      - schedule
+    outputs:
+      generated_values:
+        - storage.enabled
+        - storage.mode
+        - storage.snapshotRepositoryRef
+      bounded_policies:
+        max_templates: 2
+  - name: azure-blob-snapshot-repository
+    mode: snapshot-only
+    supported_profiles:
+      - staging
+      - prod
+    required_fields:
+      - backend
+      - namespace
+      - repository_name
+      - container_ref
+      - schedule
+    outputs:
+      generated_values:
+        - storage.enabled
+        - storage.mode
+        - storage.snapshotRepositoryRef
+      bounded_policies:
+        max_templates: 2
+  - name: gcs-snapshot-repository
+    mode: snapshot-only
+    supported_profiles:
+      - staging
+      - prod
+    required_fields:
+      - backend
+      - namespace
+      - repository_name
+      - bucket_ref
+      - schedule
+    outputs:
+      generated_values:
+        - storage.enabled
+        - storage.mode
+        - storage.snapshotRepositoryRef
+      bounded_policies:
+        max_templates: 2
+
+constraints:
+  dispatch_mode: read-only
+  preserve_core_index_templates: true
+  deny_template_delete_operations: true
+  deny_direct_datastore_access: true

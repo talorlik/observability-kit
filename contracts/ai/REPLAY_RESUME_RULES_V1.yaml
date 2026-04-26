@@ -1,0 +1,25 @@
+metadata:
+  contract: replay-resume-rules
+  version: v1
+  marker_coverage:
+    - KK-C07
+    - KK-C09
+
+resume_source:
+  required: casefile_persistent_store
+  forbidden:
+    - transient_agent_memory
+    - ephemeral_prompt_state
+
+replay_guards:
+  - check: case_id_exists
+  - check: lineage_workflow_id_present
+  - check: status_is_known
+  - check: approval_state_consistent_with_status
+  - check: action_journal_monotonic_timestamps
+
+replay_behavior:
+  unknown_state: fail_closed
+  pending_approval_state: resume_at_awaiting-approval
+  in_execution_state: resume_at_executing
+  resolved_state: no_further_write_actions

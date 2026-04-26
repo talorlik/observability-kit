@@ -1,0 +1,26 @@
+version: v1
+remediations:
+  cluster_connectivity_failed:
+    actions:
+      - Verify kubeconfig context and API endpoint reachability.
+      - Confirm RBAC and network egress policies allow API calls.
+  rbac_access_missing:
+    actions:
+      - Bind required ClusterRole for discovery service account.
+      - Re-run preflight after role binding reconciliation.
+  required_api_unavailable:
+    actions:
+      - Install missing APIService or required extension.
+      - Wait for APIService availability before retry.
+  gateway_api_crds_required:
+    actions:
+      - Install Gateway API CRDs for ingress profile.
+      - Switch to ingress-nginx profile if Gateway API unavailable.
+  storage_profile_incompatible:
+    actions:
+      - Select supported storage profile from compatibility matrix.
+      - Create default StorageClass if none present.
+  gitops_controller_missing:
+    actions:
+      - Install Argo CD or compatible GitOps controller.
+      - Confirm CRDs and namespace permissions are ready.

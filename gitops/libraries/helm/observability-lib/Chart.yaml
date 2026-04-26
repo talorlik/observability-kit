@@ -1,0 +1,5 @@
+apiVersion: v2
+name: observability-lib
+description: Reusable onboarding helpers for observability metadata and telemetry wiring.
+type: library
+version: 0.1.0

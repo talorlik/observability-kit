@@ -1,0 +1,67 @@
+{
+  "schema_version": "v1",
+  "supported_modes": [
+    "quickstart",
+    "attach",
+    "standalone",
+    "hybrid"
+  ],
+  "mode_contracts": {
+    "quickstart": {
+      "required_inputs": [
+        "cluster_name",
+        "environment",
+        "gitops_repo_url",
+        "gitops_path"
+      ],
+      "outputs": [
+        "recommended_overlay",
+        "generated_capability_matrix",
+        "generated_compatibility_result"
+      ]
+    },
+    "attach": {
+      "required_inputs": [
+        "cluster_name",
+        "environment",
+        "existing_observability_stack"
+      ],
+      "outputs": [
+        "recommended_overlay",
+        "generated_capability_matrix",
+        "generated_compatibility_result"
+      ]
+    },
+    "standalone": {
+      "required_inputs": [
+        "cluster_name",
+        "environment",
+        "base_domain",
+        "storage_profile",
+        "identity_profile",
+        "secret_profile",
+        "ingress_profile"
+      ],
+      "outputs": [
+        "recommended_overlay",
+        "generated_capability_matrix",
+        "generated_compatibility_result",
+        "post_install_readiness_report"
+      ]
+    },
+    "hybrid": {
+      "required_inputs": [
+        "cluster_name",
+        "environment",
+        "existing_observability_stack",
+        "in_cluster_collectors_supported"
+      ],
+      "outputs": [
+        "recommended_overlay",
+        "generated_capability_matrix",
+        "generated_compatibility_result",
+        "post_install_readiness_report"
+      ]
+    }
+  }
+}

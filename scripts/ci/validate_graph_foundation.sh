@@ -29,6 +29,7 @@ REQUIRED_ALERT_SIGNALS = {
     "graph_data_lag_minutes",
     "graph_sync_failure_rate_percent",
 }
+REQUIRED_TOGGLE_MODES = {"graph_enabled", "graph_disabled"}
 REQUIRED_QUERY_TYPES = {"dependency_path", "blast_radius", "ownership_traversal"}
 REQUIRED_RUNBOOK_STEPS = {
     "rebuild_graph_from_latest_snapshot",
@@ -69,6 +70,21 @@ for check in module_profile.get("enable_disable_validation", {}).get(
 ):
     if check.get("status") != "pass":
         fail(f"Core health check failed during graph toggle validation: {check.get('name')}")
+toggle_runs = module_profile.get("enable_disable_validation", {}).get("toggle_test_runs", [])
+if len(toggle_runs) < 2:
+    fail("Graph module profile must include graph_enabled and graph_disabled toggle runs.")
+toggle_modes = {run.get("mode") for run in toggle_runs}
+if toggle_modes != REQUIRED_TOGGLE_MODES:
+    fail("Graph module toggle runs must include graph_enabled and graph_disabled.")
+for run in toggle_runs:
+    if run.get("core_platform_status") != "healthy":
+        fail(f"Core platform must remain healthy during {run.get('mode')} mode.")
+    mode = run.get("mode")
+    graph_status = run.get("graph_sync_status")
+    if mode == "graph_enabled" and graph_status != "healthy":
+        fail("Graph-enabled run must keep graph sync healthy.")
+    if mode == "graph_disabled" and graph_status != "skipped":
+        fail("Graph-disabled run must skip graph sync while preserving core behavior.")
 
 
 # Task 2: schema versioning.
@@ -106,6 +122,11 @@ if not sync.get("convergence_checks", {}).get("run_to_run_hash_match"):
     fail("Graph sync run-to-run hash must match.")
 if not sync.get("convergence_checks", {}).get("late_out_of_order_handling_defined"):
     fail("Late and out-of-order handling must be defined for sync.")
+repeat_run_count = sync.get("convergence_checks", {}).get("repeat_run_count", 0)
+if repeat_run_count < 3:
+    fail("Graph convergence validation must include at least three repeated runs.")
+if not sync.get("convergence_checks", {}).get("convergence_token", "").startswith("graph-state-sha256:"):
+    fail("Graph convergence token must be a stable graph-state sha256 marker.")
 
 
 # Task 4: freshness and sync quality alerts.
@@ -123,6 +144,15 @@ for alert in freshness.get("alerts", []):
         fail(f"Graph alert did not trigger in validation test: {alert.get('name')}")
 if len(freshness.get("routing_channels", [])) < 1:
     fail("Graph alerts must define routing channels.")
+simulation = freshness.get("stale_data_simulation", {})
+if simulation.get("status") != "pass":
+    fail("Stale-data simulation status must pass.")
+if not simulation.get("triggered"):
+    fail("Stale-data simulation must trigger the expected alert.")
+if simulation.get("injected_lag_minutes", 0) <= freshness.get("freshness_slo", {}).get("max_graph_lag_minutes", 0):
+    fail("Stale-data simulation lag must exceed configured freshness threshold.")
+if simulation.get("expected_alert") != simulation.get("observed_alert"):
+    fail("Stale-data simulation expected and observed alerts must match.")
 
 
 # Task 5: dependency and blast-radius queries.

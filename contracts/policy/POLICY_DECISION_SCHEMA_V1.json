@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observability-kit/contracts/policy/POLICY_DECISION_SCHEMA_V1.json",
+  "title": "PolicyDecisionV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "decision",
+    "tool",
+    "risk_class",
+    "reason",
+    "evaluated_at",
+    "requires_approval"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "allow",
+        "deny",
+        "conditional"
+      ]
+    },
+    "tool": {
+      "type": "string",
+      "minLength": 1
+    },
+    "risk_class": {
+      "type": "string",
+      "enum": [
+        "read.safe",
+        "read.sensitive",
+        "write.low-risk",
+        "write.high-risk",
+        "write.critical"
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evaluated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "requires_approval": {
+      "type": "boolean"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    }
+  }
+}

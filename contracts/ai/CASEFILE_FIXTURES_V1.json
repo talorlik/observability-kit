@@ -1,0 +1,180 @@
+{
+  "schema_version": "v1",
+  "fixtures": {
+    "create": {
+      "schema_version": "v1",
+      "case_id": "CASE-1001",
+      "status": "open",
+      "incident_context": {
+        "tenant": "team-observability",
+        "namespace": "payments-prod",
+        "summary": "Pod restart burst detected"
+      },
+      "agent_outputs": [],
+      "evidence_handles": [
+        "ev://logs/payments-prod/pod-checkout-1"
+      ],
+      "approval_state": {
+        "required": false,
+        "status": "not-required"
+      },
+      "action_journal": [],
+      "lineage": {
+        "correlation_id": "corr-1001",
+        "workflow_id": "wf-1001"
+      },
+      "created_at": "2026-04-26T12:00:00Z",
+      "updated_at": "2026-04-26T12:00:00Z"
+    },
+    "update": {
+      "schema_version": "v1",
+      "case_id": "CASE-1001",
+      "status": "investigating",
+      "incident_context": {
+        "tenant": "team-observability",
+        "namespace": "payments-prod",
+        "summary": "Restart burst with probe timeout signal"
+      },
+      "agent_outputs": [
+        {
+          "agent": "incident-investigator",
+          "output_ref": "out://case/CASE-1001/investigator/1",
+          "recorded_at": "2026-04-26T12:05:00Z"
+        }
+      ],
+      "evidence_handles": [
+        "ev://logs/payments-prod/pod-checkout-1",
+        "ev://metrics/payments-prod/deploy-checkout"
+      ],
+      "approval_state": {
+        "required": true,
+        "status": "pending",
+        "approval_ref": "apr-1001"
+      },
+      "action_journal": [],
+      "lineage": {
+        "correlation_id": "corr-1001",
+        "workflow_id": "wf-1001"
+      },
+      "created_at": "2026-04-26T12:00:00Z",
+      "updated_at": "2026-04-26T12:05:00Z"
+    },
+    "resume": {
+      "schema_version": "v1",
+      "case_id": "CASE-1001",
+      "status": "awaiting-approval",
+      "incident_context": {
+        "tenant": "team-observability",
+        "namespace": "payments-prod",
+        "summary": "Awaiting approval for runbook execution"
+      },
+      "agent_outputs": [
+        {
+          "agent": "investigation-manager",
+          "output_ref": "out://case/CASE-1001/manager/2",
+          "recorded_at": "2026-04-26T12:07:00Z"
+        }
+      ],
+      "evidence_handles": [
+        "ev://logs/payments-prod/pod-checkout-1",
+        "ev://trace/payments-prod/trace-99"
+      ],
+      "approval_state": {
+        "required": true,
+        "status": "pending",
+        "approval_ref": "apr-1001"
+      },
+      "action_journal": [
+        {
+          "action": "runbook-plan.v1",
+          "outcome": "blocked",
+          "recorded_at": "2026-04-26T12:08:00Z"
+        }
+      ],
+      "lineage": {
+        "correlation_id": "corr-1001",
+        "workflow_id": "wf-1001"
+      },
+      "created_at": "2026-04-26T12:00:00Z",
+      "updated_at": "2026-04-26T12:08:00Z"
+    },
+    "close": {
+      "schema_version": "v1",
+      "case_id": "CASE-1001",
+      "status": "closed",
+      "incident_context": {
+        "tenant": "team-observability",
+        "namespace": "payments-prod",
+        "summary": "Incident resolved and workflow closed"
+      },
+      "agent_outputs": [
+        {
+          "agent": "ops-ceo-agent",
+          "output_ref": "out://case/CASE-1001/ceo/3",
+          "recorded_at": "2026-04-26T12:10:00Z"
+        }
+      ],
+      "evidence_handles": [
+        "ev://logs/payments-prod/pod-checkout-1"
+      ],
+      "approval_state": {
+        "required": true,
+        "status": "approved",
+        "approval_ref": "apr-1001"
+      },
+      "action_journal": [
+        {
+          "action": "remediation-execute.v1",
+          "outcome": "executed",
+          "recorded_at": "2026-04-26T12:09:00Z"
+        }
+      ],
+      "lineage": {
+        "correlation_id": "corr-1001",
+        "workflow_id": "wf-1001"
+      },
+      "created_at": "2026-04-26T12:00:00Z",
+      "updated_at": "2026-04-26T12:10:00Z"
+    }
+  },
+  "transition_paths": [
+    [
+      "open",
+      "triaging",
+      "investigating",
+      "awaiting-approval",
+      "executing",
+      "resolved",
+      "closed"
+    ],
+    [
+      "open",
+      "triaging",
+      "investigating",
+      "resolved",
+      "closed"
+    ],
+    [
+      "open",
+      "triaging",
+      "investigating",
+      "awaiting-approval",
+      "rejected"
+    ]
+  ],
+  "invalid_transition_samples": [
+    {
+      "from": "open",
+      "to": "executing"
+    },
+    {
+      "from": "resolved",
+      "to": "investigating"
+    },
+    {
+      "from": "specialist",
+      "to": "specialist",
+      "type": "communication-edge"
+    }
+  ]
+}

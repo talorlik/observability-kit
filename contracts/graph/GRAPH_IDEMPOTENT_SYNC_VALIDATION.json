@@ -32,7 +32,9 @@
   "convergence_checks": {
     "repeated_runs_converge": true,
     "run_to_run_hash_match": true,
-    "late_out_of_order_handling_defined": true
+    "late_out_of_order_handling_defined": true,
+    "repeat_run_count": 3,
+    "convergence_token": "graph-state-sha256:3f11f1a0d8a5f8b1d5242a0c3d6630a0a855f14dc83bcf7a19f74fd7b66f7c36"
   },
   "validation_result": {
     "status": "pass"

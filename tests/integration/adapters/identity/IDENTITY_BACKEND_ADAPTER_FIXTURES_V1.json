@@ -1,0 +1,70 @@
+{
+  "fixtures": [
+    {
+      "name": "aws_irsa_ai_runtime",
+      "backend": "aws-irsa",
+      "cluster": "eks",
+      "namespace": "ai-runtime",
+      "service_account": "sa-agent-ceo",
+      "dispatch_mode": "read-only",
+      "annotation_count": 3
+    },
+    {
+      "name": "gcp_workload_identity_mcp_services",
+      "backend": "gcp-workload-identity",
+      "cluster": "gke",
+      "namespace": "mcp-services",
+      "service_account": "sa-mcp-incident-search",
+      "dispatch_mode": "read-only",
+      "annotation_count": 2
+    },
+    {
+      "name": "azure_workload_identity_ai_runtime",
+      "backend": "azure-workload-identity",
+      "cluster": "aks",
+      "namespace": "ai-runtime",
+      "service_account": "sa-agent-investigator",
+      "dispatch_mode": "read-only",
+      "annotation_count": 2
+    },
+    {
+      "name": "generic_oidc_manager_binding",
+      "backend": "generic-oidc",
+      "cluster": "any",
+      "namespace": "ai-runtime",
+      "service_account": "sa-agent-manager",
+      "dispatch_mode": "read-only",
+      "annotation_count": 1
+    }
+  ],
+  "negative_fixtures": [
+    {
+      "name": "reject_unknown_backend",
+      "backend": "unknown-idp",
+      "cluster": "eks",
+      "namespace": "ai-runtime",
+      "service_account": "sa-agent-ceo",
+      "dispatch_mode": "read-only",
+      "expected_result": "rejected"
+    },
+    {
+      "name": "reject_write_dispatch_mode",
+      "backend": "aws-irsa",
+      "cluster": "eks",
+      "namespace": "ai-runtime",
+      "service_account": "sa-agent-ceo",
+      "dispatch_mode": "approval-gated-write",
+      "expected_result": "rejected"
+    },
+    {
+      "name": "reject_annotation_overflow",
+      "backend": "gcp-workload-identity",
+      "cluster": "gke",
+      "namespace": "ai-runtime",
+      "service_account": "sa-agent-manager",
+      "dispatch_mode": "read-only",
+      "annotation_count": 99,
+      "expected_result": "rejected"
+    }
+  ]
+}

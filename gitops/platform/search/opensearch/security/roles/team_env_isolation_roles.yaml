@@ -1,0 +1,30 @@
+roles:
+  team_a_dev_reader:
+    cluster_permissions: []
+    index_permissions:
+      - index_patterns:
+          - logs-dev-team-a-*
+          - metrics-dev-team-a-*
+          - traces-dev-team-a-*
+        allowed_actions:
+          - read
+  team_b_dev_reader:
+    cluster_permissions: []
+    index_permissions:
+      - index_patterns:
+          - logs-dev-team-b-*
+          - metrics-dev-team-b-*
+          - traces-dev-team-b-*
+        allowed_actions:
+          - read
+  platform_admin:
+    cluster_permissions:
+      - cluster_composite_ops
+    index_permissions:
+      - index_patterns:
+          - logs-*
+          - metrics-*
+          - traces-*
+        allowed_actions:
+          - read
+          - write

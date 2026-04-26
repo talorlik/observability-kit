@@ -37,6 +37,13 @@ Run focused Batch 11 smoke validation:
 bash scripts/ci/validate_batch11_smoke.sh
 ```
 
+Render platform core with graph enabled using profile values:
+
+```bash
+helm template platform-core gitops/charts/platform-core \
+  -f gitops/platform/observability/values/graph-pipeline.yaml
+```
+
 ## Expected Outcomes
 
 - graph module can toggle on or off with core telemetry path health preserved

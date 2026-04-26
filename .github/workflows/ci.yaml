@@ -31,6 +31,12 @@ jobs:
       - name: YAML lint
         run: bash scripts/ci/validate_yaml.sh
 
+      - name: Stub render checks
+        run: bash scripts/ci/validate_stub_renders.sh
+
+      - name: Seeded rejection checks
+        run: bash scripts/ci/validate_seeded_rejection_checks.sh
+
       - name: Helm lint
         run: helm lint gitops/charts/platform-core
 
@@ -40,8 +46,38 @@ jobs:
       - name: Install contract schema checks
         run: bash scripts/ci/validate_install_contract.sh
 
+      - name: AI boundary and protocol contract checks
+        run: bash scripts/ci/validate_ai_boundary_contracts.sh
+
       - name: Compatibility and mode checks
         run: bash scripts/ci/validate_compatibility_and_modes.sh
+
+      - name: AI governance contract checks
+        run: bash scripts/ci/validate_ai_governance_contracts.sh
+
+      - name: AI shared state and envelope contract checks
+        run: bash scripts/ci/validate_ai_state_contracts.sh
+
+      - name: MCP catalog and tool contract checks
+        run: bash scripts/ci/validate_mcp_contracts.sh
+
+      - name: AI runtime base scaffolding checks
+        run: bash scripts/ci/validate_ai_runtime_base_scaffolding.sh
+
+      - name: MCP read-path scaffolding checks
+        run: bash scripts/ci/validate_mcp_read_path_scaffolding.sh
+
+      - name: Multi-agent scaffolding checks
+        run: bash scripts/ci/validate_multi_agent_scaffolding.sh
+
+      - name: Khook trigger scaffolding checks
+        run: bash scripts/ci/validate_khook_trigger_scaffolding.sh
+
+      - name: Approval-gated action scaffolding checks
+        run: bash scripts/ci/validate_action_gate_scaffolding.sh
+
+      - name: Kagent Khook release scaffolding checks
+        run: bash scripts/ci/validate_kagent_khook_release.sh
 
       - name: Preflight and discovery checks
         run: bash scripts/ci/validate_preflight_and_discovery.sh

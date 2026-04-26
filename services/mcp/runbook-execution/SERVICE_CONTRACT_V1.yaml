@@ -1,0 +1,24 @@
+service:
+  name: runbook-execution-mcp
+  version: v1
+  gateway_served: true
+  mode: approval-gated-write
+  marker_coverage:
+    - KK-C25
+    - KK-C26
+    - KK-C27
+  response_schema: contracts/mcp/TOOL_RESPONSE_SCHEMA_V1.json
+  action_preconditions_contract: contracts/policy/ACTION_PRECONDITIONS_V1.yaml
+
+tools:
+  - name: runbook-plan.v1
+    risk_class: write.high-risk
+    requires_approval: true
+  - name: remediation-execute.v1
+    risk_class: write.critical
+    requires_approval: true
+
+enforcement:
+  require_policy_engine: true
+  require_approval_service: true
+  deny_on_missing_dependencies: true

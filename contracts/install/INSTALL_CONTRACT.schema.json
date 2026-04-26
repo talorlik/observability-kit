@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observability-kit.local/contracts/install/schema/v1",
+  "title": "Install Contract Alias",
+  "description": "Compatibility alias for INSTALL_CONTRACT_SCHEMA.json.",
+  "allOf": [
+    {
+      "$ref": "./INSTALL_CONTRACT_SCHEMA.json"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "suite": "ai-runtime-perf-upgrade-v1",
+  "coverage": {
+    "performance": [
+      "trigger_storm_handling",
+      "concurrent_investigation_load",
+      "gateway_latency_under_load",
+      "mcp_degraded_mode_behavior"
+    ],
+    "upgrade": [
+      "kagent_contract_compatibility_upgrade",
+      "khook_contract_compatibility_upgrade",
+      "kmcp_contract_compatibility_upgrade",
+      "gateway_contract_compatibility_upgrade"
+    ]
+  },
+  "success_criteria": {
+    "max_p95_gateway_latency_ms": 750,
+    "no_schema_breaking_changes": true,
+    "degraded_mode_fallback": "read-only"
+  }
+}

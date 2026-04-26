@@ -19,14 +19,16 @@
       "namespace": "team-a",
       "mode": "annotation",
       "status": "pass",
-      "metrics_found": true
+      "metrics_found": true,
+      "target_index": "metrics-dev-workload-2026.04.07"
     },
     {
       "service": "inventory-api",
       "namespace": "team-b",
       "mode": "label",
       "status": "pass",
-      "metrics_found": true
+      "metrics_found": true,
+      "target_index": "metrics-dev-workload-2026.04.07"
     }
   ],
   "validation_result": {

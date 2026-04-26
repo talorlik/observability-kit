@@ -1,0 +1,35 @@
+metadata:
+  contract: approval-flow
+  version: v1
+  marker_coverage:
+    - KK-C05
+
+preconditions:
+  write.low-risk:
+    requires_policy_allow: true
+    requires_human_approval: false
+    requires_manual_workflow: false
+  write.high-risk:
+    requires_policy_allow: true
+    requires_human_approval: true
+    requires_manual_workflow: false
+    required_approval_fields:
+      - approval_id
+      - approver
+      - decision
+      - decided_at
+  write.critical:
+    requires_policy_allow: true
+    requires_human_approval: true
+    requires_manual_workflow: true
+    required_approval_fields:
+      - approval_id
+      - approver
+      - decision
+      - decided_at
+      - change_ticket
+
+execution_gates:
+  evaluate_policy_before_write: true
+  deny_on_missing_preconditions: true
+  feed_rejection_into_casefile: true

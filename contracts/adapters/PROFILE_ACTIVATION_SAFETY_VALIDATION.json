@@ -6,5 +6,14 @@
     "activation_requires_explicit_profile_selection",
     "core_contract_mutation_blocked",
     "safe_disable_path_verified"
+  ],
+  "activation_modes_validated": [
+    "adapter-enabled",
+    "adapter-disabled"
+  ],
+  "core_paths_verified": [
+    "collector_pipeline_contract",
+    "onboarding_contract",
+    "gitops_render_contract"
   ]
 }

@@ -1,0 +1,20 @@
+metadata:
+  profile: redaction-scope
+  version: v1
+
+scope_controls:
+  required:
+    - namespace
+    - tenant
+    - team
+  max_time_window_hours: 24
+  max_response_items: 500
+
+redaction_controls:
+  field_level_redaction: true
+  secret_masking: true
+  restricted_domains:
+    - pii.raw
+    - credentials
+    - key_material
+  deny_on_scope_mismatch: true

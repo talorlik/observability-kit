@@ -1,0 +1,32 @@
+metadata:
+  contract: khook-output-attachments
+  version: v1
+  marker_coverage:
+    - KK-C24
+
+attachments:
+  case_file:
+    required: true
+    target_tool: incident-casefile.update.v1
+    required_fields:
+      - case_id
+      - summary
+      - evidence_handles
+      - correlation_key
+      - source_hook_id
+      - recorded_at
+  operator_channel:
+    required: true
+    channel_types:
+      - slack
+      - pagerduty
+      - email
+    required_fields:
+      - summary
+      - severity
+      - evidence_handles
+      - runbook_link
+
+delivery_guarantees:
+  case_file_write: at-least-once
+  operator_notification: at-least-once

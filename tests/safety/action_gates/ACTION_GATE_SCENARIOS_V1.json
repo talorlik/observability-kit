@@ -1,0 +1,59 @@
+{
+  "suite": "action-gate-scenarios-v1",
+  "scenarios": [
+    {
+      "id": "approved-runbook-plan",
+      "tool": "runbook-plan.v1",
+      "risk_class": "write.high-risk",
+      "policy_decision": "allow",
+      "approval_status": "approved",
+      "valid_target": true,
+      "rollback_plan_present": true,
+      "expected_outcome": "executed"
+    },
+    {
+      "id": "missing-approval-high-risk",
+      "tool": "runbook-plan.v1",
+      "risk_class": "write.high-risk",
+      "policy_decision": "allow",
+      "approval_status": "pending",
+      "valid_target": true,
+      "rollback_plan_present": true,
+      "expected_outcome": "blocked"
+    },
+    {
+      "id": "critical-denied-by-policy",
+      "tool": "remediation-execute.v1",
+      "risk_class": "write.critical",
+      "policy_decision": "deny",
+      "approval_status": "approved",
+      "valid_target": true,
+      "rollback_plan_present": true,
+      "change_ticket_present": true,
+      "expected_outcome": "blocked"
+    },
+    {
+      "id": "critical-requires-change-ticket",
+      "tool": "remediation-execute.v1",
+      "risk_class": "write.critical",
+      "policy_decision": "allow",
+      "approval_status": "approved",
+      "valid_target": true,
+      "rollback_plan_present": true,
+      "change_ticket_present": false,
+      "expected_outcome": "blocked"
+    },
+    {
+      "id": "critical-rollback-deterministic",
+      "tool": "remediation-execute.v1",
+      "risk_class": "write.critical",
+      "policy_decision": "allow",
+      "approval_status": "approved",
+      "valid_target": true,
+      "rollback_plan_present": true,
+      "change_ticket_present": true,
+      "simulate_runtime_failure": true,
+      "expected_outcome": "rolled-back"
+    }
+  ]
+}

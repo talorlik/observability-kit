@@ -1,0 +1,40 @@
+{
+  "index_patterns": [
+    "logs-*"
+  ],
+  "template": {
+    "settings": {
+      "index.lifecycle.name": "logs-default-30d",
+      "index.lifecycle.rollover_alias": "logs-write"
+    },
+    "mappings": {
+      "dynamic": "strict",
+      "properties": {
+        "@timestamp": {
+          "type": "date"
+        },
+        "service.name": {
+          "type": "keyword"
+        },
+        "deployment.environment": {
+          "type": "keyword"
+        },
+        "k8s.cluster.name": {
+          "type": "keyword"
+        },
+        "severity": {
+          "type": "keyword"
+        },
+        "trace_id": {
+          "type": "keyword"
+        },
+        "span_id": {
+          "type": "keyword"
+        },
+        "message": {
+          "type": "text"
+        }
+      }
+    }
+  }
+}

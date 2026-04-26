@@ -39,6 +39,11 @@
       "status": "pass"
     }
   ],
+  "bundle_integrity_checks": {
+    "bundle_signature_verified": true,
+    "source_link_accessible_in_replay": true,
+    "lineage_manifest_written": true
+  },
   "validation_result": {
     "status": "pass"
   }

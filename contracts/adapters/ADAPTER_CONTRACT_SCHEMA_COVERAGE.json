@@ -3,8 +3,16 @@
     "status": "pass"
   },
   "checks": [
-    "provider_backend_identity_secrets_network_classes_covered",
+    "provider_backend_identity_secrets_network_cicd_classes_covered",
     "supported_and_invalid_examples_evaluated",
     "required_fields_and_fallback_enforced"
+  ],
+  "required_adapter_classes": [
+    "provider",
+    "backend",
+    "identity",
+    "secrets",
+    "network",
+    "cicd"
   ]
 }

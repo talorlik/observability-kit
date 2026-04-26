@@ -1,0 +1,111 @@
+metadata:
+  artifact: prompt-fragments
+  version: v1
+  marker_coverage:
+    - KK-C20
+    - KK-C21
+
+required_fragments:
+  - id: role_definition
+    description: Define domain role and orchestration scope.
+  - id: allowed_tools
+    description: Declare allowed MCP tools and agent-as-tool targets.
+  - id: prohibited_actions
+    description: Explicitly ban unsafe tools and datastore paths.
+  - id: casefile_behavior
+    description: Require case-file read and write behavior by contract.
+  - id: escalation_rules
+    description: Define stop, continue, escalate, and approval triggers.
+
+role_fragment_coverage:
+  ops-ceo-agent:
+    includes:
+      - role_definition
+      - allowed_tools
+      - prohibited_actions
+      - casefile_behavior
+      - escalation_rules
+  triage-director:
+    includes:
+      - role_definition
+      - allowed_tools
+      - prohibited_actions
+      - casefile_behavior
+      - escalation_rules
+  investigation-manager:
+    includes:
+      - role_definition
+      - allowed_tools
+      - prohibited_actions
+      - casefile_behavior
+      - escalation_rules
+  action-governor:
+    includes:
+      - role_definition
+      - allowed_tools
+      - prohibited_actions
+      - casefile_behavior
+      - escalation_rules
+  incident-investigator:
+    includes:
+      - role_definition
+      - allowed_tools
+      - prohibited_actions
+      - casefile_behavior
+      - escalation_rules
+  logs-analyst:
+    includes:
+      - role_definition
+      - allowed_tools
+      - prohibited_actions
+      - casefile_behavior
+      - escalation_rules
+  trace-analyst:
+    includes:
+      - role_definition
+      - allowed_tools
+      - prohibited_actions
+      - casefile_behavior
+      - escalation_rules
+  metrics-correlator:
+    includes:
+      - role_definition
+      - allowed_tools
+      - prohibited_actions
+      - casefile_behavior
+      - escalation_rules
+  graph-analyst:
+    includes:
+      - role_definition
+      - allowed_tools
+      - prohibited_actions
+      - casefile_behavior
+      - escalation_rules
+  change-correlator:
+    includes:
+      - role_definition
+      - allowed_tools
+      - prohibited_actions
+      - casefile_behavior
+      - escalation_rules
+  evidence-summarizer:
+    includes:
+      - role_definition
+      - allowed_tools
+      - prohibited_actions
+      - casefile_behavior
+      - escalation_rules
+  runbook-planner:
+    includes:
+      - role_definition
+      - allowed_tools
+      - prohibited_actions
+      - casefile_behavior
+      - escalation_rules
+  remediation-executor:
+    includes:
+      - role_definition
+      - allowed_tools
+      - prohibited_actions
+      - casefile_behavior
+      - escalation_rules

@@ -17,6 +17,14 @@ multiline = json.loads((base / "MULTILINE_GROUPING_VALIDATION.json").read_text()
 redaction = json.loads((base / "SENSITIVE_FIELD_REDACTION_VALIDATION.json").read_text())
 template = json.loads((base / "LOGS_INDEX_TEMPLATE_POLICY.json").read_text())
 correlation = json.loads((base / "TRACE_CORRELATION_VALIDATION.json").read_text())
+dashboard_file = (
+    Path("gitops")
+    / "platform"
+    / "search"
+    / "dashboards"
+    / "saved-objects"
+    / "LOGS_OPERATIONS.ndjson"
+)
 
 REQUIRED_BASE_FIELDS = {
     "@timestamp",
@@ -29,6 +37,12 @@ REQUIRED_BASE_FIELDS = {
 REQUIRED_TRACE_FIELDS = {"trace_id", "span_id"}
 EXPECTED_TEMPLATE_PATTERN = "logs-*"
 INDEX_NAME_REGEX = re.compile(r"^logs-[a-z0-9]+-[a-z0-9]+-\d{4}\.\d{2}\.\d{2}$")
+DASHBOARD_REQUIRED_IDS = {
+    "logs-operations-overview",
+    "logs-parse-failure-rate",
+    "logs-redaction-counter",
+    "logs-ingest-lag-seconds",
+}
 
 
 def fail(msg: str) -> None:
@@ -102,6 +116,33 @@ for sample in correlation.get("query_samples", []):
         fail(f"Trace correlation query sample failed: {sample.get('name')}")
     if sample.get("observed_hits", 0) < sample.get("expected_min_hits", 0):
         fail(f"Trace correlation hits below expectation: {sample.get('name')}")
+
+
+# Task 6: logs operations dashboard render artifact.
+if not dashboard_file.exists():
+    fail("LOGS_OPERATIONS.ndjson dashboard artifact is missing.")
+
+observed_ids = set()
+parsed_lines = 0
+for raw_line in dashboard_file.read_text().splitlines():
+    line = raw_line.strip()
+    if not line:
+        continue
+    parsed_lines += 1
+    try:
+        obj = json.loads(line)
+    except json.JSONDecodeError as exc:
+        fail(f"Invalid NDJSON object in LOGS_OPERATIONS.ndjson: {exc}")
+    object_id = obj.get("id")
+    if object_id:
+        observed_ids.add(object_id)
+
+if parsed_lines == 0:
+    fail("LOGS_OPERATIONS.ndjson cannot be empty.")
+missing_ids = DASHBOARD_REQUIRED_IDS - observed_ids
+if missing_ids:
+    missing_str = ", ".join(sorted(missing_ids))
+    fail(f"LOGS_OPERATIONS.ndjson missing required object IDs: {missing_str}")
 
 print("Batch 5 logs pipeline checks passed.")
 PY

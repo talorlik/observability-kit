@@ -1,0 +1,11 @@
+{
+  "cluster_name": "reference-cluster",
+  "kubernetes_version": "1.29",
+  "distribution": "eks",
+  "cluster_connectivity": true,
+  "required_permissions": true,
+  "required_api_readiness": true,
+  "required_crd_readiness": true,
+  "storage_compatibility": true,
+  "gitops_prerequisites": true
+}

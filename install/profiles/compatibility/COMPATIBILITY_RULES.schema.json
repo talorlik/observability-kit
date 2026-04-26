@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Compatibility Matrix Rules",
+  "type": "object",
+  "required": [
+    "kubernetes",
+    "distributions",
+    "grading"
+  ],
+  "properties": {
+    "kubernetes": {
+      "type": "object",
+      "required": [
+        "supported"
+      ],
+      "properties": {
+        "supported": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "conditional": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "version",
+              "conditions"
+            ],
+            "properties": {
+              "version": {
+                "type": "string"
+              },
+              "conditions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "distributions": {
+      "type": "object",
+      "required": [
+        "supported"
+      ],
+      "properties": {
+        "supported": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "grading": {
+      "type": "object",
+      "required": [
+        "supported",
+        "conditional",
+        "blocked"
+      ],
+      "properties": {
+        "supported": {
+          "type": "string"
+        },
+        "conditional": {
+          "type": "string"
+        },
+        "blocked": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}

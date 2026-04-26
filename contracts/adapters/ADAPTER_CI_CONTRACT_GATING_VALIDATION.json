@@ -6,5 +6,10 @@
     "invalid_adapter_definitions_blocked",
     "unsafe_profile_mutations_blocked",
     "batch13_smoke_included_in_ci"
+  ],
+  "required_ci_gates": [
+    "validate_core_adapter_integrations",
+    "validate_gitops_neutrality",
+    "validate_batch13_smoke"
   ]
 }

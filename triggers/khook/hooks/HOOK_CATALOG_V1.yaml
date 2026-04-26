@@ -1,0 +1,55 @@
+metadata:
+  catalog: khook-hook-catalog
+  version: v1
+  marker_coverage:
+    - KK-C22
+    - KK-C23
+    - KK-C24
+
+hooks:
+  - id: pod-restart
+    enabled: true
+    event_source: kubernetes.events
+    event_kind: Pod
+    event_reason: Restarted
+    severity: high
+    dispatch_mode: investigate
+  - id: oom-kill
+    enabled: true
+    event_source: kubernetes.events
+    event_kind: Pod
+    event_reason: OOMKilled
+    severity: critical
+    dispatch_mode: investigate
+  - id: probe-failed
+    enabled: true
+    event_source: kubernetes.events
+    event_kind: Pod
+    event_reason: Unhealthy
+    severity: medium
+    dispatch_mode: investigate
+  - id: pod-pending
+    enabled: true
+    event_source: kubernetes.events
+    event_kind: Pod
+    event_reason: FailedScheduling
+    severity: medium
+    dispatch_mode: investigate
+  - id: node-not-ready
+    enabled: true
+    event_source: kubernetes.events
+    event_kind: Node
+    event_reason: NodeNotReady
+    severity: critical
+    dispatch_mode: investigate
+
+schema_requirements:
+  required_event_fields:
+    - event_id
+    - event_timestamp
+    - cluster
+    - namespace
+    - object_kind
+    - object_name
+    - reason
+    - message

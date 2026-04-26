@@ -1,0 +1,25 @@
+metadata:
+  contract: contradiction-rollup-rules
+  version: v1
+  marker_coverage:
+    - KK-C08
+    - KK-C09
+
+deterministic_resolution:
+  strategy: weighted_evidence_then_confidence
+  steps:
+    - rule: prefer finding set with greater evidence_handle_count
+    - rule: if tie, prefer higher confidence
+    - rule: if tie, prefer lower risk_level rank (critical > high > medium > low)
+    - rule: if tie, preserve lexical order of agent identifier for stable output
+
+confidence_rollup:
+  method: weighted_average
+  required_fields:
+    - confidence
+    - evidence_handles
+  weighting:
+    evidence_handle_weight: 0.7
+    model_confidence_weight: 0.3
+  deterministic_rounding:
+    precision: 4

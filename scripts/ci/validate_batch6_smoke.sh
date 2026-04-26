@@ -4,6 +4,7 @@ set -euo pipefail
 
 echo "Running Batch 6 smoke validation bundle..."
 
+bash scripts/ci/validate_mcp_read_path_scaffolding.sh
 bash scripts/ci/validate_metrics_traces_pipeline.sh
 
 echo "Batch 6 smoke validation bundle passed."

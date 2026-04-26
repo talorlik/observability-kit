@@ -1,0 +1,20 @@
+# Batch 11 graph profile override values.
+# Use this file to enable the optional graph module without --set flags.
+
+graph:
+  enabled: true
+  namespace: observability-graph
+  neo4j:
+    image:
+      repository: neo4j
+      tag: "5.26"
+    auth:
+      username: neo4j
+      password: replace-me
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 2Gi

@@ -1,0 +1,27 @@
+metadata:
+  contract: communication-graph
+  version: v1
+  marker_coverage:
+    - KK-C09
+  default_edge_policy: deny
+
+roles:
+  - ceo
+  - manager
+  - specialist
+
+allowed_edges:
+  - from: ceo
+    to: manager
+  - from: manager
+    to: specialist
+  - from: ceo
+    to: specialist
+
+denied_edges:
+  - from: specialist
+    to: specialist
+  - from: specialist
+    to: ceo
+  - from: manager
+    to: ceo

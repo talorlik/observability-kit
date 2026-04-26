@@ -1,0 +1,29 @@
+metadata:
+  contract: action-preconditions
+  version: v1
+  marker_coverage:
+    - KK-C25
+    - KK-C26
+    - KK-C27
+
+write_path_tools:
+  - tool: runbook-plan.v1
+    risk_class: write.high-risk
+    execution_requirements:
+      requires_policy_decision: allow
+      requires_approval_status: approved
+      requires_valid_target: true
+      requires_rollback_plan: true
+  - tool: remediation-execute.v1
+    risk_class: write.critical
+    execution_requirements:
+      requires_policy_decision: allow
+      requires_approval_status: approved
+      requires_valid_target: true
+      requires_rollback_plan: true
+      requires_change_ticket: true
+
+failure_behavior:
+  on_missing_precondition: block
+  on_policy_error: deny
+  on_approval_service_unavailable: deny

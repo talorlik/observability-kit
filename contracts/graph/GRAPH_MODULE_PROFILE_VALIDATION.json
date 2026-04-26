@@ -25,6 +25,18 @@
   "enable_disable_validation": {
     "enable_without_core_disruption": true,
     "disable_without_core_disruption": true,
+    "toggle_test_runs": [
+      {
+        "mode": "graph_enabled",
+        "core_platform_status": "healthy",
+        "graph_sync_status": "healthy"
+      },
+      {
+        "mode": "graph_disabled",
+        "core_platform_status": "healthy",
+        "graph_sync_status": "skipped"
+      }
+    ],
     "core_pipeline_health_checks": [
       {
         "name": "otel_ingest_pipeline",

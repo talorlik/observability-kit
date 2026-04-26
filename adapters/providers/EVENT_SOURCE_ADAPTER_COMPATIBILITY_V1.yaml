@@ -1,0 +1,89 @@
+metadata:
+  contract: provider-event-source-adapter-compatibility
+  version: v1
+  optional_batch: IKAD-01
+
+scope:
+  adapter_domain: providers
+  intent: map provider-native event sources to existing Khook hooks
+  core_contracts_unchanged: true
+  unchanged_core_contract_refs:
+    - contracts/ai/BOUNDARY_CONTRACT_V1.yaml
+    - contracts/mcp/MCP_CATALOG_V1.yaml
+    - contracts/policy/NO_DIRECT_DATASTORE_ACCESS.rego
+
+providers:
+  - name: aws
+    supported_event_sources:
+      - source: eventbridge
+        normalized_hook_ids:
+          - pod-restart
+          - oom-kill
+          - probe-failed
+      - source: cloudwatch
+        normalized_hook_ids:
+          - pod-pending
+          - node-not-ready
+    normalization:
+      required_fields:
+        - provider
+        - source
+        - event_timestamp
+        - cluster
+        - namespace
+        - object_kind
+        - object_name
+        - reason
+        - message
+      bounded_payload:
+        max_bytes: 16384
+  - name: gcp
+    supported_event_sources:
+      - source: eventarc
+        normalized_hook_ids:
+          - pod-restart
+          - probe-failed
+      - source: cloud_monitoring
+        normalized_hook_ids:
+          - node-not-ready
+    normalization:
+      required_fields:
+        - provider
+        - source
+        - event_timestamp
+        - cluster
+        - namespace
+        - object_kind
+        - object_name
+        - reason
+        - message
+      bounded_payload:
+        max_bytes: 16384
+  - name: azure
+    supported_event_sources:
+      - source: event_grid
+        normalized_hook_ids:
+          - pod-restart
+          - oom-kill
+      - source: azure_monitor
+        normalized_hook_ids:
+          - probe-failed
+          - pod-pending
+    normalization:
+      required_fields:
+        - provider
+        - source
+        - event_timestamp
+        - cluster
+        - namespace
+        - object_kind
+        - object_name
+        - reason
+        - message
+      bounded_payload:
+        max_bytes: 16384
+
+constraints:
+  dispatch_mode: read-only
+  deny_write_path_targets: true
+  deny_direct_datastore_access: true

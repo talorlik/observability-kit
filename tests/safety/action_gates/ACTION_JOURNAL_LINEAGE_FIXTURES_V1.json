@@ -1,0 +1,41 @@
+{
+  "suite": "action-journal-lineage-fixtures-v1",
+  "entries": [
+    {
+      "case_id": "case-2026-04-26-031",
+      "action_id": "act-001",
+      "action_tool": "runbook-plan.v1",
+      "invoker_identity": "user:sre@example.com",
+      "agent_identity": "runbook-planner",
+      "policy_decision": "allow",
+      "approval_decision": "approved",
+      "target_resources": [
+        "k8s://ns/payments/deploy/payments-api"
+      ],
+      "evidence_handles": [
+        "ev://logs/payments/restart-window"
+      ],
+      "final_action_outcome": "executed",
+      "rollback_reference": "rbk-001",
+      "recorded_at": "2026-04-26T13:01:00Z"
+    },
+    {
+      "case_id": "case-2026-04-26-031",
+      "action_id": "act-002",
+      "action_tool": "remediation-execute.v1",
+      "invoker_identity": "user:sre@example.com",
+      "agent_identity": "remediation-executor",
+      "policy_decision": "allow",
+      "approval_decision": "approved",
+      "target_resources": [
+        "k8s://ns/payments/deploy/payments-api"
+      ],
+      "evidence_handles": [
+        "ev://trace/payments/rollback-trigger"
+      ],
+      "final_action_outcome": "rolled-back",
+      "rollback_reference": "rbk-002",
+      "recorded_at": "2026-04-26T13:02:00Z"
+    }
+  ]
+}

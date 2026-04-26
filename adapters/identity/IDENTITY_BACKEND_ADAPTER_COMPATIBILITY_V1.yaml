@@ -1,0 +1,93 @@
+metadata:
+  contract: identity-backend-adapter-compatibility
+  version: v1
+  optional_batch: IKAD-02
+
+scope:
+  adapter_domain: identity
+  intent: map external identity backends to core workload identity bindings
+  core_contracts_unchanged: true
+  unchanged_core_contract_refs:
+    - contracts/ai/BOUNDARY_CONTRACT_V1.yaml
+    - contracts/policy/IDENTITY_ACCESS_MATRIX_V1.yaml
+    - contracts/policy/NO_DIRECT_DATASTORE_ACCESS.rego
+
+identity_backends:
+  - name: aws-irsa
+    mode: oidc-federation
+    supported_clusters:
+      - eks
+    required_fields:
+      - backend
+      - namespace
+      - service_account
+      - role_arn
+      - oidc_issuer
+      - audience
+    outputs:
+      generated_values:
+        - identity.enabled
+        - identity.mode
+        - identity.serviceAccountAnnotations
+      bounded_annotations:
+        max_entries: 8
+  - name: gcp-workload-identity
+    mode: oidc-federation
+    supported_clusters:
+      - gke
+    required_fields:
+      - backend
+      - namespace
+      - service_account
+      - gcp_service_account
+      - workload_pool
+      - audience
+    outputs:
+      generated_values:
+        - identity.enabled
+        - identity.mode
+        - identity.serviceAccountAnnotations
+      bounded_annotations:
+        max_entries: 8
+  - name: azure-workload-identity
+    mode: oidc-federation
+    supported_clusters:
+      - aks
+    required_fields:
+      - backend
+      - namespace
+      - service_account
+      - client_id
+      - tenant_id
+      - issuer_url
+    outputs:
+      generated_values:
+        - identity.enabled
+        - identity.mode
+        - identity.serviceAccountAnnotations
+      bounded_annotations:
+        max_entries: 8
+  - name: generic-oidc
+    mode: oidc-federation
+    supported_clusters:
+      - any
+    required_fields:
+      - backend
+      - namespace
+      - service_account
+      - issuer_url
+      - subject_claim
+      - audience
+    outputs:
+      generated_values:
+        - identity.enabled
+        - identity.mode
+        - identity.serviceAccountAnnotations
+      bounded_annotations:
+        max_entries: 8
+
+constraints:
+  dispatch_mode: read-only
+  deny_plaintext_secrets_in_prompts: true
+  deny_static_long_lived_credentials: true
+  deny_direct_datastore_access: true

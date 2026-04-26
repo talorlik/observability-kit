@@ -1,0 +1,28 @@
+metadata:
+  policy: khook-read-only-dispatch
+  version: v1
+  marker_coverage:
+    - KK-C22
+    - KK-C23
+
+dispatch:
+  default_target_policy: deny
+  allowed_read_only_targets:
+    - ops-ceo-agent
+    - triage-director
+    - investigation-manager
+    - incident-investigator
+    - logs-analyst
+    - trace-analyst
+    - metrics-correlator
+    - graph-analyst
+    - change-correlator
+    - evidence-summarizer
+  denied_write_targets:
+    - action-governor
+    - runbook-planner
+    - remediation-executor
+
+constraints:
+  require_read_only_mode: true
+  block_if_target_not_allow_listed: true

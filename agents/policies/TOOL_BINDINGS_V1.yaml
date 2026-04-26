@@ -1,0 +1,133 @@
+metadata:
+  policy: tool-bindings
+  version: v1
+  default_tool_policy: deny
+  marker_coverage:
+    - KK-C19
+    - KK-C20
+    - KK-C21
+
+role_bindings:
+  ceo:
+    allow_risk_classes:
+      - read.safe
+      - read.sensitive
+      - write.low-risk
+    deny_risk_classes:
+      - write.high-risk
+      - write.critical
+  manager:
+    allow_risk_classes:
+      - read.safe
+      - read.sensitive
+      - write.low-risk
+    deny_risk_classes:
+      - write.high-risk
+      - write.critical
+  specialist_read_only:
+    allow_risk_classes:
+      - read.safe
+      - read.sensitive
+      - write.low-risk
+    deny_risk_classes:
+      - write.high-risk
+      - write.critical
+  specialist_action:
+    allow_risk_classes:
+      - write.high-risk
+      - write.critical
+      - write.low-risk
+    require_approval: true
+
+agent_tool_bindings:
+  ops-ceo-agent:
+    class: ceo
+    tools:
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+      - approval-status.v1
+  triage-director:
+    class: manager
+    tools:
+      - incident-search.v1
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+  investigation-manager:
+    class: manager
+    tools:
+      - incident-search.v1
+      - change-intelligence.v1
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+  action-governor:
+    class: manager
+    tools:
+      - approval-status.v1
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+  incident-investigator:
+    class: specialist_read_only
+    tools:
+      - incident-search.v1
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+  logs-analyst:
+    class: specialist_read_only
+    tools:
+      - incident-search.v1
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+  trace-analyst:
+    class: specialist_read_only
+    tools:
+      - trace-investigation.v1
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+  metrics-correlator:
+    class: specialist_read_only
+    tools:
+      - metrics-correlation.v1
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+  graph-analyst:
+    class: specialist_read_only
+    tools:
+      - graph-analysis.v1
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+  change-correlator:
+    class: specialist_read_only
+    tools:
+      - change-intelligence.v1
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+  evidence-summarizer:
+    class: specialist_read_only
+    tools:
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+  runbook-planner:
+    class: specialist_action
+    tools:
+      - runbook-plan.v1
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+    approval_gate:
+      required: true
+      source: casefile.approval_state.status
+      allowed_values:
+        - approved
+  remediation-executor:
+    class: specialist_action
+    tools:
+      - remediation-execute.v1
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+    approval_gate:
+      required: true
+      source: casefile.approval_state.status
+      allowed_values:
+        - approved
+    action_preconditions:
+      - policy.decision == allow
+      - rollback_plan.present == true

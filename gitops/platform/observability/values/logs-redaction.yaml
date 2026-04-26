@@ -1,0 +1,12 @@
+logsRedaction:
+  enabled: true
+  replacement: "[REDACTED]"
+  redactPatterns:
+    - "(?i)password"
+    - "(?i)token"
+    - "(?i)authorization"
+    - "(?i)secret"
+  neverIndexFields:
+    - user.password
+    - http.request.header.authorization
+    - secrets.*

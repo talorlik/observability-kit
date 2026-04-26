@@ -1,0 +1,45 @@
+metadata:
+  contract: tool-risk-classification
+  version: v1
+  marker_coverage:
+    - KK-C05
+
+risk_classes:
+  - read.safe
+  - read.sensitive
+  - write.low-risk
+  - write.high-risk
+  - write.critical
+
+tool_mappings:
+  - tool: incident-search.v1
+    risk_class: read.safe
+    requires_approval: false
+  - tool: graph-analysis.v1
+    risk_class: read.sensitive
+    requires_approval: false
+  - tool: trace-investigation.v1
+    risk_class: read.sensitive
+    requires_approval: false
+  - tool: metrics-correlation.v1
+    risk_class: read.safe
+    requires_approval: false
+  - tool: change-intelligence.v1
+    risk_class: read.sensitive
+    requires_approval: false
+  - tool: incident-casefile.read.v1
+    risk_class: read.sensitive
+    requires_approval: false
+  - tool: incident-casefile.update.v1
+    risk_class: write.low-risk
+    requires_approval: false
+  - tool: runbook-plan.v1
+    risk_class: write.high-risk
+    requires_approval: true
+  - tool: remediation-execute.v1
+    risk_class: write.critical
+    requires_approval: true
+
+constraints:
+  unclassified_tool_behavior: deny
+  read_only_agent_write_class_behavior: deny

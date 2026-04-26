@@ -1,0 +1,36 @@
+{
+  "cluster": {
+    "profile_id": "eks-default",
+    "kubernetes_version": "1.27",
+    "distribution": "eks",
+    "prerequisites": [
+      "cluster_reachable"
+    ]
+  },
+  "storage": {
+    "profile_id": "gp3-csi",
+    "storage_class": "gp3",
+    "access_mode": "ReadWriteOnce",
+    "prerequisites": []
+  },
+  "identity": {
+    "profile_id": "oidc",
+    "provider": "oidc",
+    "prerequisites": [
+      "oidc_issuer_reachable"
+    ]
+  },
+  "secrets": {
+    "profile_id": "external-secrets",
+    "backend": "external-secrets",
+    "rotation_policy": "automatic"
+  },
+  "ingress": {
+    "profile_id": "nginx-ingress",
+    "controller": "nginx",
+    "tls_termination": "invalid",
+    "prerequisites": [
+      "ingress_nginx_controller_installed"
+    ]
+  }
+}

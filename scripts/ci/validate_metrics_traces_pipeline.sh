@@ -59,6 +59,11 @@ for service_test in scrape.get("service_tests", []):
         fail(f"Scrape onboarding service test failed: {service_test.get('service')}")
     if not service_test.get("metrics_found"):
         fail(f"Scrape onboarding metrics missing: {service_test.get('service')}")
+    if METRICS_INDEX_REGEX.fullmatch(service_test.get("target_index", "")) is None:
+        fail(
+            "Opted-in workload metrics must be indexed to metrics-* naming pattern "
+            f"for service: {service_test.get('service')}"
+        )
 
 
 # Task 3: OTLP metrics and traces ingestion.
@@ -159,6 +164,10 @@ for pivot in correlation.get("pivot_tests", []):
 
 if not correlation.get("validation_result", {}).get("operator_pivot_workflow_tested"):
     fail("Correlation pivot must confirm operator pivot workflow test evidence.")
+
+observed_sources = {pivot.get("source") for pivot in correlation.get("pivot_tests", [])}
+if {"synthetic", "pilot"} - observed_sources:
+    fail("Correlation pivots must include both synthetic and pilot test evidence.")
 
 print("Batch 6 metrics and traces pipeline checks passed.")
 PY

@@ -28,5 +28,10 @@ if missing:
     print(f"ERROR: Missing neutrality checks: {sorted(missing)}")
     sys.exit(1)
 
+modes = set(contract.get("modes_validated", []))
+if modes != {"adapters-enabled", "adapters-disabled"}:
+    print("ERROR: Neutrality validation must cover adapters-enabled and adapters-disabled modes.")
+    sys.exit(1)
+
 print("CI/CD neutrality validation passed.")
 PY

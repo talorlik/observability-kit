@@ -1,0 +1,196 @@
+metadata:
+  catalog: agent-catalog
+  version: v1
+  marker_coverage:
+    - KK-C19
+    - KK-C20
+    - KK-C21
+
+roles:
+  ceo:
+    - ops-ceo-agent
+  manager:
+    - triage-director
+    - investigation-manager
+    - action-governor
+  specialist:
+    - incident-investigator
+    - logs-analyst
+    - trace-analyst
+    - metrics-correlator
+    - graph-analyst
+    - change-correlator
+    - evidence-summarizer
+    - runbook-planner
+    - remediation-executor
+
+agents:
+  - name: ops-ceo-agent
+    role: ceo
+    mode: orchestrator
+    allowed_agent_invocations:
+      - triage-director
+      - investigation-manager
+      - action-governor
+      - incident-investigator
+      - evidence-summarizer
+    allowed_mcp_tools:
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+      - approval-status.v1
+    prohibited_actions:
+      - direct_datastore_query
+      - remediation_execute
+    synthesis_owner: true
+  - name: triage-director
+    role: manager
+    mode: orchestration-manager
+    allowed_agent_invocations:
+      - incident-investigator
+      - logs-analyst
+      - trace-analyst
+      - metrics-correlator
+      - graph-analyst
+      - change-correlator
+      - evidence-summarizer
+    allowed_mcp_tools:
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+      - incident-search.v1
+    prohibited_actions:
+      - remediation_execute
+      - approval_bypass
+  - name: investigation-manager
+    role: manager
+    mode: orchestration-manager
+    allowed_agent_invocations:
+      - incident-investigator
+      - logs-analyst
+      - trace-analyst
+      - metrics-correlator
+      - graph-analyst
+      - change-correlator
+      - evidence-summarizer
+    allowed_mcp_tools:
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+      - incident-search.v1
+      - change-intelligence.v1
+    prohibited_actions:
+      - remediation_execute
+      - specialist_peer_chatter
+  - name: action-governor
+    role: manager
+    mode: governance-manager
+    allowed_agent_invocations:
+      - runbook-planner
+      - remediation-executor
+    allowed_mcp_tools:
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+      - approval-status.v1
+    prohibited_actions:
+      - direct_execution_without_approval
+  - name: incident-investigator
+    role: specialist
+    mode: read-only
+    allowed_agent_invocations: []
+    allowed_mcp_tools:
+      - incident-search.v1
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+    prohibited_actions:
+      - write_high_risk
+      - specialist_to_specialist
+  - name: logs-analyst
+    role: specialist
+    mode: read-only
+    allowed_agent_invocations: []
+    allowed_mcp_tools:
+      - incident-search.v1
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+    prohibited_actions:
+      - write_high_risk
+      - specialist_to_specialist
+  - name: trace-analyst
+    role: specialist
+    mode: read-only
+    allowed_agent_invocations: []
+    allowed_mcp_tools:
+      - trace-investigation.v1
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+    prohibited_actions:
+      - write_high_risk
+      - specialist_to_specialist
+  - name: metrics-correlator
+    role: specialist
+    mode: read-only
+    allowed_agent_invocations: []
+    allowed_mcp_tools:
+      - metrics-correlation.v1
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+    prohibited_actions:
+      - write_high_risk
+      - specialist_to_specialist
+  - name: graph-analyst
+    role: specialist
+    mode: read-only
+    allowed_agent_invocations: []
+    allowed_mcp_tools:
+      - graph-analysis.v1
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+    prohibited_actions:
+      - write_high_risk
+      - specialist_to_specialist
+  - name: change-correlator
+    role: specialist
+    mode: read-only
+    allowed_agent_invocations: []
+    allowed_mcp_tools:
+      - change-intelligence.v1
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+    prohibited_actions:
+      - write_high_risk
+      - specialist_to_specialist
+  - name: evidence-summarizer
+    role: specialist
+    mode: read-only
+    allowed_agent_invocations: []
+    allowed_mcp_tools:
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+    prohibited_actions:
+      - write_high_risk
+      - specialist_to_specialist
+  - name: runbook-planner
+    role: specialist
+    mode: approval-gated
+    allowed_agent_invocations: []
+    allowed_mcp_tools:
+      - runbook-plan.v1
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+    required_preconditions:
+      - approval.status == approved
+      - policy.decision == allow
+    prohibited_actions:
+      - execute_changes
+  - name: remediation-executor
+    role: specialist
+    mode: approval-gated
+    allowed_agent_invocations: []
+    allowed_mcp_tools:
+      - remediation-execute.v1
+      - incident-casefile.read.v1
+      - incident-casefile.update.v1
+    required_preconditions:
+      - approval.status == approved
+      - policy.decision == allow
+      - rollback_plan.present == true
+    prohibited_actions:
+      - execute_without_approval

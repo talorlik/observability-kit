@@ -1,0 +1,44 @@
+metadata:
+  contract: ai-namespace-boundaries
+  version: v1
+  marker_coverage:
+    - KK-C03
+  default_policy: deny_cross_namespace
+
+namespaces:
+  - observability-system
+  - ai-runtime
+  - ai-triggers
+  - mcp-system
+  - mcp-services
+  - ai-gateway
+  - ai-policy
+
+cross_namespace_allow_list:
+  - from: ai-triggers
+    to:
+      - ai-runtime
+    reason: khook_dispatch_to_kagent
+  - from: ai-runtime
+    to:
+      - ai-gateway
+      - ai-policy
+    reason: orchestration_and_governance_calls
+  - from: ai-gateway
+    to:
+      - mcp-services
+    reason: federated_mcp_routing
+  - from: mcp-services
+    to:
+      - observability-system
+    reason: platform_api_access
+
+allowed_namespaces_rules:
+  required_field: allowedNamespaces
+  apply_to:
+    - agent_tool_bindings
+    - mcp_service_configs
+  constraints:
+    - values_must_exist_in_declared_namespaces
+    - wildcard_forbidden
+    - empty_list_forbidden

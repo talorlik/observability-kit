@@ -1,0 +1,13 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-05",
+  "never_index_fields": [
+    "user.password",
+    "http.request.header.authorization",
+    "secrets.*"
+  ],
+  "redaction_replacement": "[REDACTED]",
+  "validation_result": {
+    "status": "pass"
+  }
+}

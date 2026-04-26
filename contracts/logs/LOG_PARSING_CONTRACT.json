@@ -1,0 +1,25 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-05",
+  "validation_target": "log_parsing_contract",
+  "required_fields": [
+    "@timestamp",
+    "message",
+    "service.name",
+    "deployment.environment",
+    "k8s.cluster.name",
+    "severity"
+  ],
+  "parsers": [
+    "cri",
+    "json"
+  ],
+  "multiline_patterns": [
+    "java",
+    "go",
+    "python"
+  ],
+  "validation_result": {
+    "status": "pass"
+  }
+}

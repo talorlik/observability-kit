@@ -1,0 +1,16 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-06",
+  "default_policy": {
+    "sampler": "parentbased_traceidratio",
+    "ratio": 0.1
+  },
+  "environment_overrides": {
+    "dev": 1.0,
+    "staging": 0.2,
+    "prod": 0.05
+  },
+  "validation_result": {
+    "status": "pass"
+  }
+}

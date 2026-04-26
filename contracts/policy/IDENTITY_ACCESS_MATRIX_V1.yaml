@@ -1,0 +1,76 @@
+metadata:
+  contract: identity-access-matrix
+  version: v1
+  marker_coverage:
+    - KK-C04
+  default_policy: deny
+
+service_accounts:
+  agents:
+    - component: ops-ceo-agent
+      namespace: ai-runtime
+      serviceAccount: sa-agent-ceo
+      allowedNamespaces:
+        - ai-runtime
+        - ai-gateway
+      permissions:
+        - read_casefile
+        - dispatch_manager
+    - component: investigation-manager
+      namespace: ai-runtime
+      serviceAccount: sa-agent-manager
+      allowedNamespaces:
+        - ai-runtime
+        - ai-gateway
+      permissions:
+        - dispatch_specialist
+        - read_casefile
+    - component: incident-investigator
+      namespace: ai-runtime
+      serviceAccount: sa-agent-investigator
+      allowedNamespaces:
+        - ai-runtime
+        - ai-gateway
+      permissions:
+        - invoke_read_tools
+        - read_casefile
+    - component: remediation-executor
+      namespace: ai-runtime
+      serviceAccount: sa-agent-remediation
+      allowedNamespaces:
+        - ai-runtime
+        - ai-policy
+        - ai-gateway
+      permissions:
+        - invoke_write_tools_with_approval
+        - write_casefile
+  mcp_services:
+    - component: incident-search-mcp
+      namespace: mcp-services
+      serviceAccount: sa-mcp-incident-search
+      allowedNamespaces:
+        - mcp-services
+        - observability-system
+      permissions:
+        - read_incident_api
+    - component: graph-analysis-mcp
+      namespace: mcp-services
+      serviceAccount: sa-mcp-graph-analysis
+      allowedNamespaces:
+        - mcp-services
+        - observability-system
+      permissions:
+        - read_graph_api
+    - component: runbook-execution-mcp
+      namespace: mcp-services
+      serviceAccount: sa-mcp-runbook-execution
+      allowedNamespaces:
+        - mcp-services
+        - ai-policy
+        - observability-system
+      permissions:
+        - invoke_governed_action_api
+
+enforcement:
+  requires_network_policy: true
+  requires_secret_store_refs_only: true

@@ -1,0 +1,35 @@
+{
+  "index_patterns": [
+    "vectors-*"
+  ],
+  "template": {
+    "settings": {
+      "index.number_of_shards": 1,
+      "index.number_of_replicas": 1
+    },
+    "mappings": {
+      "dynamic": "strict",
+      "properties": {
+        "@timestamp": {
+          "type": "date"
+        },
+        "artifact_id": {
+          "type": "keyword"
+        },
+        "artifact_type": {
+          "type": "keyword"
+        },
+        "owner": {
+          "type": "keyword"
+        },
+        "content": {
+          "type": "text"
+        },
+        "embedding": {
+          "type": "knn_vector",
+          "dimension": 8
+        }
+      }
+    }
+  }
+}

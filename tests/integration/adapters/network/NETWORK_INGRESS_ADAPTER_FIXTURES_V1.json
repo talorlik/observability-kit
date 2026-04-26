@@ -1,0 +1,72 @@
+{
+  "fixtures": [
+    {
+      "name": "cilium_gateway_api_prod",
+      "backend": "cilium-gateway-api",
+      "cluster": "any",
+      "namespace": "ai-gateway",
+      "dispatch_mode": "read-only",
+      "route_count": 4
+    },
+    {
+      "name": "nginx_ingress_dev",
+      "backend": "nginx-ingress",
+      "cluster": "any",
+      "namespace": "ai-gateway",
+      "dispatch_mode": "read-only",
+      "route_count": 3
+    },
+    {
+      "name": "istio_ingress_gateway_staging",
+      "backend": "istio-ingress-gateway",
+      "cluster": "any",
+      "namespace": "ai-gateway",
+      "dispatch_mode": "read-only",
+      "route_count": 5
+    },
+    {
+      "name": "aws_alb_ingress_prod",
+      "backend": "aws-alb-ingress",
+      "cluster": "eks",
+      "namespace": "ai-gateway",
+      "dispatch_mode": "read-only",
+      "route_count": 2
+    }
+  ],
+  "negative_fixtures": [
+    {
+      "name": "reject_unknown_backend",
+      "backend": "custom-ingress",
+      "cluster": "eks",
+      "namespace": "ai-gateway",
+      "dispatch_mode": "read-only",
+      "expected_result": "rejected"
+    },
+    {
+      "name": "reject_write_dispatch_mode",
+      "backend": "nginx-ingress",
+      "cluster": "any",
+      "namespace": "ai-gateway",
+      "dispatch_mode": "approval-gated-write",
+      "expected_result": "rejected"
+    },
+    {
+      "name": "reject_route_overflow",
+      "backend": "cilium-gateway-api",
+      "cluster": "any",
+      "namespace": "ai-gateway",
+      "dispatch_mode": "read-only",
+      "route_count": 99,
+      "expected_result": "rejected"
+    },
+    {
+      "name": "reject_out_of_scope_namespace",
+      "backend": "istio-ingress-gateway",
+      "cluster": "any",
+      "namespace": "default",
+      "dispatch_mode": "read-only",
+      "route_count": 2,
+      "expected_result": "rejected"
+    }
+  ]
+}

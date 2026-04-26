@@ -1,0 +1,169 @@
+metadata:
+  contract: ai-protocol-edges
+  version: v1
+  marker_coverage:
+    - KK-C03
+  compatibility:
+    edge_id_stability: required
+    breaking_change_policy: new_major_version
+
+edges:
+  khook_to_kagent:
+    version: v1
+    required_fields:
+      - edge_version
+      - correlation_id
+      - event_type
+      - source_namespace
+      - risk_class
+      - payload
+    schema:
+      type: object
+      additionalProperties: false
+      required:
+        - edge_version
+        - correlation_id
+        - event_type
+        - source_namespace
+        - risk_class
+        - payload
+      properties:
+        edge_version:
+          type: string
+          enum:
+            - v1
+        correlation_id:
+          type: string
+          minLength: 8
+        event_type:
+          type: string
+        source_namespace:
+          type: string
+        risk_class:
+          type: string
+          enum:
+            - read.safe
+            - read.sensitive
+            - write.low-risk
+            - write.high-risk
+            - write.critical
+        payload:
+          type: object
+    sample:
+      edge_version: v1
+      correlation_id: evt-01HZZRDXW4K9
+      event_type: pod-restart
+      source_namespace: ai-triggers
+      risk_class: read.safe
+      payload:
+        workload: checkout
+        restart_count: 4
+
+  agent_to_agent:
+    version: v1
+    required_fields:
+      - edge_version
+      - from_agent
+      - to_agent
+      - objective
+      - findings
+      - evidence_handles
+      - confidence
+    schema:
+      type: object
+      additionalProperties: false
+      required:
+        - edge_version
+        - from_agent
+        - to_agent
+        - objective
+        - findings
+        - evidence_handles
+        - confidence
+      properties:
+        edge_version:
+          type: string
+          enum:
+            - v1
+        from_agent:
+          type: string
+        to_agent:
+          type: string
+        objective:
+          type: string
+        findings:
+          type: array
+          items:
+            type: string
+        evidence_handles:
+          type: array
+          items:
+            type: string
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+    sample:
+      edge_version: v1
+      from_agent: triage-director
+      to_agent: incident-investigator
+      objective: investigate repeated pod restarts
+      findings:
+        - restart loop likely tied to probe timeout
+      evidence_handles:
+        - ev://logs/ns-prod/pod-checkout-7f54
+      confidence: 0.78
+
+  agent_to_mcp:
+    version: v1
+    required_fields:
+      - edge_version
+      - caller_agent
+      - tool
+      - tool_version
+      - tenant_scope
+      - input
+    schema:
+      type: object
+      additionalProperties: false
+      required:
+        - edge_version
+        - caller_agent
+        - tool
+        - tool_version
+        - tenant_scope
+        - input
+      properties:
+        edge_version:
+          type: string
+          enum:
+            - v1
+        caller_agent:
+          type: string
+        tool:
+          type: string
+        tool_version:
+          type: string
+          pattern: "^v[0-9]+$"
+        tenant_scope:
+          type: object
+          required:
+            - namespace
+            - team
+          properties:
+            namespace:
+              type: string
+            team:
+              type: string
+        input:
+          type: object
+    sample:
+      edge_version: v1
+      caller_agent: incident-investigator
+      tool: incident-search
+      tool_version: v1
+      tenant_scope:
+        namespace: team-observability
+        team: sre
+      input:
+        query: pod restart spike

@@ -1,0 +1,120 @@
+{
+  "responses": [
+    {
+      "service": "incident-search-mcp",
+      "tool": "incident-search.v1",
+      "response": {
+        "schema_version": "v1",
+        "summary": "Incident candidates retrieved.",
+        "structured_data": {
+          "count": 2
+        },
+        "evidence_handles": [
+          "ev://incidents/123"
+        ],
+        "confidence": 0.92,
+        "time_window": {
+          "start": "2026-04-26T09:00:00Z",
+          "end": "2026-04-26T10:00:00Z"
+        },
+        "safety_class": "read.safe",
+        "next_recommended_tools": [
+          "graph-analysis.v1"
+        ]
+      }
+    },
+    {
+      "service": "graph-analysis-mcp",
+      "tool": "graph-analysis.v1",
+      "response": {
+        "schema_version": "v1",
+        "summary": "Dependency graph analyzed.",
+        "structured_data": {
+          "nodes": 25,
+          "edges": 41
+        },
+        "evidence_handles": [
+          "ev://graph/dep-map-001"
+        ],
+        "confidence": 0.87,
+        "time_window": {
+          "start": "2026-04-26T09:00:00Z",
+          "end": "2026-04-26T10:00:00Z"
+        },
+        "safety_class": "read.sensitive",
+        "next_recommended_tools": [
+          "trace-investigation.v1"
+        ]
+      }
+    },
+    {
+      "service": "trace-investigation-mcp",
+      "tool": "trace-investigation.v1",
+      "response": {
+        "schema_version": "v1",
+        "summary": "Trace anomalies identified.",
+        "structured_data": {
+          "slow_spans": 7
+        },
+        "evidence_handles": [
+          "ev://traces/trace-789"
+        ],
+        "confidence": 0.89,
+        "time_window": {
+          "start": "2026-04-26T09:00:00Z",
+          "end": "2026-04-26T10:00:00Z"
+        },
+        "safety_class": "read.sensitive",
+        "next_recommended_tools": [
+          "metrics-correlation.v1"
+        ]
+      }
+    },
+    {
+      "service": "metrics-correlation-mcp",
+      "tool": "metrics-correlation.v1",
+      "response": {
+        "schema_version": "v1",
+        "summary": "Metric correlations found.",
+        "structured_data": {
+          "signals": 3
+        },
+        "evidence_handles": [
+          "ev://metrics/correlation-555"
+        ],
+        "confidence": 0.9,
+        "time_window": {
+          "start": "2026-04-26T09:00:00Z",
+          "end": "2026-04-26T10:00:00Z"
+        },
+        "safety_class": "read.safe",
+        "next_recommended_tools": [
+          "change-intelligence.v1"
+        ]
+      }
+    },
+    {
+      "service": "change-intelligence-mcp",
+      "tool": "change-intelligence.v1",
+      "response": {
+        "schema_version": "v1",
+        "summary": "Recent change windows detected.",
+        "structured_data": {
+          "changes": 4
+        },
+        "evidence_handles": [
+          "ev://change/rollout-22"
+        ],
+        "confidence": 0.85,
+        "time_window": {
+          "start": "2026-04-26T09:00:00Z",
+          "end": "2026-04-26T10:00:00Z"
+        },
+        "safety_class": "read.sensitive",
+        "next_recommended_tools": [
+          "incident-casefile.v1"
+        ]
+      }
+    }
+  ]
+}

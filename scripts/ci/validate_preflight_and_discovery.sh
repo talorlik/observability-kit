@@ -142,3 +142,34 @@ for section in sections:
 
 print("Batch 3 preflight and discovery checks passed.")
 PY
+
+echo "Running preflight check-class coverage tests..."
+python3 tests/discovery/test_preflight_checks.py
+
+echo "Running discovery report generation tests..."
+python3 tests/discovery/test_report_generation.py
+
+echo "Running reference-cluster smoke bundle..."
+python3 install/discovery-engine/preflight_checks.py \
+  --input tests/smoke/platform_smoke_bundle/reference_cluster_profile.json \
+  --output /tmp/batch3_preflight_reference_report.json
+
+python3 install/discovery-engine/report_generator.py \
+  --preflight /tmp/batch3_preflight_reference_report.json \
+  --probes contracts/discovery/DISCOVERY_PROBES_SAMPLE.json \
+  --mode-table contracts/compatibility/MODE_DECISION_TABLE.json \
+  --remediations contracts/compatibility/REMEDIATION_CATALOG.json \
+  --output-dir /tmp/batch3_generated_reference
+
+for path in \
+  /tmp/batch3_generated_reference/GENERATED_CAPABILITY_MATRIX.json \
+  /tmp/batch3_generated_reference/GENERATED_COMPATIBILITY_RESULT.json \
+  /tmp/batch3_generated_reference/POST_INSTALL_READINESS_REPORT.json
+do
+  if [ ! -f "$path" ]; then
+    echo "ERROR: Expected generated output not found: $path"
+    exit 1
+  fi
+done
+
+bash scripts/validate/post_install_readiness.sh

@@ -75,6 +75,15 @@ if not features.get("reproducibility_checks", {}).get("windowing_rules_versioned
     fail("Risk feature windowing rules must be versioned.")
 if not features.get("reproducibility_checks", {}).get("run_to_run_hash_match"):
     fail("Risk feature output hashes must match across runs.")
+reruns = features.get("reproducibility_checks", {}).get("deterministic_reruns", [])
+if len(reruns) < 2:
+    fail("Deterministic validation must include at least two reruns.")
+rerun_hashes = {run.get("output_hash") for run in reruns}
+if len(rerun_hashes) != 1:
+    fail("Deterministic reruns must produce exactly one stable output hash.")
+for run in reruns:
+    if run.get("status") != "pass":
+        fail(f"Deterministic rerun failed: {run.get('run_id')}")
 
 
 # Task 2: risk scoring outputs.
@@ -146,6 +155,13 @@ for bundle in bundles:
         fail(f"Hybrid evidence bundle missing graph links: {bundle.get('bundle_id')}")
     if not bundle.get("traceable_lineage"):
         fail(f"Hybrid evidence bundle must be traceable: {bundle.get('bundle_id')}")
+bundle_integrity = hybrid.get("bundle_integrity_checks", {})
+if not bundle_integrity.get("bundle_signature_verified"):
+    fail("Hybrid evidence bundles must include signature verification.")
+if not bundle_integrity.get("source_link_accessible_in_replay"):
+    fail("Hybrid evidence source links must be replay-accessible.")
+if not bundle_integrity.get("lineage_manifest_written"):
+    fail("Hybrid evidence lineage manifest must be written.")
 
 
 # Task 5: human approval workflow.
@@ -172,6 +188,19 @@ if fields != REQUIRED_AUDIT_FIELDS:
     fail("Approval audit required fields do not match baseline.")
 if not audit_controls.get("tamper_evident_log_storage"):
     fail("Approval decision logs must be tamper-evident.")
+release_gate = approval.get("release_gate_evidence", {})
+if release_gate.get("status") != "pass":
+    fail("Approval release gate evidence must pass.")
+if not release_gate.get("recommendation_id"):
+    fail("Release gate evidence requires recommendation_id.")
+if not release_gate.get("approval_record_present"):
+    fail("RCA release requires an approval record.")
+if release_gate.get("approval_decision") != "approved":
+    fail("RCA release requires an approved decision.")
+if not release_gate.get("release_blocked_without_approval"):
+    fail("Release gate must prove block behavior without approval.")
+if not release_gate.get("released_after_approval"):
+    fail("Release gate must prove release behavior after approval.")
 
 
 # Task 6: pilot go or hold record.

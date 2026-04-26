@@ -1,0 +1,42 @@
+metadata:
+  policy: khook-event-enrichment
+  version: v1
+  marker_coverage:
+    - KK-C22
+
+enrichment_fields:
+  required:
+    - namespace
+    - owner
+    - criticality
+    - rollout_marker
+    - incident_correlation_key
+  optional:
+    - team
+    - environment
+    - service_tier
+
+field_derivation:
+  namespace:
+    source: event.namespace
+  owner:
+    source: object.labels.owner
+    fallback: object.annotations.team
+  criticality:
+    source: object.labels.criticality
+    fallback: medium
+  rollout_marker:
+    source: object.labels.rollout_revision
+    fallback: deployment.unknown
+  incident_correlation_key:
+    strategy: stable-hash
+    inputs:
+      - cluster
+      - namespace
+      - object_kind
+      - object_name
+      - reason
+
+bounds:
+  max_enriched_payload_bytes: 16384
+  deny_if_required_field_missing: true

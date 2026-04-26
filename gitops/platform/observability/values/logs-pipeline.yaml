@@ -1,0 +1,27 @@
+logsPipeline:
+  enabled: true
+  receivers:
+    filelog:
+      include:
+        - /var/log/containers/*.log
+      start_at: beginning
+      operators:
+        - type: regex_parser
+          id: cri-parser
+          regex: '^(?P<time>[^ ]+) (?P<stream>stdout|stderr) (?P<flag>[^ ]*) (?P<message>.*)$'
+        - type: json_parser
+          id: json-parser
+          parse_from: message
+          if: 'body matches "^\\{"'
+  processors:
+    - k8sattributes
+    - resource
+    - memory_limiter
+    - batch
+  multiline:
+    java:
+      line_start_pattern: '^[A-Z][a-z]{2} [ 0-9]{2} [0-9:]{8}'
+    python:
+      line_start_pattern: '^Traceback \\(most recent call last\\):'
+    go:
+      line_start_pattern: '^[a-zA-Z0-9_.-]+\\.go:[0-9]+'

@@ -1,0 +1,31 @@
+metadata:
+  contract: action-journal
+  version: v1
+  marker_coverage:
+    - KK-C26
+    - KK-C27
+
+journal:
+  required_fields:
+    - case_id
+    - action_id
+    - action_tool
+    - invoker_identity
+    - agent_identity
+    - policy_decision
+    - approval_decision
+    - target_resources
+    - evidence_handles
+    - final_action_outcome
+    - rollback_reference
+    - recorded_at
+  outcome_values:
+    - executed
+    - blocked
+    - rolled-back
+    - failed
+  evidence_min_items: 1
+
+storage:
+  append_only: true
+  redact_secrets: true

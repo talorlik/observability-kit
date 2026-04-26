@@ -1,0 +1,63 @@
+{
+  "fixtures": [
+    {
+      "name": "github_actions_dev_template",
+      "provider": "github-actions",
+      "runner": "github-hosted",
+      "deployment_mode": "dev",
+      "dispatch_mode": "read-only",
+      "validation_step_count": 6
+    },
+    {
+      "name": "gitlab_ci_staging_template",
+      "provider": "gitlab-ci",
+      "runner": "shared",
+      "deployment_mode": "staging",
+      "dispatch_mode": "read-only",
+      "validation_step_count": 7
+    },
+    {
+      "name": "jenkins_prod_template",
+      "provider": "jenkins",
+      "runner": "controller-agent",
+      "deployment_mode": "prod",
+      "dispatch_mode": "read-only",
+      "validation_step_count": 8
+    },
+    {
+      "name": "tekton_quickstart_template",
+      "provider": "tekton",
+      "runner": "kubernetes",
+      "deployment_mode": "quickstart",
+      "dispatch_mode": "read-only",
+      "validation_step_count": 5
+    }
+  ],
+  "negative_fixtures": [
+    {
+      "name": "reject_unknown_provider",
+      "provider": "circleci",
+      "runner": "cloud",
+      "deployment_mode": "dev",
+      "dispatch_mode": "read-only",
+      "expected_result": "rejected"
+    },
+    {
+      "name": "reject_write_dispatch_mode",
+      "provider": "github-actions",
+      "runner": "github-hosted",
+      "deployment_mode": "prod",
+      "dispatch_mode": "approval-gated-write",
+      "expected_result": "rejected"
+    },
+    {
+      "name": "reject_validation_step_overflow",
+      "provider": "gitlab-ci",
+      "runner": "shared",
+      "deployment_mode": "prod",
+      "dispatch_mode": "read-only",
+      "validation_step_count": 99,
+      "expected_result": "rejected"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "flow_id": "read-only-ceo-synthesis-v1",
+  "mode": "read-only",
+  "entry_agent": "ops-ceo-agent",
+  "delegation_path": [
+    "ops-ceo-agent",
+    "triage-director",
+    "incident-investigator",
+    "trace-analyst",
+    "evidence-summarizer",
+    "ops-ceo-agent"
+  ],
+  "specialist_peer_calls_blocked": true,
+  "casefile": {
+    "case_id": "case-2026-04-26-001",
+    "status": "investigating",
+    "outputs": [
+      {
+        "agent": "incident-investigator",
+        "output_ref": "case://case-2026-04-26-001/outputs/incident-investigator"
+      },
+      {
+        "agent": "trace-analyst",
+        "output_ref": "case://case-2026-04-26-001/outputs/trace-analyst"
+      },
+      {
+        "agent": "evidence-summarizer",
+        "output_ref": "case://case-2026-04-26-001/outputs/evidence-summarizer"
+      }
+    ]
+  },
+  "final_synthesis": {
+    "agent": "ops-ceo-agent",
+    "summary": "Pod restart spike correlates with upstream timeout propagation.",
+    "evidence_handles": [
+      "es://logs/ns-prod/pod-a/restart-window",
+      "trace://payments/4f7d2a6ab8f7",
+      "change://deployments/payments-api/revision-219"
+    ],
+    "confidence": 0.87
+  },
+  "evidence_persistence": {
+    "persisted_to_casefile": true,
+    "required_fields": [
+      "handle",
+      "source_agent",
+      "recorded_at"
+    ],
+    "persisted_records": [
+      {
+        "handle": "es://logs/ns-prod/pod-a/restart-window",
+        "source_agent": "incident-investigator",
+        "recorded_at": "2026-04-26T10:04:00Z"
+      },
+      {
+        "handle": "trace://payments/4f7d2a6ab8f7",
+        "source_agent": "trace-analyst",
+        "recorded_at": "2026-04-26T10:05:00Z"
+      },
+      {
+        "handle": "change://deployments/payments-api/revision-219",
+        "source_agent": "evidence-summarizer",
+        "recorded_at": "2026-04-26T10:06:00Z"
+      }
+    ]
+  }
+}

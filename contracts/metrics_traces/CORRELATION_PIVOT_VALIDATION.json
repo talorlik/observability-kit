@@ -15,6 +15,7 @@
   "pivot_tests": [
     {
       "name": "metric_to_trace_pivot",
+      "source": "synthetic",
       "status": "pass",
       "query": "latency p95 spike for checkout-api",
       "expected_min_trace_hits": 5,
@@ -22,6 +23,7 @@
     },
     {
       "name": "trace_to_log_pivot",
+      "source": "pilot",
       "status": "pass",
       "query": "trace_id pivot to error logs",
       "expected_min_log_hits": 1,
@@ -29,6 +31,7 @@
     },
     {
       "name": "log_to_metric_pivot",
+      "source": "synthetic",
       "status": "pass",
       "query": "error burst to request rate timeline",
       "expected_min_metric_points": 30,

@@ -1,0 +1,14 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-06",
+  "required_onboarding_controls": {
+    "annotation_key": "observability.opentelemetry.io/scrape",
+    "label_key": "observability.opentelemetry.io/scrape-enabled",
+    "opt_in_value": "true"
+  },
+  "otlp_metrics_enabled": true,
+  "required_index_pattern": "metrics-*",
+  "validation_result": {
+    "status": "pass"
+  }
+}

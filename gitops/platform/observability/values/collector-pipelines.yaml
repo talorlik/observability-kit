@@ -1,0 +1,33 @@
+collector:
+  pipelines:
+    logs:
+      receivers:
+        - filelog
+      processors:
+        - k8sattributes
+        - resource
+        - memory_limiter
+        - batch
+      exporters:
+        - otlp/gateway
+    metrics:
+      receivers:
+        - hostmetrics
+        - prometheus
+      processors:
+        - k8sattributes
+        - resource
+        - memory_limiter
+        - batch
+      exporters:
+        - otlp/gateway
+    traces:
+      receivers:
+        - otlp
+      processors:
+        - k8sattributes
+        - resource
+        - memory_limiter
+        - batch
+      exporters:
+        - otlp/backend

@@ -1,0 +1,17 @@
+metadata:
+  contract: mcp-semver-compatibility
+  version: v1
+  marker_coverage:
+    - KK-C11
+
+versioning_rules:
+  tool_name_suffix_pattern: ".v<major>"
+  current_major: v1
+  breaking_change_requires_new_major: true
+  additive_change_allowed_within_major: true
+  prompt_bindings_must_reference_versioned_tools: true
+
+compatibility_checks:
+  enforce_schema_backwards_compatibility_within_major: true
+  fail_on_unversioned_tool_name: true
+  fail_on_major_override_without_schema_update: true

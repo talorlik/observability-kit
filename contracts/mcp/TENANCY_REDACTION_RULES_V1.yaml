@@ -1,0 +1,27 @@
+metadata:
+  contract: tenancy-redaction-rules
+  version: v1
+  marker_coverage:
+    - KK-C12
+
+scope_enforcement:
+  required_scopes:
+    - namespace
+    - tenant
+    - team
+  query_bounds:
+    max_time_window_hours: 24
+    max_response_items: 500
+
+redaction_controls:
+  field_level_redaction: true
+  secret_masking: true
+  restricted_domain_deny_list:
+    - pii.raw
+    - credentials
+    - key_material
+  deny_on_scope_mismatch: true
+
+response_defaults:
+  compact_payloads_only: true
+  include_redaction_metadata: true

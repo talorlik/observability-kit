@@ -1,0 +1,58 @@
+metadata:
+  contract: mcp-catalog
+  version: v1
+  marker_coverage:
+    - KK-C10
+    - KK-C11
+    - KK-C12
+
+services:
+  - service: incident-search-mcp
+    owner: platform-observability
+    tools:
+      - name: incident-search
+        version: v1
+        response_schema: TOOL_RESPONSE_SCHEMA_V1.json
+        tenancy_profile: TENANCY_REDACTION_RULES_V1.yaml
+  - service: graph-analysis-mcp
+    owner: platform-observability
+    tools:
+      - name: graph-analysis
+        version: v1
+        response_schema: TOOL_RESPONSE_SCHEMA_V1.json
+        tenancy_profile: TENANCY_REDACTION_RULES_V1.yaml
+  - service: trace-investigation-mcp
+    owner: platform-observability
+    tools:
+      - name: trace-investigation
+        version: v1
+        response_schema: TOOL_RESPONSE_SCHEMA_V1.json
+        tenancy_profile: TENANCY_REDACTION_RULES_V1.yaml
+  - service: metrics-correlation-mcp
+    owner: platform-observability
+    tools:
+      - name: metrics-correlation
+        version: v1
+        response_schema: TOOL_RESPONSE_SCHEMA_V1.json
+        tenancy_profile: TENANCY_REDACTION_RULES_V1.yaml
+  - service: change-intelligence-mcp
+    owner: platform-observability
+    tools:
+      - name: change-intelligence
+        version: v1
+        response_schema: TOOL_RESPONSE_SCHEMA_V1.json
+        tenancy_profile: TENANCY_REDACTION_RULES_V1.yaml
+  - service: runbook-execution-mcp
+    owner: platform-ai-runtime
+    tools:
+      - name: runbook-execution
+        version: v1
+        response_schema: TOOL_RESPONSE_SCHEMA_V1.json
+        tenancy_profile: TENANCY_REDACTION_RULES_V1.yaml
+  - service: incident-casefile-mcp
+    owner: platform-ai-runtime
+    tools:
+      - name: incident-casefile
+        version: v1
+        response_schema: TOOL_RESPONSE_SCHEMA_V1.json
+        tenancy_profile: TENANCY_REDACTION_RULES_V1.yaml

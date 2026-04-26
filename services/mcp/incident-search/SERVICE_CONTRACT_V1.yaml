@@ -1,0 +1,20 @@
+service:
+  name: incident-search-mcp
+  version: v1
+  mode: read-only
+  gateway_served: true
+  gateway_contract:
+    endpoint_mode: gateway
+    remote_mcp_server_ref:
+      name: ai-gateway-catalog
+      namespace: ai-gateway
+    health_path: /healthz
+  response_schema: contracts/mcp/TOOL_RESPONSE_SCHEMA_V1.json
+  redaction_scope_profile: services/mcp/common/REDACTION_SCOPE_PROFILE_V1.yaml
+  execution_bounds:
+    timeout_ms: 3000
+    quota:
+      max_requests_per_minute: 120
+      max_concurrent_requests: 20
+  tools:
+    - incident-search.v1

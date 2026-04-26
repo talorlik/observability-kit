@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observability-kit/contracts/ai/CASEFILE_SCHEMA_V1.json",
+  "title": "CaseFileV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "case_id",
+    "status",
+    "incident_context",
+    "agent_outputs",
+    "evidence_handles",
+    "approval_state",
+    "action_journal",
+    "lineage",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "case_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "triaging",
+        "investigating",
+        "awaiting-approval",
+        "executing",
+        "resolved",
+        "closed",
+        "rejected"
+      ]
+    },
+    "incident_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tenant",
+        "namespace",
+        "summary"
+      ],
+      "properties": {
+        "tenant": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        }
+      }
+    },
+    "agent_outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "agent",
+          "output_ref",
+          "recorded_at"
+        ],
+        "properties": {
+          "agent": {
+            "type": "string"
+          },
+          "output_ref": {
+            "type": "string"
+          },
+          "recorded_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "evidence_handles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "approval_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required",
+        "status"
+      ],
+      "properties": {
+        "required": {
+          "type": "boolean"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "not-required",
+            "pending",
+            "approved",
+            "rejected"
+          ]
+        },
+        "approval_ref": {
+          "type": "string"
+        }
+      }
+    },
+    "action_journal": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action",
+          "outcome",
+          "recorded_at"
+        ],
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "executed",
+              "blocked",
+              "rolled-back",
+              "failed"
+            ]
+          },
+          "recorded_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "lineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "correlation_id",
+        "workflow_id"
+      ],
+      "properties": {
+        "correlation_id": {
+          "type": "string"
+        },
+        "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

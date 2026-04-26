@@ -17,6 +17,30 @@ catalog = json.loads((base / "PROFILE_CATALOG.json").read_text())
 grading = json.loads((base / "GRADING_RULES.json").read_text())
 mode_table = json.loads((base / "MODE_DECISION_TABLE.json").read_text())
 remediation = json.loads((base / "REMEDIATION_CATALOG.json").read_text())
+valid_profile_fixtures = json.loads(
+    (base / "profile_fixtures" / "VALID_PROFILES.json").read_text()
+)
+invalid_profile_fixtures = json.loads(
+    (base / "profile_fixtures" / "INVALID_PROFILES.json").read_text()
+)
+
+profile_schemas = {
+    "cluster": json.loads(
+        (ROOT / "install" / "profiles" / "cluster" / "PROFILE.schema.json").read_text()
+    ),
+    "storage": json.loads(
+        (ROOT / "install" / "profiles" / "storage" / "PROFILE.schema.json").read_text()
+    ),
+    "identity": json.loads(
+        (ROOT / "install" / "profiles" / "identity" / "PROFILE.schema.json").read_text()
+    ),
+    "secrets": json.loads(
+        (ROOT / "install" / "profiles" / "secrets" / "PROFILE.schema.json").read_text()
+    ),
+    "ingress": json.loads(
+        (ROOT / "install" / "profiles" / "ingress" / "PROFILE.schema.json").read_text()
+    ),
+}
 
 allowed_status = {"supported", "conditional", "blocked"}
 required_profile_keys = {
@@ -31,6 +55,60 @@ required_profile_keys = {
 def fail(msg: str) -> None:
     print(f"ERROR: {msg}")
     sys.exit(1)
+
+
+class ValidationError(Exception):
+    pass
+
+
+def validate_profile_fixture(schema_name: str, schema: dict, doc: dict) -> None:
+    if schema.get("type") != "object" or not isinstance(doc, dict):
+        raise ValidationError(f"{schema_name} fixture must be an object.")
+    required = set(schema.get("required", []))
+    missing = sorted(required - set(doc.keys()))
+    if missing:
+        raise ValidationError(
+            f"{schema_name} fixture missing required fields: {missing}"
+        )
+
+    properties = schema.get("properties", {})
+    if schema.get("additionalProperties") is False:
+        extras = sorted(set(doc.keys()) - set(properties.keys()))
+        if extras:
+            raise ValidationError(
+                f"{schema_name} fixture contains unknown fields: {extras}"
+            )
+
+    for key, rules in properties.items():
+        if key not in doc:
+            continue
+        value = doc[key]
+        expected_type = rules.get("type")
+        if expected_type == "string":
+            if not isinstance(value, str):
+                raise ValidationError(f"{schema_name}.{key} must be string.")
+            if "minLength" in rules and len(value) < rules["minLength"]:
+                raise ValidationError(f"{schema_name}.{key} violates minLength.")
+            if "enum" in rules and value not in rules["enum"]:
+                raise ValidationError(
+                    f"{schema_name}.{key} must be one of {rules['enum']}."
+                )
+        elif expected_type == "array":
+            if not isinstance(value, list):
+                raise ValidationError(f"{schema_name}.{key} must be array.")
+            if "minItems" in rules and len(value) < rules["minItems"]:
+                raise ValidationError(f"{schema_name}.{key} violates minItems.")
+            item_rules = rules.get("items", {})
+            if item_rules.get("type") == "string":
+                for item in value:
+                    if not isinstance(item, str):
+                        raise ValidationError(
+                            f"{schema_name}.{key} items must be strings."
+                        )
+                    if "minLength" in item_rules and len(item) < item_rules["minLength"]:
+                        raise ValidationError(
+                            f"{schema_name}.{key} item violates minLength."
+                        )
 
 def status_of(entries, key, value):
     for item in entries:
@@ -176,6 +254,29 @@ for sample in mode_table.get("sample_decisions", []):
             f"Mode mismatch for {sample['name']}: "
             f"expected {expected_mode}, got {actual_mode}"
         )
+    second_pass_mode = evaluate_mode(sample)
+    if second_pass_mode != actual_mode:
+        fail(
+            f"Mode decision non-deterministic for {sample['name']}: "
+            f"{actual_mode} then {second_pass_mode}"
+        )
+
+# Profile fixture schema checks.
+for profile_key, schema in profile_schemas.items():
+    validate_profile_fixture(
+        profile_key, schema, valid_profile_fixtures.get(profile_key, {})
+    )
+
+for profile_key, schema in profile_schemas.items():
+    try:
+        validate_profile_fixture(
+            profile_key, schema, invalid_profile_fixtures.get(profile_key, {})
+        )
+    except ValidationError:
+        # Expected invalid fixtures to fail validation.
+        pass
+    else:
+        fail(f"Invalid profile fixture unexpectedly passed schema check: {profile_key}")
 
 # Remediation mappings for blocked conditions and conditional reasons.
 remediations = remediation.get("remediations", {})

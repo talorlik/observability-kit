@@ -38,6 +38,14 @@
     "tamper_evident_log_storage": true,
     "status": "pass"
   },
+  "release_gate_evidence": {
+    "recommendation_id": "RCA-REC-2026-04-07-001",
+    "approval_record_present": true,
+    "approval_decision": "approved",
+    "release_blocked_without_approval": true,
+    "released_after_approval": true,
+    "status": "pass"
+  },
   "validation_result": {
     "status": "pass"
   }

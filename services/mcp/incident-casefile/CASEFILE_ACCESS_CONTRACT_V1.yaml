@@ -1,0 +1,28 @@
+service:
+  name: incident-casefile-mcp
+  version: v1
+  gateway_served: true
+  gateway_contract:
+    endpoint_mode: gateway
+    remote_mcp_server_ref:
+      name: ai-gateway-catalog
+      namespace: ai-gateway
+    health_path: /healthz
+  response_schema: contracts/mcp/TOOL_RESPONSE_SCHEMA_V1.json
+  casefile_schema: contracts/ai/CASEFILE_SCHEMA_V1.json
+  casefile_lifecycle_contract: contracts/ai/CASEFILE_LIFECYCLE_V1.md
+  resume_contract: contracts/ai/REPLAY_RESUME_RULES_V1.yaml
+  redaction_scope_profile: services/mcp/common/REDACTION_SCOPE_PROFILE_V1.yaml
+  execution_bounds:
+    timeout_ms: 4500
+    quota:
+      max_requests_per_minute: 60
+      max_concurrent_requests: 10
+  persistence_contract:
+    required_operations:
+      - casefile.create.v1
+      - casefile.read.v1
+      - casefile.update.v1
+    retrieval_guarantees:
+      - by_case_id
+      - by_correlation_id

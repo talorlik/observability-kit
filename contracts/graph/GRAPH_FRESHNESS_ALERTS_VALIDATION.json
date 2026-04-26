@@ -27,6 +27,14 @@
     "pagerduty-observability",
     "slack-ops-graph-alerts"
   ],
+  "stale_data_simulation": {
+    "simulation_id": "stale-graph-window-2026-04-07",
+    "injected_lag_minutes": 27,
+    "expected_alert": "graph_freshness_lag_high",
+    "observed_alert": "graph_freshness_lag_high",
+    "triggered": true,
+    "status": "pass"
+  },
   "validation_result": {
     "status": "pass"
   }

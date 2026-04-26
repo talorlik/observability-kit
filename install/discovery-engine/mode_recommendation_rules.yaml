@@ -1,0 +1,24 @@
+version: v1
+supported_modes:
+  - quickstart
+  - attach
+  - standalone
+  - hybrid
+rules:
+  - id: standalone_if_all_green
+    when:
+      preflight_outcome: pass
+      external_services_present: false
+    recommend: standalone
+  - id: attach_if_external_services
+    when:
+      external_services_present: true
+    recommend: attach
+  - id: hybrid_if_mixed_capabilities
+    when:
+      external_services_present: true
+      in_cluster_collectors_supported: true
+    recommend: hybrid
+fallback:
+  recommend: attach
+  reason: safe-default-on-rule-evaluation-failure

@@ -1,0 +1,9 @@
+{{- if .Values.graph.enabled }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.graph.namespace }}
+  labels:
+    app.kubernetes.io/part-of: observability-kit
+    app.kubernetes.io/component: graph
+{{- end }}

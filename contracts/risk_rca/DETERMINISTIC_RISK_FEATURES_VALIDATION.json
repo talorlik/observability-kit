@@ -33,7 +33,19 @@
   "reproducibility_checks": {
     "seed_locked": true,
     "windowing_rules_versioned": true,
-    "run_to_run_hash_match": true
+    "run_to_run_hash_match": true,
+    "deterministic_reruns": [
+      {
+        "run_id": "risk-feature-rerun-001",
+        "output_hash": "0e8f644ec6be57f7d7de5f7d9d764f54a9d8fbf5e8a64620cabd5724cf8905f6",
+        "status": "pass"
+      },
+      {
+        "run_id": "risk-feature-rerun-002",
+        "output_hash": "0e8f644ec6be57f7d7de5f7d9d764f54a9d8fbf5e8a64620cabd5724cf8905f6",
+        "status": "pass"
+      }
+    ]
   },
   "validation_result": {
     "status": "pass"

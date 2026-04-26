@@ -1,0 +1,22 @@
+metadata:
+  contract: gateway-discovery
+  version: v1
+  marker_coverage:
+    - KK-C10
+    - KK-C12
+
+gateway_registration:
+  required_for_gateway_fronted_services: true
+  registration_mode: explicit
+  required_fields:
+    - service_name
+    - gateway_endpoint
+    - catalog_visibility
+
+discovery_constraints:
+  direct_discovery_disabled_for_backend_mcpserver: true
+  remote_mcpserver_reference_required: true
+  federated_endpoint_only_for_kagent: true
+
+compliance:
+  fail_if_direct_backend_discovery_enabled: true

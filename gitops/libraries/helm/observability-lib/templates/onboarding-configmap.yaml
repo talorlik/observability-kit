@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.observability.serviceName }}-observability
+  labels:
+    {{- include "observability-lib.labels" . | nindent 4 }}
+data:
+  subscriptionMode: {{ .Values.observability.subscriptionMode | quote }}
+  instrumentationEnabled: {{ include "observability-lib.instrumentationEnabled" . | quote }}

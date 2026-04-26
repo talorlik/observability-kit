@@ -1,0 +1,91 @@
+metadata:
+  contract: network-ingress-adapter-compatibility
+  version: v1
+  optional_batch: IKAD-05
+
+scope:
+  adapter_domain: network
+  intent: map network and ingress backends to core policy-safe runtime exposure
+  core_contracts_unchanged: true
+  unchanged_core_contract_refs:
+    - contracts/ai/BOUNDARY_CONTRACT_V1.yaml
+    - contracts/policy/IDENTITY_ACCESS_MATRIX_V1.yaml
+    - contracts/policy/NO_DIRECT_DATASTORE_ACCESS.rego
+
+network_ingress_backends:
+  - name: cilium-gateway-api
+    mode: ingress-managed
+    supported_clusters:
+      - any
+    required_fields:
+      - backend
+      - namespace
+      - gateway_class
+      - hostnames
+      - tls_ref
+    outputs:
+      generated_values:
+        - network.enabled
+        - network.mode
+        - network.ingressClassName
+      bounded_rules:
+        max_routes: 20
+  - name: nginx-ingress
+    mode: ingress-managed
+    supported_clusters:
+      - any
+    required_fields:
+      - backend
+      - namespace
+      - ingress_class
+      - hostnames
+      - tls_ref
+    outputs:
+      generated_values:
+        - network.enabled
+        - network.mode
+        - network.ingressClassName
+      bounded_rules:
+        max_routes: 20
+  - name: istio-ingress-gateway
+    mode: mesh-ingress-managed
+    supported_clusters:
+      - any
+    required_fields:
+      - backend
+      - namespace
+      - gateway
+      - virtual_services
+      - tls_ref
+    outputs:
+      generated_values:
+        - network.enabled
+        - network.mode
+        - network.gatewayRef
+      bounded_rules:
+        max_routes: 20
+  - name: aws-alb-ingress
+    mode: ingress-managed
+    supported_clusters:
+      - eks
+    required_fields:
+      - backend
+      - namespace
+      - ingress_class
+      - hostnames
+      - tls_ref
+      - certificate_arn
+    outputs:
+      generated_values:
+        - network.enabled
+        - network.mode
+        - network.ingressClassName
+      bounded_rules:
+        max_routes: 20
+
+constraints:
+  dispatch_mode: read-only
+  enforce_namespace_allowlists: true
+  requires_network_policy: true
+  deny_public_wildcard_ingress: true
+  deny_direct_datastore_access: true

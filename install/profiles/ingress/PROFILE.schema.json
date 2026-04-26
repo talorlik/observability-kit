@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Ingress Profile",
+  "type": "object",
+  "required": [
+    "profile_id",
+    "controller",
+    "tls_termination",
+    "prerequisites"
+  ],
+  "properties": {
+    "profile_id": {
+      "type": "string",
+      "enum": [
+        "nginx-ingress",
+        "gateway-api",
+        "traefik"
+      ]
+    },
+    "controller": {
+      "type": "string",
+      "enum": [
+        "nginx",
+        "gateway-api",
+        "traefik"
+      ]
+    },
+    "tls_termination": {
+      "type": "string",
+      "enum": [
+        "edge",
+        "passthrough"
+      ]
+    },
+    "prerequisites": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "additionalProperties": false
+}

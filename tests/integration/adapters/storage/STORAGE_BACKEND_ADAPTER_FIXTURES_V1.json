@@ -1,0 +1,63 @@
+{
+  "fixtures": [
+    {
+      "name": "opensearch_hot_warm_prod",
+      "backend": "opensearch-hot-warm",
+      "profile": "prod",
+      "namespace": "observability-system",
+      "dispatch_mode": "read-only",
+      "template_count": 3
+    },
+    {
+      "name": "s3_snapshot_staging",
+      "backend": "s3-snapshot-repository",
+      "profile": "staging",
+      "namespace": "observability-system",
+      "dispatch_mode": "read-only",
+      "template_count": 1
+    },
+    {
+      "name": "azure_blob_snapshot_prod",
+      "backend": "azure-blob-snapshot-repository",
+      "profile": "prod",
+      "namespace": "observability-system",
+      "dispatch_mode": "read-only",
+      "template_count": 1
+    },
+    {
+      "name": "gcs_snapshot_prod",
+      "backend": "gcs-snapshot-repository",
+      "profile": "prod",
+      "namespace": "observability-system",
+      "dispatch_mode": "read-only",
+      "template_count": 1
+    }
+  ],
+  "negative_fixtures": [
+    {
+      "name": "reject_unknown_backend",
+      "backend": "custom-storage",
+      "profile": "prod",
+      "namespace": "observability-system",
+      "dispatch_mode": "read-only",
+      "expected_result": "rejected"
+    },
+    {
+      "name": "reject_write_dispatch_mode",
+      "backend": "opensearch-hot-warm",
+      "profile": "prod",
+      "namespace": "observability-system",
+      "dispatch_mode": "approval-gated-write",
+      "expected_result": "rejected"
+    },
+    {
+      "name": "reject_template_overflow",
+      "backend": "s3-snapshot-repository",
+      "profile": "prod",
+      "namespace": "observability-system",
+      "dispatch_mode": "read-only",
+      "template_count": 99,
+      "expected_result": "rejected"
+    }
+  ]
+}

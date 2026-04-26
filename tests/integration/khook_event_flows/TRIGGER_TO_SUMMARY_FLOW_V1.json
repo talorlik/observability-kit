@@ -1,0 +1,54 @@
+{
+  "flow_id": "khook-trigger-to-summary-v1",
+  "hook_id": "pod-restart",
+  "event": {
+    "event_id": "evt-1001",
+    "event_timestamp": "2026-04-26T12:10:00Z",
+    "cluster": "prod-eu1",
+    "namespace": "payments",
+    "object_kind": "Pod",
+    "object_name": "payments-api-7d8c6d4b7b-z8m2t",
+    "reason": "Restarted",
+    "message": "Container restarted due to probe failure."
+  },
+  "enriched": {
+    "namespace": "payments",
+    "owner": "team-payments",
+    "criticality": "high",
+    "rollout_marker": "deployment-219",
+    "incident_correlation_key": "corr-prod-eu1-payments-pod-restarted"
+  },
+  "enrichment_derivation": {
+    "strategy": "stable-hash",
+    "inputs": [
+      "cluster",
+      "namespace",
+      "object_kind",
+      "object_name",
+      "reason"
+    ]
+  },
+  "enriched_payload_bytes": 1024,
+  "dispatch_target": "triage-director",
+  "dispatch_mode": "read-only",
+  "outputs": {
+    "case_file": {
+      "attached": true,
+      "case_id": "case-2026-04-26-009",
+      "evidence_handles": [
+        "es://logs/payments/restart-window",
+        "trace://payments/af2c912b3f4d"
+      ]
+    },
+    "operator_channel": {
+      "attached": true,
+      "channel_type": "slack",
+      "summary": "Pod restart pattern detected in payments namespace."
+    }
+  },
+  "reliability": {
+    "delivery_guarantee": "at-least-once",
+    "max_end_to_summary_seconds": 12,
+    "retry_count": 1
+  }
+}

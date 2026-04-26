@@ -1,0 +1,32 @@
+{
+  "suite": "staging-action-gates-v1",
+  "environment": "staging",
+  "executed_at": "2026-04-26T13:00:00Z",
+  "results": [
+    {
+      "scenario_id": "approved-runbook-plan",
+      "status": "pass",
+      "outcome": "executed"
+    },
+    {
+      "scenario_id": "missing-approval-high-risk",
+      "status": "pass",
+      "outcome": "blocked"
+    },
+    {
+      "scenario_id": "critical-denied-by-policy",
+      "status": "pass",
+      "outcome": "blocked"
+    },
+    {
+      "scenario_id": "critical-requires-change-ticket",
+      "status": "pass",
+      "outcome": "blocked"
+    },
+    {
+      "scenario_id": "critical-rollback-deterministic",
+      "status": "pass",
+      "outcome": "rolled-back"
+    }
+  ]
+}

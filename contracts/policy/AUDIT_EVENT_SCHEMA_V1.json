@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observability-kit/contracts/policy/AUDIT_EVENT_SCHEMA_V1.json",
+  "title": "AuditEventV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "invoker_identity",
+    "agent_identity",
+    "agent_version",
+    "tool_call",
+    "tool_parameters_redacted",
+    "evidence_handles",
+    "policy_decision",
+    "approval_decision",
+    "target_resources",
+    "final_action_outcome",
+    "latency_ms",
+    "cost",
+    "event_time"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "invoker_identity": {
+      "type": "string",
+      "minLength": 1
+    },
+    "agent_identity": {
+      "type": "string",
+      "minLength": 1
+    },
+    "agent_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tool_call": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tool_parameters_redacted": {
+      "type": "boolean"
+    },
+    "evidence_handles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "policy_decision": {
+      "type": "string",
+      "enum": [
+        "allow",
+        "deny",
+        "conditional"
+      ]
+    },
+    "approval_decision": {
+      "type": "string",
+      "enum": [
+        "approved",
+        "rejected",
+        "not-required"
+      ]
+    },
+    "target_resources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "final_action_outcome": {
+      "type": "string",
+      "enum": [
+        "executed",
+        "blocked",
+        "rolled-back",
+        "failed"
+      ]
+    },
+    "latency_ms": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "cost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tokens",
+        "estimated_usd"
+      ],
+      "properties": {
+        "tokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "estimated_usd": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "event_time": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

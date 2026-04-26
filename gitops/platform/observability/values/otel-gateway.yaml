@@ -1,0 +1,15 @@
+collector:
+  enabled: true
+  image:
+    repository: otel/opentelemetry-collector
+    tag: "0.101.0"
+  gateway:
+    enabled: true
+    replicas: 2
+    processors:
+      - k8sattributes
+      - resource
+      - memory_limiter
+      - batch
+    exporters:
+      - otlp/backend

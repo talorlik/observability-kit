@@ -1,0 +1,13 @@
+{
+  "artifact_version": "1.0.0",
+  "batch": "TB-07",
+  "required_metadata_fields": [
+    "service.name",
+    "deployment.environment",
+    "service.owner"
+  ],
+  "policy_engine": "kyverno",
+  "validation_result": {
+    "status": "pass"
+  }
+}

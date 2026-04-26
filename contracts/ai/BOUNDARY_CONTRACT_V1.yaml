@@ -1,0 +1,59 @@
+metadata:
+  contract: ai-runtime-boundary
+  version: v1
+  status: approved
+  marker_coverage:
+    - KK-C01
+    - KK-C02
+    - KK-C03
+  owner: platform-ai-runtime
+  last_reviewed: "2026-04-26"
+  compatibility:
+    breaking_change_policy: require_new_version
+    upgrade_path: additive_fields_only_within_major
+
+runtime_boundary:
+  canonical_path:
+    - khook
+    - kagent
+    - gatewayed_mcp
+    - platform_apis
+    - platform_backends
+  required_hops:
+    khook_to_kagent: true
+    kagent_to_gatewayed_mcp: true
+    gatewayed_mcp_to_platform_apis: true
+  prohibited_direct_paths:
+    - from: ai_components
+      to: opensearch_native
+      reason: ai_must_use_platform_apis
+    - from: ai_components
+      to: neo4j_native
+      reason: ai_must_use_platform_apis
+    - from: ai_components
+      to: sql_native
+      reason: ai_must_use_platform_apis
+    - from: khook
+      to: datastore_native
+      reason: trigger_layer_is_dispatch_only
+
+protocol_edges:
+  allowed:
+    - id: khook_to_kagent
+      transport: https
+      schema_ref: contracts/ai/PROTOCOL_EDGES_V1.yaml#/edges/khook_to_kagent
+    - id: agent_to_agent
+      transport: a2a-envelope
+      schema_ref: contracts/ai/PROTOCOL_EDGES_V1.yaml#/edges/agent_to_agent
+    - id: agent_to_mcp
+      transport: mcp
+      schema_ref: contracts/ai/PROTOCOL_EDGES_V1.yaml#/edges/agent_to_mcp
+  denied_defaults:
+    - any_unknown_edge
+    - specialist_to_specialist
+    - any_agent_to_datastore_native
+
+enforcement:
+  ci_gate_script: scripts/ci/validate_ai_boundary_contracts.sh
+  policy_rule: contracts/policy/NO_DIRECT_DATASTORE_ACCESS.rego
+  merge_block_on_failure: true

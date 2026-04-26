@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observability-kit/contracts/mcp/TOOL_RESPONSE_SCHEMA_V1.json",
+  "title": "McpToolResponseV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "summary",
+    "structured_data",
+    "evidence_handles",
+    "confidence",
+    "time_window",
+    "safety_class",
+    "next_recommended_tools"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "structured_data": {
+      "type": "object"
+    },
+    "evidence_handles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "time_window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start",
+        "end"
+      ],
+      "properties": {
+        "start": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "end": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "safety_class": {
+      "type": "string",
+      "enum": [
+        "read.safe",
+        "read.sensitive",
+        "write.low-risk",
+        "write.high-risk",
+        "write.critical"
+      ]
+    },
+    "next_recommended_tools": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

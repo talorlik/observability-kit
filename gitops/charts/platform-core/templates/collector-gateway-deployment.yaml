@@ -1,0 +1,47 @@
+{{- if and .Values.collector.enabled .Values.collector.gateway.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-gateway
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.collector.gateway.replicas }}
+  selector:
+    matchLabels:
+      app: otel-gateway
+  template:
+    metadata:
+      labels:
+        app: otel-gateway
+    spec:
+      containers:
+        - name: otel-gateway
+          image: "{{ .Values.collector.image.repository }}:{{ .Values.collector.image.tag }}"
+          args:
+            - "--config=/conf/collector-gateway.yaml"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            initialDelaySeconds: 10
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-gateway
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: otel-gateway
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+{{- end }}

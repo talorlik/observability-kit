@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Observability Library Values",
+  "type": "object",
+  "required": [
+    "observability"
+  ],
+  "properties": {
+    "observability": {
+      "type": "object",
+      "required": [
+        "serviceName",
+        "environment",
+        "owner",
+        "subscriptionMode"
+      ],
+      "properties": {
+        "serviceName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "environment": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subscriptionMode": {
+          "type": "string",
+          "enum": [
+            "passive",
+            "low-touch",
+            "instrumentation"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

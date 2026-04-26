@@ -1,0 +1,22 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-onboarding-metadata
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-service-metadata
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+      validate:
+        message: "Missing required onboarding metadata: service.name, deployment.environment, service.owner"
+        pattern:
+          metadata:
+            labels:
+              service.name: "?*"
+              deployment.environment: "?*"
+              service.owner: "?*"

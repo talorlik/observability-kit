@@ -1,0 +1,25 @@
+kubernetes:
+  supported:
+    - "1.29"
+    - "1.30"
+  conditional:
+    - version: "1.28"
+      conditions:
+        - "Gateway API CRDs installed"
+distributions:
+  supported:
+    - eks
+    - aks
+    - gke
+    - k3s
+storage_profiles:
+  supported:
+    - gp3
+    - standard-rwo
+gitops_controllers:
+  supported:
+    - argocd
+grading:
+  supported: "All required checks pass."
+  conditional: "Install allowed with remediation steps."
+  blocked: "Install denied until blockers are resolved."
