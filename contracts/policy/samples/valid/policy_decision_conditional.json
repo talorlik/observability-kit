@@ -1,0 +1,13 @@
+{
+  "schema_version": "v1",
+  "decision": "conditional",
+  "tool": "remediation-execute.v1",
+  "risk_class": "write.high-risk",
+  "reason": "Write tool requires human approval per APPROVAL_FLOW_V1 preconditions for write.high-risk.",
+  "evaluated_at": "2026-04-26T18:05:00Z",
+  "requires_approval": true,
+  "conditions": [
+    "human_approval:on-call-sre",
+    "approval_timeout_seconds:1800"
+  ]
+}

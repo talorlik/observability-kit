@@ -1,0 +1,36 @@
+{
+  "schema_version": "v1",
+  "summary": "Found 3 prior incidents matching 'checkout 5xx burst' in the last 30 days; all resolved within 45 minutes by rolling back the gateway deployment.",
+  "structured_data": {
+    "matches": [
+      {
+        "incident_id": "INC-2031",
+        "title": "checkout-api 5xx surge",
+        "resolution": "rollback gateway v3.4.1 -> v3.4.0",
+        "duration_minutes": 38
+      },
+      {
+        "incident_id": "INC-2017",
+        "title": "checkout-api error budget burn",
+        "resolution": "config rollback",
+        "duration_minutes": 22
+      }
+    ],
+    "match_count": 3
+  },
+  "evidence_handles": [
+    "ev://opensearch/incidents/INC-2031",
+    "ev://opensearch/incidents/INC-2017",
+    "ev://opensearch/incidents/INC-1989"
+  ],
+  "confidence": 0.84,
+  "time_window": {
+    "start": "2026-03-27T00:00:00Z",
+    "end": "2026-04-26T00:00:00Z"
+  },
+  "safety_class": "read.safe",
+  "next_recommended_tools": [
+    "trace-investigation.v1",
+    "change-intelligence.v1"
+  ]
+}

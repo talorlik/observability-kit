@@ -1,0 +1,18 @@
+{
+  "adapter_class": "providers",
+  "stub_name": "default-providers-stub",
+  "status": "ready_for_profile_wiring",
+  "prerequisites": [
+    "provider_profile_selected",
+    "contract_validation_passed"
+  ],
+  "generated_values": [
+    "providers.enabled",
+    "providers.activeProvider",
+    "providers.eventSources"
+  ],
+  "fallback_behavior": {
+    "strategy": "disable_adapter_keep_core",
+    "notes": "Revert to core hook event sources (KHook builtin + cluster-event watcher) without mutating core normalization contracts."
+  }
+}

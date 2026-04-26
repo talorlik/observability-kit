@@ -55,6 +55,7 @@ artifacts.
 | Batch 11 (`TB-11`) | Graph foundations | `TR-08`, `TR-11` | `FR-024` | Phase 3 |
 | Batch 12 (`TB-12`) | Risk scoring and RCA readiness | `TR-08`, `TR-09`, `TR-13` | `FR-025`, `FR-026` | Phase 4-5 prep |
 | Batch 13 (`TB-13`) | Core adapter integrations | `TR-03`, `TR-09`, `TR-10` | `FR-022` | Phase 1.4-2 bridge |
+| Batch 14 (`TB-14`) | AI/MCP runtime layer (agents, MCP gateway, KAgent, KHook, action gates) | `TR-15` | `FR-031`, `FR-032`, `FR-033` | Phase 5 (post-RCA) |
 
 ## 6. Repository Artifact Map
 
@@ -97,6 +98,7 @@ Implementation work must consume the reusable planning resources created in
 | `TB-11` | Graph profile, schema, sync quality and freshness controls | `IMP-11.1` to `IMP-11.3`, then deterministic risk features in Batch 12 |
 | `TB-12` | Risk features, backtesting evidence, hybrid bundle, approval control | `IMP-12.1` to `IMP-12.3` as RCA readiness gate outputs |
 | `TB-13` | Adapter contract, activation model, neutral CI/CD checks, adapter runbooks | `IMP-ADP.1` to `IMP-ADP.3` to deliver extension-safe platform integrations |
+| `TB-14` | Agent boundary, governance and policy contracts, MCP catalog, KAgent and KHook scaffolding, action gate, AI/MCP runbooks | `IMP-AI.1` to `IMP-AI.5` to deliver the AI/MCP runtime layer on top of Batches 10-13 |
 
 ### Batch 1 - Delivery Foundation (`TB-01`)
 
@@ -1065,6 +1067,179 @@ preserving core contract stability and cloud neutrality.
 - **Rollback / safe failure note:** if neutrality check fails, block adapter merge
   and keep core delivery path unchanged.
 - **Completion criteria:** CI/CD neutrality is continuously enforced.
+
+### Batch 14 - AI / MCP Runtime Layer (`TB-14`)
+
+Batch goal: deliver the AI/MCP runtime layer (agents, MCP gateway, KAgent
+persistence, KHook triggers, and approval-gated action execution) on top of
+the platform delivered by Batches 1-13. Cloud-agnostic by construction —
+every component is Kubernetes-resident and references only the contracts and
+backends already supplied by earlier batches.
+
+#### Task IMP-AI.1 - Agent Boundary And Protocol Contracts
+
+- **Why it exists:** establish the namespace, envelope, and replay rules
+  every agent must respect before any AI workload is admitted to the cluster.
+- **Depends on:** `IMP-08.1`, `IMP-09A.1`, `IMP-ADP.2`.
+- **Reference links:** `TB-14`, `TR-15`, `FR-031`.
+- **Implementation targets:**
+- `contracts/ai/BOUNDARY_CONTRACT_V1.yaml`
+- `contracts/ai/AGENT_ENVELOPE_V1.json`
+- `contracts/ai/PROTOCOL_EDGES_V1.yaml`
+- `contracts/ai/NAMESPACE_BOUNDARY_RULES_V1.yaml`
+- `contracts/ai/REPLAY_RESUME_RULES_V1.yaml`
+- `scripts/ci/validate_ai_boundary_contracts.sh`
+- `scripts/ci/validate_ai_state_contracts.sh`
+- **Execution details:**
+- Define agent namespace boundaries and forbidden cross-namespace edges.
+- Define the agent envelope schema and shared state contract.
+- Define replay/resume rules backed by `casefile_persistent_store`.
+- Add validators that enforce all of the above and run in CI.
+- **Expected outputs:** boundary, envelope, and replay contracts plus their
+  validators.
+- **Validation:** `validate_ai_boundary_contracts.sh` and
+  `validate_ai_state_contracts.sh` exit `0`.
+- **Rollback / safe failure note:** disable AI namespaces and revert to
+  observability-only mode without touching core platform contracts.
+- **Completion criteria:** boundary and protocol contracts are validated
+  on every PR.
+
+#### Task IMP-AI.2 - Governance, Policy, And Audit Contracts
+
+- **Why it exists:** every AI tool call must be authorized, audited, and
+  reversible.
+- **Depends on:** `IMP-AI.1`, `IMP-08.2`.
+- **Reference links:** `TB-14`, `TR-15`, `FR-031`, `FR-032`.
+- **Implementation targets:**
+- `contracts/policy/IDENTITY_ACCESS_MATRIX_V1.yaml`
+- `contracts/policy/TOOL_RISK_CLASSIFICATION_V1.yaml`
+- `contracts/policy/APPROVAL_FLOW_V1.yaml`
+- `contracts/policy/AUDIT_EVENT_SCHEMA_V1.json`
+- `contracts/policy/POLICY_DECISION_SCHEMA_V1.json`
+- `contracts/policy/ACTION_PRECONDITIONS_V1.yaml`
+- `contracts/policy/NO_DIRECT_DATASTORE_ACCESS.rego`
+- `scripts/ci/validate_ai_governance_contracts.sh`
+- `scripts/ci/validate_action_gate_scaffolding.sh`
+- **Execution details:**
+- Map every agent and MCP service to a service account with explicit
+  allowed namespaces.
+- Classify every shipping tool into one of the five risk classes and bind
+  approval requirements to `write.high-risk` and `write.critical`.
+- Add OPA rule blocking direct datastore access from any agent.
+- Add audit and policy decision schemas with allow / conditional / deny
+  paths.
+- **Expected outputs:** governance contracts, approval flow, and audit
+  schemas with sample fixtures under `contracts/policy/samples/valid/`.
+- **Validation:** `validate_ai_governance_contracts.sh` and
+  `validate_action_gate_scaffolding.sh` exit `0`.
+- **Rollback / safe failure note:** if any approval flow check fails, the
+  action gate refuses to execute write tools and the affected MCP service
+  is taken out of the gateway catalog.
+- **Completion criteria:** every write-tool execution path is gated by
+  approval and emits an audit event that conforms to the audit schema.
+
+#### Task IMP-AI.3 - MCP Catalog, Gateway, And Read-Path Services
+
+- **Why it exists:** agents must discover MCP services through a single
+  catalog and gateway with timeout, quota, and tenancy controls.
+- **Depends on:** `IMP-AI.1`, `IMP-AI.2`, `IMP-10.2`, `IMP-11.2`.
+- **Reference links:** `TB-14`, `TR-15`, `FR-032`.
+- **Implementation targets:**
+- `contracts/mcp/MCP_CATALOG_V1.yaml`
+- `contracts/mcp/GATEWAY_DISCOVERY_CONTRACT_V1.yaml`
+- `contracts/mcp/TOOL_RESPONSE_SCHEMA_V1.json`
+- `contracts/mcp/TENANCY_REDACTION_RULES_V1.yaml`
+- `services/mcp/incident-search/SERVICE_CONTRACT_V1.yaml`
+- `services/mcp/graph-analysis/SERVICE_CONTRACT_V1.yaml`
+- `services/mcp/trace-investigation/SERVICE_CONTRACT_V1.yaml`
+- `services/mcp/metrics-correlation/SERVICE_CONTRACT_V1.yaml`
+- `services/mcp/change-intelligence/SERVICE_CONTRACT_V1.yaml`
+- `services/mcp/incident-casefile/CASEFILE_ACCESS_CONTRACT_V1.yaml`
+- `services/mcp/runbook-execution/journal/ACTION_JOURNAL_CONTRACT_V1.yaml`
+- `services/mcp/common/REDACTION_SCOPE_PROFILE_V1.yaml`
+- `scripts/ci/validate_mcp_contracts.sh`
+- `scripts/ci/validate_mcp_read_path_scaffolding.sh`
+- **Execution details:**
+- Define the MCP catalog and gateway discovery contract with heartbeat,
+  timeout, and failover policy.
+- Define five read-path services bound to the same tool response schema and
+  redaction scope profile.
+- Define case-file access contract with create / read / update operations.
+- Define one write-path service (runbook execution) with an action journal.
+- **Expected outputs:** MCP contracts, per-service contracts, journals.
+- **Validation:** `validate_mcp_contracts.sh` and
+  `validate_mcp_read_path_scaffolding.sh` exit `0`.
+- **Rollback / safe failure note:** remove a misbehaving service from the
+  gateway catalog; gateway will return `service_unavailable` for that tool
+  while the rest of the catalog continues serving.
+- **Completion criteria:** five read-path services and the case-file service
+  serve through the gateway with timeout and quota enforcement.
+
+#### Task IMP-AI.4 - KAgent, KHook, And Action Gate Scaffolding
+
+- **Why it exists:** the runtime tier needs persistent agent state, dedupe-
+  and burst-controlled triggers, and an enforced action gate.
+- **Depends on:** `IMP-AI.2`, `IMP-AI.3`.
+- **Reference links:** `TB-14`, `TR-15`, `FR-032`, `FR-033`.
+- **Implementation targets:**
+- `contracts/ai/KAGENT_PERSISTENCE_CONTRACT_V1.yaml`
+- `agents/catalog/AGENT_CATALOG_V1.yaml`
+- `agents/policies/`
+- `agents/prompts/fragments/REQUIRED_PROMPT_FRAGMENTS_V1.yaml`
+- `triggers/khook/`
+- `pipelines/risk/`
+- `pipelines/vector/`
+- `gitops/platform/ai/base/` (deployments, namespaces, network policies)
+- `scripts/ci/validate_ai_runtime_base_scaffolding.sh`
+- `scripts/ci/validate_multi_agent_scaffolding.sh`
+- `scripts/ci/validate_khook_trigger_scaffolding.sh`
+- `scripts/ci/validate_action_gate_scaffolding.sh`
+- **Execution details:**
+- Define KAgent persistence contract bound to Postgres backing store.
+- Define agent catalog with role definitions and prompt fragments.
+- Define KHook triggers with dedupe and burst-control policies and a
+  read-only dispatch boundary.
+- Define risk and vector pipeline definitions referencing the contracts in
+  Batches 10 and 12.
+- Wire all of the above into the `ai-runtime` ArgoCD Application under
+  `gitops/platform/ai/base/`.
+- **Expected outputs:** runtime scaffolding plus four scaffolding validators.
+- **Validation:** all four scaffolding validators exit `0`.
+- **Rollback / safe failure note:** remove the `ai-runtime` Application from
+  the ArgoCD root; the platform continues to operate as Batches 1-13 with
+  no AI workloads scheduled.
+- **Completion criteria:** AI runtime is deployed, agents are persistent
+  through KAgent, and triggers are bounded by burst and dedupe.
+
+#### Task IMP-AI.5 - KAgent / KHook Release Gate And Operator Runbooks
+
+- **Why it exists:** the AI/MCP layer must have a single release gate and a
+  runbook surface that operators can follow.
+- **Depends on:** `IMP-AI.1` through `IMP-AI.4`, `IMP-09A.4`.
+- **Reference links:** `TB-14`, `TR-15`, `FR-033`.
+- **Implementation targets:**
+- `scripts/ci/validate_kagent_khook_release.sh`
+- `scripts/ci/validate_batch14_smoke.sh`
+- `docs/runbooks/AI_APPROVAL_FLOW_RUNBOOK.md`
+- `docs/runbooks/MCP_GATEWAY_OPERATIONS_RUNBOOK.md`
+- `docs/runbooks/CASEFILE_REVIEW_RUNBOOK.md`
+- `docs/runbooks/KHOOK_TROUBLESHOOTING_RUNBOOK.md`
+- `docs/runbooks/AI_MCP_LAYER_OPERATOR_GUIDE.md`
+- **Execution details:**
+- Aggregate the ten AI/MCP validators behind `validate_batch14_smoke.sh`.
+- Add a release-gate validator that fails if any of the ten AI/MCP
+  validators is missing from the smoke wrapper or from CI.
+- Author one runbook per operational concern (approval flow, MCP gateway,
+  case-file lifecycle, KHook troubleshooting) and a single parent operator
+  guide.
+- **Expected outputs:** smoke wrapper, release-gate validator, runbooks.
+- **Validation:** `validate_kagent_khook_release.sh` and
+  `validate_batch14_smoke.sh` exit `0`; runbook baseline check passes.
+- **Rollback / safe failure note:** if the release gate fails, the
+  `ai-runtime` ArgoCD Application is left in `OutOfSync` and the platform
+  continues without AI workloads.
+- **Completion criteria:** the AI/MCP layer ships with a single release
+  gate and a complete operator runbook surface.
 
 ## 8. Batch Completion Gate
 

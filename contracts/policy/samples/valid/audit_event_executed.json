@@ -1,0 +1,24 @@
+{
+  "schema_version": "v1",
+  "invoker_identity": "user:sre@example.com",
+  "agent_identity": "remediation-executor",
+  "agent_version": "v1.4.2",
+  "tool_call": "remediation-execute.v1",
+  "tool_parameters_redacted": true,
+  "evidence_handles": [
+    "ev://case/INC-1001",
+    "ev://opensearch/runbook/checkout-rollback"
+  ],
+  "policy_decision": "allow",
+  "approval_decision": "approved",
+  "target_resources": [
+    "k8s://ns/prod/deploy/checkout-gateway"
+  ],
+  "final_action_outcome": "executed",
+  "latency_ms": 412,
+  "cost": {
+    "tokens": 1840,
+    "estimated_usd": 0.046
+  },
+  "event_time": "2026-04-26T18:09:11Z"
+}

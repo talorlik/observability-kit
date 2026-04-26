@@ -18,6 +18,11 @@ required_docs=(
   "docs/runbooks/VECTOR_FOUNDATIONS_OPERATOR_GUIDE.md"
   "docs/runbooks/GRAPH_FOUNDATION_OPERATOR_GUIDE.md"
   "docs/runbooks/RISK_SCORING_ASSISTED_RCA_READINESS_GUIDE.md"
+  "docs/runbooks/CORE_ADAPTER_INTEGRATIONS_OPERATOR_GUIDE.md"
+  "docs/runbooks/AI_APPROVAL_FLOW_RUNBOOK.md"
+  "docs/runbooks/MCP_GATEWAY_OPERATIONS_RUNBOOK.md"
+  "docs/runbooks/CASEFILE_REVIEW_RUNBOOK.md"
+  "docs/runbooks/KHOOK_TROUBLESHOOTING_RUNBOOK.md"
 )
 
 echo "Checking baseline runbook files..."
@@ -49,6 +54,11 @@ required = [
     "docs/runbooks/VECTOR_FOUNDATIONS_OPERATOR_GUIDE.md",
     "docs/runbooks/GRAPH_FOUNDATION_OPERATOR_GUIDE.md",
     "docs/runbooks/RISK_SCORING_ASSISTED_RCA_READINESS_GUIDE.md",
+    "docs/runbooks/CORE_ADAPTER_INTEGRATIONS_OPERATOR_GUIDE.md",
+    "docs/runbooks/AI_APPROVAL_FLOW_RUNBOOK.md",
+    "docs/runbooks/MCP_GATEWAY_OPERATIONS_RUNBOOK.md",
+    "docs/runbooks/CASEFILE_REVIEW_RUNBOOK.md",
+    "docs/runbooks/KHOOK_TROUBLESHOOTING_RUNBOOK.md",
 ]
 
 content = Path("README.md").read_text()

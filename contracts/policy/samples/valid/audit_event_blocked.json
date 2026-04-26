@@ -1,0 +1,23 @@
+{
+  "schema_version": "v1",
+  "invoker_identity": "user:dev@example.com",
+  "agent_identity": "incident-explorer",
+  "agent_version": "v1.4.2",
+  "tool_call": "remediation-execute.v1",
+  "tool_parameters_redacted": true,
+  "evidence_handles": [
+    "ev://case/INC-1002"
+  ],
+  "policy_decision": "deny",
+  "approval_decision": "rejected",
+  "target_resources": [
+    "k8s://ns/prod/deploy/checkout-gateway"
+  ],
+  "final_action_outcome": "blocked",
+  "latency_ms": 87,
+  "cost": {
+    "tokens": 320,
+    "estimated_usd": 0.008
+  },
+  "event_time": "2026-04-26T18:12:03Z"
+}

@@ -1,0 +1,9 @@
+{
+  "schema_version": "v1",
+  "decision": "deny",
+  "tool": "incident-search.v1",
+  "risk_class": "read.sensitive",
+  "reason": "Invoker identity does not have matrix-grant for tenant 'finance'; deny-by-default.",
+  "evaluated_at": "2026-04-26T18:07:00Z",
+  "requires_approval": false
+}

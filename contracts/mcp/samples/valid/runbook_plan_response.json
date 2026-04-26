@@ -1,0 +1,26 @@
+{
+  "schema_version": "v1",
+  "summary": "Planned 4-step runbook for checkout-api rollback; awaiting human approval before execution.",
+  "structured_data": {
+    "plan": [
+      "freeze deploys for namespace prod",
+      "scale gateway deployment to previous revision",
+      "verify burn-rate normalises within 10 minutes",
+      "post incident summary to status page"
+    ],
+    "estimated_duration_minutes": 18
+  },
+  "evidence_handles": [
+    "ev://case/INC-1001",
+    "ev://opensearch/runbook/checkout-rollback"
+  ],
+  "confidence": 0.92,
+  "time_window": {
+    "start": "2026-04-26T18:00:00Z",
+    "end": "2026-04-26T18:18:00Z"
+  },
+  "safety_class": "write.high-risk",
+  "next_recommended_tools": [
+    "remediation-execute.v1"
+  ]
+}
