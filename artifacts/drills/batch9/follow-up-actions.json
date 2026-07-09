@@ -1,0 +1,27 @@
+{
+  "artifact_kind": "incident_drill_follow_up_actions",
+  "note": "Tabletop-drill evidence (rehearsal record) for Batch 9 Task 5. Follow-ups from a non-production drill, not production incident data.",
+  "batch": 9,
+  "task": 5,
+  "drill": {
+    "scenario": "checkout-api latency regression with elevated error budget burn",
+    "environment": "non-production",
+    "evaluated_at": "2026-04-07T00:00:00Z"
+  },
+  "follow_ups": [
+    {
+      "owner": "platform-observability",
+      "action": "reduce collector drop-rate warning threshold flapping",
+      "status": "open",
+      "opened_at": "2026-04-07T00:00:00Z",
+      "due_by": "2026-05-05T00:00:00Z"
+    },
+    {
+      "owner": "service-checkout",
+      "action": "improve timeout budget for dependent payment call",
+      "status": "open",
+      "opened_at": "2026-04-07T00:00:00Z",
+      "due_by": "2026-05-05T00:00:00Z"
+    }
+  ]
+}

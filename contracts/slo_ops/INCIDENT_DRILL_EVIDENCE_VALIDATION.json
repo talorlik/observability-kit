@@ -13,7 +13,7 @@
     "response_timeline_minutes": 37
   },
   "evidence_artifacts": [
-    "artifacts/drills/batch9/incident-timeline.md",
+    "artifacts/drills/batch9/INCIDENT_TIMELINE.md",
     "artifacts/drills/batch9/dashboard-snapshots/",
     "artifacts/drills/batch9/alert-routing-log.json",
     "artifacts/drills/batch9/follow-up-actions.json"

@@ -33,8 +33,17 @@ spec:
             - containerPort: 7687
               name: bolt
           env:
+            # Credentials are sourced from the graph-neo4j-auth Secret,
+            # provisioned by the selected secrets backend adapter. The
+            # NEO4J_AUTH key holds the "<username>/<password>" string the
+            # container consumes. The same Secret carries username and
+            # password keys for sync jobs, matching the secret refs in
+            # contracts/graph/GRAPH_MODULE_PROFILE_VALIDATION.json.
             - name: NEO4J_AUTH
-              value: "neo4j/replace-me"
+              valueFrom:
+                secretKeyRef:
+                  name: graph-neo4j-auth
+                  key: NEO4J_AUTH
             - name: NEO4J_server_default__listen__address
               value: "0.0.0.0"
           resources:

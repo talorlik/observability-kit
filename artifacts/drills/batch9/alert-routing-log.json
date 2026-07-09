@@ -1,0 +1,47 @@
+{
+  "artifact_kind": "incident_drill_alert_routing_log",
+  "note": "Tabletop-drill evidence (rehearsal record) for Batch 9 Task 5. Simulated routing events from a non-production drill, not production incident data.",
+  "batch": 9,
+  "task": 5,
+  "drill": {
+    "scenario": "checkout-api latency regression with elevated error budget burn",
+    "environment": "non-production",
+    "evaluated_at": "2026-04-07T00:00:00Z"
+  },
+  "routing_events": [
+    {
+      "offset_minutes": 0,
+      "event": "alert_fired",
+      "alert": "checkout-api-latency-slo-burn-rate",
+      "severity": "high",
+      "source": "slo-burn-rate-monitor"
+    },
+    {
+      "offset_minutes": 2,
+      "event": "alert_routed",
+      "alert": "checkout-api-latency-slo-burn-rate",
+      "destination": "platform-observability-oncall",
+      "channel": "paging"
+    },
+    {
+      "offset_minutes": 5,
+      "event": "alert_acknowledged",
+      "alert": "checkout-api-latency-slo-burn-rate",
+      "acknowledged_by": "platform-observability-oncall"
+    },
+    {
+      "offset_minutes": 19,
+      "event": "alert_fired",
+      "alert": "collector-drop-rate-warning",
+      "severity": "warning",
+      "source": "collector-health-monitor",
+      "disposition": "flapping; recorded as follow-up, no page issued"
+    },
+    {
+      "offset_minutes": 37,
+      "event": "alert_resolved",
+      "alert": "checkout-api-latency-slo-burn-rate",
+      "resolved_by": "platform-observability-oncall"
+    }
+  ]
+}
