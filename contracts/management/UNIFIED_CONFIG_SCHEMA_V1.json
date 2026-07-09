@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observability-kit.local/contracts/management/unified-config/schema/v1",
+  "title": "Unified Configuration Document",
+  "description": "The single schema-validated document where operators change platform configuration (TR-17, Batch 16 Task 2). `config` holds unified keys grouped by domain; `bindings` maps every unified key to the native configuration location of a wrapped system. Three cross-file rules are VALIDATOR-ENFORCED by scripts/ci/validate_management_plane_contracts.sh and are intentionally NOT restated as schema constraints, because JSON Schema cannot express cross-file references (see docs/DECISIONS.md, Batch 15 entry, on softening prose the schema cannot enforce): (1) every binding's `system` must be a `system` id registered in contracts/management/WRAPPED_SYSTEM_REGISTRY_V1.yaml - bindings targeting unregistered systems are rejected; (2) every leaf key present under `config` must be targeted by at least one binding - unbound keys are rejected; (3) every binding's `unified_key` must resolve to a leaf key present under `config` - bindings to unknown config keys are rejected. Propagation is GitOps-only: every `render_target` is a repository path that is rendered, committed, and reconciled by the GitOps controller - never a live endpoint or mutable API (PROPAGATION_RECONCILIATION_CONTRACT_V1.yaml). Unified keys carry policy values only (retention days, ratios, toggles, channel identities); endpoints, hosts, and credentials are forbidden here and live in per-environment overlays or the secrets adapter. Rejection fixtures: samples/INVALID_UNIFIED_CONFIG_SAMPLES.json. Versioned per contracts/CONTRACTS_NAMING_CONVENTION.md; breaking key or binding changes require a new UNIFIED_CONFIG_SCHEMA_V<N>.json with documented migration notes, never a rename.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "config", "bindings"],
+  "properties": {
+    "schema_version": {
+      "const": "v1",
+      "description": "Version marker for the unified configuration document format."
+    },
+    "config": {
+      "type": "object",
+      "description": "Unified keys grouped by domain. Domains are optional so partial documents (for example rejection fixtures) stay schema-valid, but the canonical committed document is complete: samples/VALID_UNIFIED_CONFIG.yaml carries every domain. Presence-based completeness (every present leaf key bound) is validator-enforced, not schema-enforced.",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "retention": {
+          "type": "object",
+          "description": "Per-signal retention policy, propagated to the OpenSearch ILM policies under gitops/platform/search/opensearch/ilm/.",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "logs_days": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3650,
+              "description": "Days before log indices are deleted (ILM delete transition min_index_age)."
+            },
+            "metrics_days": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3650,
+              "description": "Days before metrics indices are deleted."
+            },
+            "traces_days": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3650,
+              "description": "Days before trace indices are deleted. Traces default shorter than logs/metrics (higher cardinality, shorter operational value)."
+            }
+          }
+        },
+        "tracing": {
+          "type": "object",
+          "description": "Trace collection policy for the OpenTelemetry Collector traces pipeline.",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "sampling_ratio": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Baseline parentbased_traceidratio sampling ratio (tracesPipeline.sampling.default.ratio). Per-environment overrides stay in environment overlays, not in this document."
+            }
+          }
+        },
+        "tls": {
+          "type": "object",
+          "description": "TLS posture policy for wrapped UIs. Ingress and TLS termination are owned by the access-layer Application and per-environment overlays; this document carries posture policy only, never certificates or hosts.",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "enforce_secure_cookies": {
+              "type": "boolean",
+              "description": "Require Secure session cookies on wrapped UIs (for example grafana.ini security.cookie_secure)."
+            }
+          }
+        },
+        "alerting": {
+          "type": "object",
+          "description": "Alert notification routing policy for the rendered alerting rules under gitops/platform/search/dashboards/alerts/.",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "notification_channels": {
+              "type": "array",
+              "minItems": 1,
+              "description": "Logical channel identities referenced by rendered alert rules. Endpoints, webhook URLs, and credentials are never part of the unified document (no hard-coded environment values); they are resolved through the secrets adapter and per-environment overlays.",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["name", "kind"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$",
+                    "description": "Stable lowercase channel identity referenced from alert rules."
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": ["slack", "email", "pagerduty", "webhook"],
+                    "description": "Channel transport kind. Provider specifics belong to adapters."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "dashboards": {
+          "type": "object",
+          "description": "Dashboard provisioning toggles for the visualization plane.",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "provisioning_enabled": {
+              "type": "boolean",
+              "description": "Master toggle for declarative dashboard provisioning: Grafana sidecar dashboard loading and OpenSearch Dashboards saved-object bundle provisioning."
+            }
+          }
+        },
+        "graph": {
+          "type": "object",
+          "description": "Optional derived graph tier enablement (Neo4j is never a raw telemetry store).",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enables the Neo4j graph module and the collector graph pipeline."
+            },
+            "browser_access_enabled": {
+              "type": "boolean",
+              "description": "Publishes Neo4j Browser behind the admin access plane. Effective only when graph.enabled is true; the dependency is validator-enforced territory for the propagation contract, not this schema."
+            }
+          }
+        },
+        "tenancy": {
+          "type": "object",
+          "description": "Tenancy defaults consistent with contracts/tenancy/TENANT_CONTRACT_SCHEMA_V1.json.",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "default_isolation_class": {
+              "type": "string",
+              "enum": ["shared-partition", "dedicated-indices", "dedicated-stack"],
+              "description": "Isolation class assigned to new tenants when their tenant contract does not set one explicitly."
+            }
+          }
+        },
+        "delivery": {
+          "type": "object",
+          "description": "GitOps delivery behavior for the Argo CD Applications under gitops/apps/.",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "auto_sync_enabled": {
+              "type": "boolean",
+              "description": "Whether Application specs render with spec.syncPolicy.automated (prune + selfHeal). Manual-sync posture renders the block absent."
+            }
+          }
+        }
+      }
+    },
+    "bindings": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Per-system propagation bindings. Each binding routes one unified key to one native configuration location of one registered wrapped system. A unified key may have multiple bindings (fan-out to several systems); every present key must have at least one (validator-enforced, see top-level description).",
+      "items": {
+        "$ref": "#/$defs/binding"
+      }
+    }
+  },
+  "$defs": {
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unified_key", "system", "native_path", "render_target"],
+      "properties": {
+        "unified_key": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+(\\.[a-z0-9_]+)+$",
+          "description": "Dotted path of a leaf key under `config` (for example retention.logs_days). Must resolve to a key present in this document's `config` - validator-enforced."
+        },
+        "system": {
+          "type": "string",
+          "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$",
+          "description": "A `system` id registered in contracts/management/WRAPPED_SYSTEM_REGISTRY_V1.yaml. Registration is validator-enforced; the id set is intentionally not duplicated here as an enum so the registry stays the single source of truth."
+        },
+        "native_path": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["repo_path", "locator"],
+          "description": "The native configuration location the unified key propagates into. repo_path must fall under one of the registered system's config_surface paths in the registry - validator-enforced.",
+          "properties": {
+            "repo_path": {
+              "type": "string",
+              "pattern": "^(gitops|contracts)/[A-Za-z0-9._/-]+$",
+              "description": "Repository path of the native artifact (Helm values file, provisioning file, ILM policy, saved-object or alert-rule directory)."
+            },
+            "locator": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Location inside repo_path: a Helm values dotted key, a JSON field path in an index template or ILM policy, or a named section of a provisioning artifact."
+            }
+          }
+        },
+        "render_target": {
+          "type": "string",
+          "pattern": "^gitops/[A-Za-z0-9._/-]+$",
+          "description": "Repository path the rendered native output lands in, committed and reconciled by the GitOps controller. Always a Git path - live endpoints and mutable API targets are forbidden (GitOps-only propagation)."
+        }
+      }
+    }
+  }
+}

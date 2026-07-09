@@ -85,6 +85,9 @@ jobs:
       - name: Tenancy contract checks
         run: bash scripts/ci/validate_tenancy_contracts.sh
 
+      - name: Management plane contract checks
+        run: bash scripts/ci/validate_management_plane_contracts.sh
+
       - name: Preflight and discovery checks
         run: bash scripts/ci/validate_preflight_and_discovery.sh
 

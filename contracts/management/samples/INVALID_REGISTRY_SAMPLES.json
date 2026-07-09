@@ -1,0 +1,97 @@
+{
+  "schema_version": "v1",
+  "description": "Seeded invalid wrapped-system registry entries for Batch 16 Task 5 rejection fixtures. Each case wraps one registry entry with a single intended violation and an expected_rejection_reason, mirroring contracts/tenancy/samples/INVALID_TENANT_SAMPLES.json. validate_management_plane_contracts.sh must reject every case.",
+  "invalid_systems": {
+    "fork_wrap_method": {
+      "expected_rejection_reason": "wrap_method.fork-forbidden",
+      "entry": {
+        "system": "grafana-forked",
+        "display_name": "Grafana (Forked Chart Copy)",
+        "upstream_source": {
+          "kind": "helm-chart",
+          "url": "https://grafana.github.io/helm-charts",
+          "chart": "grafana"
+        },
+        "version_pin": {
+          "value": "10.5.15",
+          "status": "pinned",
+          "pinned_in": "gitops/apps/grafana-application.yaml"
+        },
+        "upgrade_mechanism": "helm-chart-upgrade",
+        "config_surface": [
+          {
+            "surface": "Helm values",
+            "paths": [
+              "gitops/platform/observability/grafana/values/grafana-values.yaml"
+            ]
+          }
+        ],
+        "wrap_method": "fork",
+        "ui": {
+          "exposed": true,
+          "name": "Grafana"
+        }
+      }
+    },
+    "unknown_wrap_method": {
+      "expected_rejection_reason": "wrap_method.enum-violation",
+      "entry": {
+        "system": "opensearch",
+        "display_name": "OpenSearch (Unknown Wrap Method)",
+        "upstream_source": {
+          "kind": "helm-chart",
+          "url": "https://opensearch-project.github.io/helm-charts",
+          "chart": "opensearch"
+        },
+        "version_pin": {
+          "value": "TO_BE_PINNED",
+          "status": "to-be-pinned",
+          "pinned_in": null
+        },
+        "upgrade_mechanism": "helm-chart-upgrade",
+        "config_surface": [
+          {
+            "surface": "index templates",
+            "paths": [
+              "gitops/platform/search/opensearch/templates/"
+            ]
+          }
+        ],
+        "wrap_method": "kustomize-overlay",
+        "ui": {
+          "exposed": false
+        }
+      }
+    },
+    "missing_upgrade_mechanism": {
+      "expected_rejection_reason": "upgrade_mechanism.required-property-absent",
+      "entry": {
+        "system": "neo4j",
+        "display_name": "Neo4j (No Upgrade Mechanism)",
+        "upstream_source": {
+          "kind": "container-image",
+          "url": "https://helm.neo4j.com/neo4j",
+          "image": "neo4j"
+        },
+        "version_pin": {
+          "value": "5.26",
+          "status": "pinned",
+          "pinned_in": "gitops/platform/graph/neo4j/neo4j_module.yaml"
+        },
+        "config_surface": [
+          {
+            "surface": "graph module manifests",
+            "paths": [
+              "gitops/platform/graph/neo4j/neo4j_module.yaml"
+            ]
+          }
+        ],
+        "wrap_method": "kubernetes-crd",
+        "ui": {
+          "exposed": true,
+          "name": "Neo4j Browser"
+        }
+      }
+    }
+  }
+}

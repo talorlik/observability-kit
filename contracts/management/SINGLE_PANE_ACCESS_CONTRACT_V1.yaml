@@ -1,0 +1,410 @@
+# Single-pane access contract for the unified configuration and
+# management plane (Batch 16 Task 4, TR-17).
+#
+# Defines the UI catalog, SSO role mapping, and tenant scoping for every
+# wrapped system that exposes a UI, so operators reach all bundled UIs
+# from one plane with one identity model. Auth always flows through the
+# admin access plane (TR-03); tenant scoping is consistent with the
+# tenant isolation matrix (TR-16); every mapping uses the wrapped
+# system's native RBAC mechanism only - wrap, don't fork (TR-17).
+#
+# Consumes:
+#   - contracts/management/WRAPPED_SYSTEM_REGISTRY_V1.yaml (the `ui`
+#     field of each systems entry drives this catalog)
+#   - install/profiles/admin-access/PROFILE.schema.json (mode, tls,
+#     authn, role_mapping, break_glass, and the `endpoints` keys this
+#     catalog references - hosts and URLs live only in the deployed
+#     admin-access profile, never in this contract)
+#   - contracts/visualization/SIGNAL_UI_OWNERSHIP.yaml (purpose of each
+#     UI follows the signal-to-UI ownership assignments)
+#   - contracts/tenancy/TENANT_ISOLATION_MATRIX_V1.yaml (dashboard
+#     spaces, graph database scope, and the CTR cross-tenant rules)
+#
+# Expected siblings (Batch 16 Tasks 2-3, referenced by name only):
+#   - UNIFIED_CONFIG_SCHEMA_V1.json
+#   - PROPAGATION_RECONCILIATION_CONTRACT_V1.yaml
+
+metadata:
+  contract: single-pane-access
+  version: v1
+  owner: platform-management
+  technical_requirements:
+    - TR-17
+    - TR-03
+    - TR-16
+    - TR-09
+  validated_by: scripts/ci/validate_management_plane_contracts.sh
+
+references:
+  wrapped_system_registry: contracts/management/WRAPPED_SYSTEM_REGISTRY_V1.yaml
+  admin_access_profile: install/profiles/admin-access/PROFILE.schema.json
+  admin_access_plane_guide: >-
+    docs/runbooks/VISUALIZATION_ADMIN_ACCESS_PLANE_GUIDE.md
+  signal_ui_ownership: contracts/visualization/SIGNAL_UI_OWNERSHIP.yaml
+  tenant_isolation_matrix: contracts/tenancy/TENANT_ISOLATION_MATRIX_V1.yaml
+  graph_rbac_runbook: docs/runbooks/GRAPH_FOUNDATION_OPERATOR_GUIDE.md
+  neo4j_browser_exposure: gitops/platform/graph/neo4j/browser-access.yaml
+
+# One catalog entry per registry systems entry with ui.exposed true.
+# Field semantics:
+#   id                 stable catalog identifier surfaced by the unified
+#                      plane's navigation; never renamed within a
+#                      contract version (see consistency_policy)
+#   system             must equal a `system` id in the wrapped-system
+#                      registry whose ui.exposed is true
+#   endpoint           reference to the admin-access profile `endpoints`
+#                      key that names this UI's host. profile_key null
+#                      is allowed only with an explicit exception note
+#                      (Argo CD, a bring-your-own prerequisite). This
+#                      contract never carries literal URLs or hosts.
+#   exposure           how the endpoint is published; admin access plane
+#                      UIs follow the profile `mode` (ingress|gateway)
+#   tls                TLS posture; the profile constrains tls.enabled
+#                      to true, so every entry requires TLS
+#   sso_role_mapping   how role_mapping.readonly_group and
+#                      role_mapping.admin_group map to the system's
+#                      NATIVE roles (no forked auth layers)
+#   tenant_scoping     how TR-16 tenant isolation applies inside the UI
+ui_catalog:
+  - id: opensearch-dashboards-ui
+    system: opensearch-dashboards
+    display_name: OpenSearch Dashboards
+    purpose: >-
+      Logs owner and default traces owner per
+      SIGNAL_UI_OWNERSHIP.yaml (ownership.logs and
+      ownership.traces.default). Primary telemetry exploration surface
+      over the OpenSearch store.
+    endpoint:
+      source: admin-access-profile
+      profile_key: opensearch_dashboards
+      required_in_profile: true
+    exposure:
+      via: admin-access-plane
+      modes:
+        - ingress
+        - gateway
+      note: >-
+        Published per the deployed admin-access profile `mode` value;
+        one mode is active per environment, never both.
+    tls:
+      required: true
+      terminates_at: admin-access-plane
+      certificate_source: >-
+        Provisioned per the admin-access profile tls.source value
+        (cert-manager or external-secret).
+    sso_role_mapping:
+      identity_provider: >-
+        Admin access plane authn provider (oidc or saml-adapter, with
+        mfa_required per profile). No UI-local user database is the
+        source of identity.
+      native_mechanism: >-
+        OpenSearch security plugin backend-role mapping, rendered as
+        GitOps-committed security configuration (roles and
+        roles_mapping); no forked auth proxy.
+      mappings:
+        - plane_group: role_mapping.readonly_group
+          native_role: >-
+            Read-only Dashboards session: backend-role mapping to the
+            tenant/team reader roles from the isolation matrix plus the
+            Dashboards read-only mode role (kibana_read_only). No write
+            or security-admin permissions.
+        - plane_group: role_mapping.admin_group
+          native_role: >-
+            all_access via backend-role mapping: full Dashboards and
+            index administration, including saved-object and tenant
+            space management.
+    tenant_scoping:
+      mechanism: opensearch-dashboards-tenant-spaces
+      dashboard_space: "tenant-<tenant_id>"
+      rules: >-
+        Per TENANT_ISOLATION_MATRIX_V1.yaml: dashboard spaces are per
+        tenant (CTR-03) - no role mapping may place a tenant principal
+        in another tenant's space, and no saved object may reference
+        index patterns outside the tenant's namespace. Data reads go
+        through the tenant reader roles, with document-level security
+        where the tenant's isolation class requires it (CTR-02).
+
+  - id: grafana-ui
+    system: grafana
+    display_name: Grafana
+    purpose: >-
+      Metrics owner and executive/SLO/NOC view owner per
+      SIGNAL_UI_OWNERSHIP.yaml (ownership.metrics and
+      ownership.executive_slo_noc). Mandatory core UI
+      (controls.grafana_mandatory_core: true).
+    endpoint:
+      source: admin-access-profile
+      profile_key: grafana
+      required_in_profile: true
+    exposure:
+      via: admin-access-plane
+      modes:
+        - ingress
+        - gateway
+      note: >-
+        Published per the deployed admin-access profile `mode` value;
+        one mode is active per environment, never both.
+    tls:
+      required: true
+      terminates_at: admin-access-plane
+      certificate_source: >-
+        Provisioned per the admin-access profile tls.source value
+        (cert-manager or external-secret).
+    sso_role_mapping:
+      identity_provider: >-
+        Admin access plane authn provider (oidc or saml-adapter, with
+        mfa_required per profile).
+      native_mechanism: >-
+        Grafana native SSO (auth.generic_oauth / SAML) with group-to-org
+        role mapping (role_attribute_path or group mappings), rendered
+        as GitOps-committed provisioning configuration.
+      mappings:
+        - plane_group: role_mapping.readonly_group
+          native_role: >-
+            Grafana Viewer: read-only access to provisioned dashboards
+            and folders; no editing, no data source administration.
+        - plane_group: role_mapping.admin_group
+          native_role: >-
+            Grafana Admin: dashboard, folder, data source, and org
+            administration.
+    tenant_scoping:
+      mechanism: grafana-org-folder-scoping
+      folder: "tenant-<tenant_id>"
+      rules: >-
+        Consistent with TR-16 and the isolation matrix dashboard_space
+        convention: each tenant gets a dedicated Grafana organization
+        or, in shared-org layouts, a tenant folder with native folder
+        permissions limited to that tenant's principals. Tenant data
+        sources bind only to the tenant-scoped OpenSearch reader roles
+        from the isolation matrix, so a tenant dashboard cannot query
+        another tenant's indices. No cross-tenant folder or data
+        source sharing.
+
+  - id: neo4j-browser-ui
+    system: neo4j
+    display_name: Neo4j Browser
+    purpose: >-
+      Default topology owner per SIGNAL_UI_OWNERSHIP.yaml
+      (ownership.topology.default). Dependency, blast-radius, and
+      ownership queries over the derived graph tier. Present only in
+      graph-enabled mode (graph profile selection).
+    endpoint:
+      source: admin-access-profile
+      profile_key: neo4j_browser
+      required_in_profile: false
+      note: >-
+        Optional endpoints key; set only when graph-enabled mode is
+        active. Exposure manifests live in
+        gitops/platform/graph/neo4j/browser-access.yaml. Only the
+        Browser HTTP port is published; the bolt port stays
+        cluster-internal and is never routed through the plane.
+    exposure:
+      via: admin-access-plane
+      modes:
+        - ingress
+        - gateway
+      note: >-
+        browser-access.yaml carries both variants: the Ingress variant
+        for mode "ingress" and the HTTPRoute variant attached to the
+        shared admin-ui-gateway for mode "gateway". Apply the variant
+        matching the deployed profile mode.
+    tls:
+      required: true
+      terminates_at: admin-access-plane
+      certificate_source: >-
+        graph-admin-ui-tls secret provisioned per the admin-access
+        profile tls.source value (cert-manager or external-secret).
+    sso_role_mapping:
+      identity_provider: >-
+        Admin access plane authn provider gates who reaches the
+        endpoint; Neo4j database login (graph-neo4j-auth Secret) is a
+        second, independent layer per the graph runbook. No credential
+        is recorded in this contract.
+      native_mechanism: >-
+        Neo4j built-in roles per the "Neo4j Browser Access and RBAC"
+        plan in GRAPH_FOUNDATION_OPERATOR_GUIDE.md; plane group
+        membership is the enforced baseline for endpoint reachability.
+      mappings:
+        - plane_group: role_mapping.readonly_group
+          native_role: >-
+            Built-in reader role where the deployed Neo4j edition
+            supports native role assignment. If the edition lacks
+            native RBAC, readonly-group members work through curated
+            dashboards instead of direct Browser sessions, per the
+            graph runbook fallback.
+        - plane_group: role_mapping.admin_group
+          native_role: >-
+            Built-in admin role: schema migrations, sync repair, and
+            credential rotation. Where native RBAC is unavailable, the
+            single graph-neo4j-auth credential is graph-admin scoped
+            and issued to admin-group members only.
+    tenant_scoping:
+      mechanism: neo4j-per-tenant-database
+      database: "tenant-<tenant_id>"
+      rules: >-
+        Per TENANT_ISOLATION_MATRIX_V1.yaml graph tier: one Neo4j
+        database per tenant (native multi-database) in every isolation
+        class; Browser sessions for tenant-facing principals are pinned
+        to the tenant database, with the database name injected from
+        the tenant contract, never from caller input. Cross-database
+        queries, database enumeration, and system-database access are
+        denied to tenant principals (CTR-05).
+
+  - id: argocd-ui
+    system: argocd
+    display_name: Argo CD UI
+    purpose: >-
+      GitOps delivery control plane for the whole platform: Application
+      sync status, drift visibility, and reconciliation operations. Not
+      a signal owner in SIGNAL_UI_OWNERSHIP.yaml; it is the
+      operator-facing management surface for delivery state.
+    endpoint:
+      source: existing-argocd-install
+      profile_key: null
+      note: >-
+        Documented exception: Argo CD is a bring-your-own prerequisite
+        (see the registry entry), so the current admin-access profile
+        schema defines no argocd endpoints key. The endpoint is the
+        operator's existing Argo CD installation; the unified plane
+        links to it through this stable catalog id. No URL or host is
+        recorded here. Adding a native argocd endpoints key to the
+        admin-access profile is a forward-compatible profile-schema
+        change, not a change to this contract.
+    exposure:
+      via: existing-argocd-install
+      modes:
+        - ingress
+        - gateway
+      note: >-
+        Exposure is owned by the pre-existing Argo CD installation and
+        must meet the same posture the admin access plane enforces for
+        platform-published UIs: TLS on, SSO against the same identity
+        provider, no anonymous access.
+    tls:
+      required: true
+      terminates_at: existing-argocd-install
+      certificate_source: >-
+        Operator-provided, per the existing Argo CD installation;
+        plaintext exposure is non-conformant with this contract.
+    sso_role_mapping:
+      identity_provider: >-
+        The same identity provider the admin-access profile authn block
+        selects (oidc directly, or via Argo CD's bundled Dex against
+        that provider). One identity model across the pane; no
+        Argo-CD-local user accounts for humans.
+      native_mechanism: >-
+        Argo CD native SSO plus RBAC policy (argocd-rbac-cm policy.csv
+        group mappings). Configuration-only wrapping consistent with
+        the registry wrap_method kubernetes-crd; no forked components.
+      mappings:
+        - plane_group: role_mapping.readonly_group
+          native_role: >-
+            role:readonly - built-in read-only RBAC policy: view
+            Applications, sync status, and history; no sync, rollback,
+            or settings mutations.
+        - plane_group: role_mapping.admin_group
+          native_role: >-
+            role:admin - built-in admin RBAC policy: full Application
+            and project administration.
+    tenant_scoping:
+      mechanism: argocd-appproject-scoping
+      project: "tenant-<tenant_id>"
+      rules: >-
+        Tenant-generated GitOps overlays deploy through a per-tenant
+        Argo CD AppProject that constrains source repos, destination
+        namespaces, and permitted resources to that tenant's footprint.
+        Tenant principals receive no Argo CD access by default; any
+        deliberately granted tenant access is confined by native RBAC
+        to the tenant's own AppProject. Platform-wide Application
+        visibility is operator access and follows
+        operator_spanning_access below.
+
+# Operator access that spans tenants, in any UI, mirrors CTR-07 of the
+# tenant isolation matrix: control-plane break-glass only.
+operator_spanning_access:
+  policy: control-plane-break-glass-only
+  mirrors: TENANT_ISOLATION_MATRIX_V1.yaml cross_tenant rule CTR-07
+  rules: >-
+    Only named control-plane operator roles may span tenant scopes
+    (dashboard spaces, Grafana orgs/folders, Neo4j databases, Argo CD
+    projects). Such access is break-glass, bounded by the admin-access
+    profile break_glass block (expiry_minutes 15-240), audited per
+    TR-09 with the tenant id on every record, and never mapped to
+    tenant principals or tenant-facing identities.
+
+# Consistency policy. Task 5's management-plane validator enforces the
+# fail_if rules below against this file and the wrapped-system registry.
+consistency_policy:
+  statement: >-
+    The catalog and the registry move together: a UI exists on the
+    single pane if and only if its system is registered with
+    ui.exposed true, and every cataloged UI authenticates through the
+    admin access plane with native role mapping and tenant scoping.
+  rules:
+    - id: fail_if_registry_ui_missing_from_catalog
+      severity: error
+      fail_if: >-
+        any entry under the wrapped-system registry `systems` list with
+        ui.exposed true does not have exactly one ui_catalog entry
+        whose `system` field equals its `system` id
+      reason: >-
+        TR-17 single-pane access requires the UI catalog to cover every
+        wrapped UI; a registered UI missing from the catalog (or
+        cataloged twice) breaks the one-pane guarantee.
+    - id: fail_if_catalog_system_unregistered
+      severity: error
+      fail_if: >-
+        any ui_catalog entry names a `system` that is absent from the
+        wrapped-system registry or whose registry entry has ui.exposed
+        false
+      reason: >-
+        The registry is the source of truth for what is wrapped; the
+        catalog must never invent UIs the registry does not declare.
+    - id: fail_if_missing_auth_or_tenancy_block
+      severity: error
+      fail_if: >-
+        any ui_catalog entry omits the sso_role_mapping block, omits
+        the tenant_scoping block, or omits mappings for both
+        role_mapping.readonly_group and role_mapping.admin_group
+      reason: >-
+        Every wrapped UI must declare its auth mapping (TR-03) and its
+        tenant scoping (TR-16); an entry without both is an incomplete
+        access contract.
+    - id: fail_if_bespoke_ui_auth
+      severity: error
+      fail_if: >-
+        any ui_catalog entry declares an identity source other than
+        the admin access plane authn provider (or, for the documented
+        Argo CD exception, the same identity provider via native Argo
+        CD SSO), or introduces a non-native auth layer such as a
+        patched login flow or forked auth proxy
+      reason: >-
+        Auth always flows through the admin access plane with native
+        mechanisms; per-UI bespoke auth forks the identity model and
+        violates TR-03 and the TR-17 fork prohibition.
+    - id: fail_if_hardcoded_endpoint
+      severity: error
+      fail_if: >-
+        any ui_catalog entry carries a literal URL, hostname, or IP
+        instead of an endpoint reference (an admin-access profile
+        `endpoints` key, or the documented existing-argocd-install
+        exception)
+      reason: >-
+        Hosts are environment data owned by the deployed admin-access
+        profile; hardcoding them here breaks environment neutrality
+        and the no-hardcoded-env-values gate.
+
+  single_pane_navigation: >-
+    The unified management plane surfaces exactly the ui_catalog `id`
+    values as its navigation entries. Catalog ids are stable API:
+    they are never renamed within a contract version, so bookmarks,
+    runbooks, and the unified plane's navigation stay valid across
+    endpoint or exposure changes. Endpoint hosts may change per
+    environment; ids do not.
+
+  schema_versioning: >-
+    This contract is versioned via the _V1 filename suffix per
+    contracts/CONTRACTS_NAMING_CONVENTION.md. Breaking changes to
+    catalog ids, mapping semantics, or the fail_if rule set require a
+    new SINGLE_PANE_ACCESS_CONTRACT_V<N>.yaml plus documented
+    migration notes before release, per TR-17. Never rename this file.

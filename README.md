@@ -339,6 +339,7 @@ Report outputs:
 - `docs/runbooks/MCP_GATEWAY_OPERATIONS_RUNBOOK.md`
 - `docs/runbooks/CASEFILE_REVIEW_RUNBOOK.md`
 - `docs/runbooks/SAAS_TENANCY_RUNBOOK.md`
+- `docs/runbooks/UNIFIED_CONFIGURATION_RUNBOOK.md`
 
 ## Project-Local Snyk Path
 

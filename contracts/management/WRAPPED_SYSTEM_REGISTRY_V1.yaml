@@ -1,0 +1,383 @@
+# Wrapped-system registry for the unified configuration and management
+# plane (Batch 16 Task 1, TR-17).
+#
+# Enumerates every bundled open-source system the platform wraps, with
+# its upstream source, pinned version, upgrade mechanism, managed config
+# surface, and wrap method. The platform never modifies upstream code:
+# every system runs unmodified upstream artifacts and upgrades through
+# its own upstream mechanism. Wrapping is configuration-only.
+#
+# Consumed by (expected sibling contracts, Batch 16 Tasks 2-4):
+#   - UNIFIED_CONFIG_SCHEMA_V1.json (propagation bindings must target
+#     systems registered here)
+#   - PROPAGATION_RECONCILIATION_CONTRACT_V1.yaml
+#   - SINGLE_PANE_ACCESS_CONTRACT_V1.yaml (UI catalog is built from the
+#     `ui` field of each entry)
+
+metadata:
+  contract: wrapped-system-registry
+  version: v1
+  owner: platform-management
+  technical_requirements:
+    - TR-17
+    - TR-10
+  validated_by: scripts/ci/validate_management_plane_contracts.sh
+  rejection_fixtures: samples/INVALID_REGISTRY_SAMPLES.json
+
+policy:
+  # TR-17 hard rule: wrap, don't fork. Upstream code, images, and charts
+  # are consumed as published. The platform layers configuration around
+  # them; it never patches, rebuilds, or vendors modified copies.
+  never_modify_upstream_code: true
+  statement: >-
+    Every wrapped system runs unmodified upstream artifacts and remains
+    upgradable through its own upstream mechanism. All platform-specific
+    behavior is expressed through one of the allowed wrap methods below.
+    Forking upstream code in any form (patched images, vendored chart
+    copies with source edits, rebuilt binaries) is forbidden.
+
+  allowed_wrap_methods:
+    - helm-values
+    - kubernetes-crd
+    - provisioning-api
+    - sidecar
+  forbidden_wrap_methods:
+    - fork
+
+  wrap_method_definitions:
+    helm-values: >-
+      The unmodified upstream Helm chart is deployed with platform-owned
+      values files committed to Git. No chart source is copied or
+      edited.
+    kubernetes-crd: >-
+      Configuration is delivered as Kubernetes resources reconciled by
+      GitOps: either custom resources consumed by an unmodified upstream
+      operator, or platform-owned core resources (workloads, services)
+      that run the unmodified upstream image.
+    provisioning-api: >-
+      Native configuration artifacts (index templates, ILM policies,
+      security roles, saved objects, alert rules) are rendered in Git
+      and applied through the system's own provisioning interface by the
+      GitOps reconciliation flow. The Git-rendered artifact is the
+      source of truth; the API is a delivery channel only, per the
+      GitOps-only propagation rule in
+      PROPAGATION_RECONCILIATION_CONTRACT_V1.yaml.
+    sidecar: >-
+      A platform-owned container runs alongside the unmodified upstream
+      workload to adapt its behavior (for example config reload or
+      artifact sync). The upstream container itself is untouched.
+      Currently unused; reserved for future entries.
+
+  upgrade_mechanisms:
+    helm-chart-upgrade: >-
+      Bump the pinned upstream chart version in Git (for example the
+      targetRevision of an Argo CD Application source) and let the
+      GitOps controller reconcile. Upgrades are deliberate commits,
+      never implicit drift from the upstream repository.
+    operator: >-
+      An unmodified upstream operator owns the managed workload
+      lifecycle. Upgrades happen by bumping the pinned operator and
+      managed-workload versions in Git; the operator performs the
+      rollout.
+    argocd-app-sync: >-
+      Platform-owned manifests pin an unmodified upstream image. Bumping
+      the image tag in Git and syncing the owning Argo CD Application
+      performs the upgrade.
+
+  rules:
+    - id: fail_if_wrap_method_fork
+      severity: error
+      fail_if: >-
+        any entry under systems declares wrap_method equal to "fork"
+      reason: >-
+        TR-17 forbids forking bundled systems; validation must reject
+        the registry and any proposed entry using it.
+    - id: fail_if_wrap_method_unknown
+      severity: error
+      fail_if: >-
+        any entry under systems declares a wrap_method not listed in
+        policy.allowed_wrap_methods
+      reason: >-
+        The wrap-method enum is closed; new methods require a new
+        registry schema version, not an ad-hoc value.
+    - id: fail_if_upgrade_mechanism_missing
+      severity: error
+      fail_if: >-
+        any entry under systems omits upgrade_mechanism or declares a
+        value not listed in policy.upgrade_mechanisms
+      reason: >-
+        A wrapped system without a declared upstream upgrade path
+        violates the "upgradable through its own mechanism" guarantee.
+    - id: fail_if_production_pin_missing
+      severity: error
+      fail_if: >-
+        an install profile with a production environment enables a
+        system whose version_pin.status is "to-be-pinned"
+      reason: >-
+        Placeholder pins are acceptable only outside production;
+        production profiles require a concrete upstream version pin so
+        upgrades stay deliberate GitOps changes.
+
+  schema_versioning: >-
+    This registry is versioned via the _V1 filename suffix per
+    contracts/CONTRACTS_NAMING_CONVENTION.md. Breaking field or enum
+    changes require a new WRAPPED_SYSTEM_REGISTRY_V<N>.yaml plus
+    documented migration notes before release, per TR-17. Never rename
+    this file.
+
+# One entry per bundled system. Field semantics:
+#   system            stable identifier used by propagation bindings
+#   upstream_source   where unmodified upstream artifacts come from
+#   version_pin       the repo's pinned version (status: pinned) or a
+#                     clearly-marked placeholder (status: to-be-pinned)
+#   upgrade_mechanism one of policy.upgrade_mechanisms
+#   config_surface    native configuration the platform manages, with
+#                     repository paths
+#   wrap_method       one of policy.allowed_wrap_methods
+#   ui                whether the system exposes a UI; consumed by the
+#                     SINGLE_PANE_ACCESS_CONTRACT_V1.yaml catalog
+systems:
+  - system: opentelemetry-collector
+    display_name: OpenTelemetry Collector
+    role: sole collector for logs, metrics, and traces
+    upstream_source:
+      kind: operator
+      url: https://github.com/open-telemetry/opentelemetry-operator
+      helm_repo: https://open-telemetry.github.io/opentelemetry-helm-charts
+      chart: opentelemetry-operator
+      detail: >-
+        Collector instances are managed by the unmodified upstream
+        OpenTelemetry Operator and run the unmodified upstream
+        collector image (otel/opentelemetry-collector-k8s).
+    version_pin:
+      value: "0.101.0"
+      status: pinned
+      pinned_in: gitops/platform/observability/values/otel-agent.yaml
+      components:
+        # Operator image pin; collectors and operator upgrade together
+        # as one deliberate GitOps change.
+        opentelemetry-operator:
+          value: "0.99.0"
+          pinned_in: gitops/platform/observability/values/otel-operator.yaml
+    upgrade_mechanism: operator
+    config_surface:
+      - surface: collector pipeline topology (Helm values)
+        paths:
+          - gitops/platform/observability/values/collector-pipelines.yaml
+          - gitops/platform/observability/values/otel-agent.yaml
+          - gitops/platform/observability/values/otel-gateway.yaml
+          - gitops/platform/observability/values/otel-operator.yaml
+      - surface: per-signal pipeline and redaction values
+        paths:
+          - gitops/platform/observability/values/logs-pipeline.yaml
+          - gitops/platform/observability/values/logs-redaction.yaml
+          - gitops/platform/observability/values/metrics-pipeline.yaml
+          - gitops/platform/observability/values/traces-pipeline.yaml
+          - gitops/platform/observability/values/graph-pipeline.yaml
+      - surface: topology correctness contract
+        paths:
+          - contracts/collector/
+    wrap_method: kubernetes-crd
+    ui:
+      exposed: false
+
+  - system: opensearch
+    display_name: OpenSearch
+    role: single telemetry and vector store
+    upstream_source:
+      kind: helm-chart
+      url: https://opensearch-project.github.io/helm-charts
+      chart: opensearch
+      detail: >-
+        Any conformant Kubernetes-resident OpenSearch deployment is
+        accepted (provider-managed or self-managed). The URL above is
+        the upstream chart source for the self-managed path; a
+        provider-managed deployment substitutes the provider's engine
+        as the upstream source.
+    version_pin:
+      value: TO_BE_PINNED
+      status: to-be-pinned
+      pinned_in: null
+      note: >-
+        The repository does not pin an OpenSearch engine or chart
+        version because the deployment is pluggable. Production
+        profiles must replace this placeholder with a concrete pin;
+        see policy rule fail_if_production_pin_missing.
+    upgrade_mechanism: helm-chart-upgrade
+    upgrade_notes: >-
+      Self-managed deployments upgrade by bumping the pinned upstream
+      chart version. Provider-managed deployments upgrade through the
+      provider's engine-version mechanism; the registry pin then tracks
+      the engine version instead of a chart version.
+    config_surface:
+      - surface: index templates
+        paths:
+          - gitops/platform/search/opensearch/templates/
+      - surface: ILM (lifecycle) policies
+        paths:
+          - gitops/platform/search/opensearch/ilm/
+      - surface: security roles and role mappings
+        paths:
+          - gitops/platform/search/opensearch/security/
+    wrap_method: provisioning-api
+    ui:
+      exposed: false
+
+  - system: opensearch-dashboards
+    display_name: OpenSearch Dashboards
+    role: telemetry visualization and alerting UI over OpenSearch
+    upstream_source:
+      kind: helm-chart
+      url: https://opensearch-project.github.io/helm-charts
+      chart: opensearch-dashboards
+      detail: >-
+        Deployed alongside the selected OpenSearch backend; unmodified
+        upstream chart or the provider-managed Dashboards endpoint.
+    version_pin:
+      value: TO_BE_PINNED
+      status: to-be-pinned
+      pinned_in: null
+      note: >-
+        Follows the OpenSearch deployment choice; Dashboards must match
+        the engine version. Production profiles require a concrete pin
+        per fail_if_production_pin_missing.
+    upgrade_mechanism: helm-chart-upgrade
+    config_surface:
+      - surface: saved-object dashboards
+        paths:
+          - gitops/platform/search/dashboards/saved-objects/
+      - surface: alerting rules
+        paths:
+          - gitops/platform/search/dashboards/alerts/
+      - surface: tenant and team spaces
+        paths:
+          - gitops/platform/search/dashboards/spaces/
+    wrap_method: provisioning-api
+    ui:
+      exposed: true
+      name: OpenSearch Dashboards
+
+  - system: grafana
+    display_name: Grafana
+    role: mandatory baseline visualization layer
+    upstream_source:
+      kind: helm-chart
+      url: https://grafana.github.io/helm-charts
+      chart: grafana
+      detail: >-
+        Multi-source Argo CD Application: the unmodified upstream chart
+        comes from the Grafana Helm repository and the values come from
+        this repository via the $values ref
+        (gitops/apps/grafana-application.yaml).
+    version_pin:
+      value: "10.5.15"
+      status: pinned
+      pinned_in: gitops/apps/grafana-application.yaml
+    upgrade_mechanism: helm-chart-upgrade
+    upgrade_notes: >-
+      Bump the chart targetRevision in
+      gitops/apps/grafana-application.yaml; Argo CD reconciles the
+      upgrade as a deliberate GitOps change.
+    config_surface:
+      - surface: Helm values
+        paths:
+          - gitops/platform/observability/grafana/values/grafana-values.yaml
+      - surface: provisioning files (datasources, dashboard providers)
+        paths:
+          - gitops/platform/observability/grafana/provisioning/
+      - surface: dashboard definitions
+        paths:
+          - gitops/platform/observability/grafana/dashboards/
+    wrap_method: helm-values
+    ui:
+      exposed: true
+      name: Grafana
+
+  - system: neo4j
+    display_name: Neo4j
+    role: derived graph tier (not a raw telemetry store)
+    upstream_source:
+      kind: container-image
+      url: https://helm.neo4j.com/neo4j
+      image: neo4j
+      detail: >-
+        The graph module runs the unmodified upstream Neo4j container
+        image inside platform-owned Kubernetes manifests
+        (gitops/platform/graph/neo4j/neo4j_module.yaml). The URL above
+        is the official upstream Helm repository, recorded as the
+        sanctioned chart source if the module later moves from plain
+        manifests to the upstream chart.
+    version_pin:
+      value: "5.26"
+      status: pinned
+      pinned_in: gitops/platform/graph/neo4j/neo4j_module.yaml
+    upgrade_mechanism: argocd-app-sync
+    upgrade_notes: >-
+      Bump the pinned image tag in the graph module manifest and let
+      the graph-stack Argo CD Application sync the rollout.
+    config_surface:
+      - surface: graph module manifests (workload, env config, secrets
+          wiring)
+        paths:
+          - gitops/platform/graph/neo4j/neo4j_module.yaml
+      - surface: Neo4j Browser access policy
+        paths:
+          - gitops/platform/graph/neo4j/browser-access.yaml
+      - surface: graph tier contract
+        paths:
+          - contracts/graph/
+    wrap_method: kubernetes-crd
+    ui:
+      exposed: true
+      name: Neo4j Browser
+
+  - system: argocd
+    display_name: Argo CD
+    role: GitOps delivery controller for the whole platform
+    upstream_source:
+      kind: helm-chart
+      url: https://argoproj.github.io/argo-helm
+      chart: argo-cd
+      detail: >-
+        Argo CD is a bring-your-own prerequisite: the bootstrap
+        kustomization (gitops/bootstrap/argocd/) applies the platform's
+        Application resources into an existing Argo CD installation.
+        The URL above is the upstream chart source for operators who
+        install Argo CD themselves; upstream install manifests from the
+        argoproj/argo-cd project are an equivalent path.
+    version_pin:
+      value: TO_BE_PINNED
+      status: to-be-pinned
+      pinned_in: null
+      note: >-
+        The repository does not install Argo CD, so no pin exists here.
+        Production profiles must record the concrete Argo CD version in
+        use; see policy rule fail_if_production_pin_missing.
+    upgrade_mechanism: helm-chart-upgrade
+    config_surface:
+      - surface: bootstrap kustomization
+        paths:
+          - gitops/bootstrap/argocd/kustomization.yaml
+      - surface: Application definitions (one per major component)
+        paths:
+          - gitops/apps/
+    wrap_method: kubernetes-crd
+    ui:
+      exposed: true
+      name: Argo CD UI
+
+# Enabled adapters are wrapped systems too, but their registry lives in
+# the adapters framework rather than being duplicated here. Each adapter
+# directory carries its own compatibility contract
+# (*_COMPATIBILITY_V1.yaml), stub metadata (STUB_METADATA.json), and
+# rollback notes (ROLLBACK_UNINSTALL_NOTES.md), validated by the Batch
+# 13 adapter validators. Adapter entries inherit this registry's policy
+# block: the wrap-method enum and the fork prohibition apply to adapters
+# unchanged.
+adapters_extension:
+  registry: contracts/adapters/
+  implementation: adapters/
+  policy_inheritance: >-
+    policy.allowed_wrap_methods, policy.forbidden_wrap_methods, and
+    policy.rules apply to adapter integrations exactly as they apply to
+    the systems listed above.
