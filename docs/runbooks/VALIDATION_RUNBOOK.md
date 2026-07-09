@@ -249,8 +249,19 @@ bash scripts/ci/validate_config_renderer.sh
 bash scripts/ci/validate_batch19_smoke.sh
 ```
 
+Run focused Batch 20 validation (tenant control plane service -
+OpenAPI lifecycle-binding cross-check, lifecycle transitions as
+GitOps renders with idempotent replay, isolation provisioning
+renders, approval timeout and escalation, tenant-scoped audit
+records, seeded denial fixture rejection offline):
+
+```bash
+bash scripts/ci/validate_tenant_control_plane.sh
+bash scripts/ci/validate_batch20_smoke.sh
+```
+
 Run the full report-generating aggregator across every registered
-batch (currently 1-9, 9A, 10-19):
+batch (currently 1-9, 9A, 10-20):
 
 ```bash
 bash scripts/ci/validate_all_batches_with_report.sh

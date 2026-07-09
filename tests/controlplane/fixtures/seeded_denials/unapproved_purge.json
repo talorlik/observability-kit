@@ -1,0 +1,29 @@
+{
+  "schema_version": "v1",
+  "scenario_id": "SDN-B20-002",
+  "scenario": "unapproved-purge",
+  "requirement_markers": ["TR-16", "TR-09"],
+  "description": "Purge is destructive (write.critical) and must be denied when no approval record accompanies the request, even when every other precondition (offboard completed, retention window elapsed) holds.",
+  "tenant_id": "acme",
+  "setup": [
+    {"step": "create_tenant", "tenant_id": "acme"},
+    {"step": "provision", "tenant_id": "acme"},
+    {"step": "offboard_approved", "tenant_id": "acme"},
+    {"step": "advance_days", "days": 91}
+  ],
+  "attempt": {
+    "kind": "transition",
+    "transition": "purge",
+    "tenant_id": "acme",
+    "caller_scope": null,
+    "payload": {
+      "actor": "op@example.com"
+    }
+  },
+  "expected": {
+    "outcome": "denied",
+    "error_code": "approval-required",
+    "message_substring": "requires an approved request",
+    "denial_audit_record": true
+  }
+}

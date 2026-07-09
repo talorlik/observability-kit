@@ -27,6 +27,7 @@ required_docs=(
   "docs/runbooks/UNIFIED_CONFIGURATION_RUNBOOK.md"
   "docs/runbooks/DISCOVERY_EXECUTOR_OPERATOR_GUIDE.md"
   "docs/runbooks/GUIDED_INSTALLATION_GUIDE.md"
+  "docs/runbooks/TENANT_ADMINISTRATION_RUNBOOK.md"
 )
 
 echo "Checking baseline runbook files..."
@@ -67,6 +68,7 @@ required = [
     "docs/runbooks/UNIFIED_CONFIGURATION_RUNBOOK.md",
     "docs/runbooks/DISCOVERY_EXECUTOR_OPERATOR_GUIDE.md",
     "docs/runbooks/GUIDED_INSTALLATION_GUIDE.md",
+    "docs/runbooks/TENANT_ADMINISTRATION_RUNBOOK.md",
 ]
 
 content = Path("README.md").read_text()

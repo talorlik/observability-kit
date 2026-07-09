@@ -1,0 +1,37 @@
+{
+  "schema_version": "v1",
+  "scenario_id": "SDN-B20-007",
+  "scenario": "purge-with-legal-hold",
+  "requirement_markers": ["TR-16", "TR-09"],
+  "description": "A legal or residency hold blocks purge even after the retention window has elapsed and a valid write.critical approval is presented. The purge is denied as a failed precondition and the tenant stays offboarding.",
+  "tenant_id": "acme",
+  "setup": [
+    {"step": "create_tenant", "tenant_id": "acme"},
+    {"step": "provision", "tenant_id": "acme"},
+    {"step": "offboard_approved", "tenant_id": "acme"},
+    {"step": "advance_days", "days": 91},
+    {"step": "set_legal_hold", "tenant_id": "acme"}
+  ],
+  "attempt": {
+    "kind": "transition",
+    "transition": "purge",
+    "tenant_id": "acme",
+    "caller_scope": null,
+    "payload": {
+      "actor": "op@example.com",
+      "approval": {
+        "approval_id": "apr-sdn-007",
+        "approver": "approver@example.com",
+        "decision": "approved",
+        "decided_at": "__FRESH_UTC_NOW__",
+        "change_ticket": "chg-sdn-007"
+      }
+    }
+  },
+  "expected": {
+    "outcome": "denied",
+    "error_code": "precondition-failed",
+    "message_substring": "legal or residency hold",
+    "denial_audit_record": true
+  }
+}

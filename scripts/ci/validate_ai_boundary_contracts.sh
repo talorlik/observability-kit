@@ -202,9 +202,14 @@ for expected_constraint in [
             f"Namespace boundary rules missing constraint: {expected_constraint}"
         )
 
+# Scan only AI runtime components. services/ also hosts non-AI
+# platform services (services/tenancy/ since Batch 20, the tenant
+# control plane) that legitimately name wrapped datastores in GitOps
+# provisioning renders; the AI boundary contract governs AI
+# components, so the services scan is scoped to services/mcp.
 scan_roots = [
     root / "agents",
-    root / "services",
+    root / "services" / "mcp",
     root / "triggers",
     root / "gitops" / "platform" / "ai",
 ]

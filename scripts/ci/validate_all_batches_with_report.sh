@@ -33,6 +33,7 @@ declare -a BATCH_IDS=(
   "17"
   "18"
   "19"
+  "20"
 )
 
 declare -a BATCH_NAMES=(
@@ -56,6 +57,7 @@ declare -a BATCH_NAMES=(
   "Discovery and Preflight Execution Engine (Runtime)"
   "Guided Installation Experience"
   "Configuration Rendering Runtime"
+  "Tenant Control Plane Service"
 )
 
 declare -a VALIDATION_CRITERIA=(
@@ -79,6 +81,7 @@ declare -a VALIDATION_CRITERIA=(
   "Validate read-only executor RBAC, preflight and discovery report schema conformance, deterministic grading and mode and remediation outputs, offline fixture-driven validator pass, and executor operator runbook completeness."
   "Validate install flow contract step order, wizard answer validation with seeded invalid-answers rejection, GitOps-only render output, post-install readiness invocation with install summary, and installation guide completeness."
   "Validate renderer ADR and architecture contract, byte-identical re-render tests, generated-file header and commit trailer checks, rendered-versus-live drift diff output, rollback re-render drill in dry-run mode, and offline fixture harness pass."
+  "Validate OpenAPI contract lifecycle semantics, idempotent replay tests per transition, isolation provisioning render fixtures, approval denial and timeout tests with tenant-scoped audit records, and seeded denial fixture rejection offline."
 )
 
 declare -a SCRIPT_PATHS=(
@@ -102,6 +105,7 @@ declare -a SCRIPT_PATHS=(
   "scripts/ci/validate_batch17_smoke.sh"
   "scripts/ci/validate_batch18_smoke.sh"
   "scripts/ci/validate_batch19_smoke.sh"
+  "scripts/ci/validate_batch20_smoke.sh"
 )
 
 declare -a STATUSES=()

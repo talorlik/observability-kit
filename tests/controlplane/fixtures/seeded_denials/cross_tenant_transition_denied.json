@@ -1,0 +1,27 @@
+{
+  "schema_version": "v1",
+  "scenario_id": "SDN-B20-008",
+  "scenario": "cross-tenant-denial",
+  "requirement_markers": ["TR-16", "TR-09"],
+  "description": "Deny-by-default cross-tenant rule: a caller scoped to tenant acme attempts a lifecycle transition on tenant globex. The scope gate denies the operation before any state is read or mutated, and the denial audit record carries the addressed tenant's tenant_id.",
+  "tenant_id": "globex",
+  "setup": [
+    {"step": "create_tenant", "tenant_id": "acme"},
+    {"step": "create_tenant", "tenant_id": "globex"}
+  ],
+  "attempt": {
+    "kind": "transition",
+    "transition": "provision",
+    "tenant_id": "globex",
+    "caller_scope": "acme",
+    "payload": {
+      "actor": "op@acme.example.com"
+    }
+  },
+  "expected": {
+    "outcome": "denied",
+    "error_code": "cross-tenant-access-denied",
+    "message_substring": "not authorized for the addressed tenant",
+    "denial_audit_record": true
+  }
+}

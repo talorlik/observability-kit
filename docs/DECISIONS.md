@@ -13,6 +13,60 @@ first. Entry format:
 - Follow-up: <action for a future batch, or "none">
 ```
 
+## 2026-07-10 - Batch 20 - Tenant Control Plane Semantics and Gotchas
+
+- Decision: `docs/adr/ADR_0004_TENANT_CONTROL_PLANE_SERVICE.md` fixes
+  the control plane as `services/tenancy/` (package `tenantctl`):
+  FastAPI is a thin adapter behind the `[api]` extra while ALL
+  contract-bearing logic (contract-loaded state machine, replay,
+  approval gating, audit, render planning) is a stdlib-only core so
+  offline CI needs no dependencies. Transitions execute exclusively
+  through the Batch 19 renderer (`execute_plan`/`changed_paths`,
+  `owned-artifact` strategy); no strategy-catalog change was needed
+  because tenant descriptors are not management-plane unified keys.
+- Non-obvious calls: (1) per-tenant GitOps overlays render ONLY for
+  `dedicated-stack` tenants - the lifecycle contract's
+  `outputs_by_isolation_class` scopes the overlay to that class;
+  shared classes get `render_action: not-applicable` plus isolation
+  artifacts under `gitops/platform/tenants/<id>/isolation/`
+  (additive, never touching core charts), while dedicated-stack
+  isolation artifacts live inside the overlay so purge removes them
+  with it. (2) The per-tenant Neo4j database artifact is gated
+  declaratively with the `observability-kit.io/profile:
+  graph-enabled` marker (the `browser-access.yaml` mechanism), not a
+  planner branch: the tenant schema has no graph field and overlay
+  generation may parameterize only by tenant-descriptor fields.
+  (3) Approval timeout maps to error code `approval-invalid` - the
+  API contract's 403 description explicitly covers timed-out
+  approvals and adding a new enum value would change fixed API
+  surface. Timeout denials carry the full escalation directive
+  (chain, deny-after-chain, notify channels,
+  `requires_change_management_callback` for `write.critical`).
+  (4) Provision replay is converge-if-drifted for BOTH the overlay
+  and isolation artifacts (code-review finding: the first cut
+  re-planned only the overlay, so post-completion isolation drift
+  survived a replay). (5) The file-backed store assumes a single
+  writer per store root (atomic `os.replace` writes; documented in
+  ADR-0004 and the runbook); a coordinated store is deferred to the
+  live deployment batches.
+- Gotcha for later batches: `validate_ai_boundary_contracts.sh`
+  (run by BOTH batch 1 and batch 14 smoke bundles) scanned all of
+  `services/` for datastore markers and failed on `tenantctl`
+  docstrings naming Neo4j. Its scan root is now `services/mcp` -
+  scoped to AI components per the AI boundary contract's own intent.
+  Batch 21's `services/portal/` will NOT be scanned by it; if the
+  portal embeds AI-runtime code paths, extend the scan roots
+  deliberately.
+- Follow-up: (1) Batch 21 must bind authenticated identity to the
+  service's `caller_scope` argument - the HTTP adapter currently has
+  no principal extraction and every HTTP caller is platform-scoped
+  (safe only behind authenticated infrastructure). (2) Contract
+  question flagged to the Batch 15 surface owners: `isolation_class`
+  is mutable through CRUD today; changing it relocates the isolation
+  directory on the next provision replay and orphans the old one -
+  consider adding it to `x-immutable-fields` in a future contract
+  revision.
+
 ## 2026-07-10 - Batch 19 - Config Renderer Semantics and Gotchas
 
 - Decision: `docs/adr/ADR_0003_CONFIG_RENDERER_ARCHITECTURE.md` fixes
