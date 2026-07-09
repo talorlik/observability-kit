@@ -53,11 +53,18 @@ Rules that override everything else:
 - Live-cluster work (Batches 23-24) uses a DISPOSABLE local cluster
   only: kind on the local Docker engine (OrbStack on this machine).
   The harness must create and use an ISOLATED kubeconfig and must
-  refuse any context it did not create - the default kubeconfig
-  contains cloud production contexts (EKS) that must be structurally
-  unreachable. The OrbStack built-in Kubernetes cluster is the
+  refuse any context it did not create - the default kubeconfig may
+  carry cloud contexts (today stale EKS remnants, later a live
+  production cluster) and they must be structurally unreachable
+  either way. The OrbStack built-in Kubernetes cluster is the
   persistent dev stack only, never an evidence target. Tear the
   disposable cluster down after evidence capture.
+- NEVER provision, modify, or delete cloud resources or clusters
+  (EKS, GKE, AKS, VMs, DNS, anything billable). Production-cluster
+  validation is deliberately deferred to a separate, user-initiated
+  engagement after GA readiness - it is OUT OF SCOPE for this run,
+  and "production tests" never justify creating cloud
+  infrastructure.
 - Gates: 3 fix attempts per gate, then up to 2 root-cause repair cycles
   per batch. If still red: commit WIP on the branch, leave the worktree
   intact, record the exact blocker in docs/DECISIONS.md, and continue

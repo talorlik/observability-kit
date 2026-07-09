@@ -330,6 +330,19 @@ The plan targets three cluster roles, and no run may confuse them:
   guided installer with the `prod` overlay - the stack differs by
   profile, never by code path.
 
+> [!IMPORTANT]
+> Production-cluster validation is deliberately deferred. Batches
+> 17-26 complete entirely on the local stacks; no batch provisions
+> cloud infrastructure, and autonomous runs must never create
+> billable resources. After GA readiness, the owner initiates a
+> separate engagement: provision a short-lived production-grade
+> cluster (for example EKS via Terraform), run the guided installer
+> with the `prod` overlay, execute the production readiness and
+> reference-architecture conformance checks, capture evidence, and
+> tear the cluster down. The stale EKS contexts currently present in
+> the local kubeconfig belong to a decommissioned cluster and are
+> not a target for anything.
+
 ## 6. Milestones
 
 Each milestone is complete only when its acceptance evidence exists as
