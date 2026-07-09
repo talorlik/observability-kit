@@ -13,6 +13,25 @@ first. Entry format:
 - Follow-up: <action for a future batch, or "none">
 ```
 
+## 2026-07-09 - Batch n/a - Session-Based Batch Execution
+
+- Decision: Batches 17-26 execute one per fresh session, in numeric
+  order, with multi-agent waves inside each batch; the plan's
+  cross-batch parallelism is deliberately unused. The execution
+  prompt is now a self-perpetuating chain: a kick-off prompt runs
+  Batch 17, and /run-batch Step 7 ends every session with handoff
+  verification (clean main with squash commit, green report, worktree
+  removed, decisions captured) plus the printed continuation prompt
+  for the next batch (same batch with a fix note on STOPPED; the
+  Definition of Done completion report after Batch 26).
+- Why: owner choice of the lower-risk model - per-batch sessions
+  bound context-compaction risk and orchestration complexity, and the
+  durable per-batch merge discipline makes the two models converge on
+  identical results anyway.
+- Follow-up: none; recovery from an interrupted session is documented
+  in SAAS_EXECUTION_PROMPT.md (rerun the first batch without a squash
+  commit).
+
 ## 2026-07-09 - Batch n/a - Production Validation Deferred
 
 - Decision: production-cluster validation is deferred to a separate,

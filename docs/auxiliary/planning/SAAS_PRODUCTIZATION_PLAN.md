@@ -300,10 +300,16 @@ Batch 14 ----------------------> 24 <-- 23 ----'
   Batch 24 requires 14 and 23; Batch 25 requires 23; Batch 26 requires
   everything (17-25).
 
-Parallel batches run in separate worktrees and separate sessions, and
-both must pass the full regression suite against the then-current local
-`main` before their squash-merges land; the second merger rebases its
-worktree on the updated `main` and re-runs gates.
+Parallel batches would run in separate worktrees and separate
+sessions, and both must pass the full regression suite against the
+then-current local `main` before their squash-merges land; the second
+merger rebases its worktree on the updated `main` and re-runs gates.
+
+> [!NOTE]
+> The chosen execution model deliberately does not exercise this
+> parallelism: batches run ONE per session, in numeric order, per
+> `docs/auxiliary/task_execution/SAAS_EXECUTION_PROMPT.md`. The
+> parallelism notes above remain for future multi-operator use.
 
 ### Deployment Stacks
 
@@ -525,9 +531,11 @@ runnable check with captured evidence.
 ## 10. Execution Entry Point
 
 Execution of this plan is driven by
-`docs/auxiliary/task_execution/SAAS_EXECUTION_PROMPT.md` (authored
-separately), which packages the per-batch session bootstrap - context
-loading, `/run-batch` invocation, and inter-batch handoff - for
-Batches 17-26. Each batch is launched in a fresh session with
-`/run-batch <ID>`; the prompt document is the only additional context a
-session needs beyond the repository itself.
+`docs/auxiliary/task_execution/SAAS_EXECUTION_PROMPT.md`: one batch
+per fresh session, in numeric order, multi-agent waves inside each
+batch. The chain is self-perpetuating - the kick-off prompt starts
+Batch 17, and every session ends by verifying handoff prep (clean
+`main` with the batch's squash commit, green all-batches report,
+worktree removed, decisions captured) and printing the continuation
+prompt for the next batch. The prompt document is the only additional
+context a session needs beyond the repository itself.
