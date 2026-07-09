@@ -84,7 +84,8 @@ bash scripts/ci/check_no_hardcoded_env_values.sh
 ```bash
 bash scripts/ci/validate_all_batches_with_report.sh
 # Reports written to docs/reports/validation/
-# Covers Batches 1-14 (1-9A then 10-14).
+# Covers every batch registered in its BATCH_IDS array (currently
+# 1-9A, 10-16; new batches register themselves when implemented).
 ```
 
 ### Running a Single Batch
@@ -107,7 +108,17 @@ bash scripts/ci/validate_graph_foundation.sh           # Batch 11
 bash scripts/ci/validate_risk_scoring_assisted_rca.sh  # Batch 12
 bash scripts/ci/validate_core_adapter_integrations.sh  # Batch 13
 bash scripts/ci/validate_batch14_smoke.sh              # Batch 14 (AI/MCP)
+bash scripts/ci/validate_tenancy_contracts.sh          # Batch 15
+bash scripts/ci/validate_management_plane_contracts.sh # Batch 16
 ```
+
+Batches 17-26 (SaaS productization: discovery executor, guided
+installer, config renderer, tenant control plane, portal, billing,
+live-cluster validation, AI activation, release engineering, product
+docs) are authored in `TASKS.md` but not yet implemented. Their plan is
+`docs/auxiliary/planning/SAAS_PRODUCTIZATION_PLAN.md`; execute them via
+`/run-batch <N>` or the prompt in
+`docs/auxiliary/task_execution/SAAS_EXECUTION_PROMPT.md`.
 
 Each batch also has a smoke wrapper: `scripts/ci/validate_batch<N>_smoke.sh`.
 

@@ -24,6 +24,15 @@ implementation requirements in this document.
 | `TR-15` | AI/MCP Runtime Layer Requirements |
 | `TR-16` | SaaS Multi-Tenancy and Customer Isolation Requirements |
 | `TR-17` | Unified Configuration and Management Plane Requirements |
+| `TR-18` | Discovery and Preflight Execution Engine Requirements |
+| `TR-19` | Guided Installation Experience Requirements |
+| `TR-20` | Configuration Rendering Runtime Requirements |
+| `TR-21` | Tenant Control Plane Service Requirements |
+| `TR-22` | Unified Management Portal Requirements |
+| `TR-23` | Metering, Billing, and Commercial Operations Requirements |
+| `TR-24` | Live-Cluster Validation Evidence and Runtime Activation Requirements |
+| `TR-25` | Release Engineering and Production Operations Requirements |
+| `TR-26` | Product Documentation and GA Readiness Requirements |
 
 ## 0.1 Task Batch Reverse Lookup
 
@@ -49,6 +58,15 @@ corresponding execution batches in `TASKS.md`.
 | `TR-15` | `TB-14` |
 | `TR-16` | `TB-15` |
 | `TR-17` | `TB-16` |
+| `TR-18` | `TB-17` |
+| `TR-19` | `TB-18` |
+| `TR-20` | `TB-19` |
+| `TR-21` | `TB-20` |
+| `TR-22` | `TB-21` |
+| `TR-23` | `TB-22` |
+| `TR-24` | `TB-23`, `TB-24` |
+| `TR-25` | `TB-25` |
+| `TR-26` | `TB-26` |
 
 ## 1. Purpose [TR-01]
 
@@ -660,3 +678,294 @@ remains upgradable through its own upstream mechanism.
   scoping consistent with `TR-16` for every wrapped UI.
 - The unified configuration schema is versioned; breaking binding
   changes require documented migration notes before release.
+
+## 18. Discovery and Preflight Execution Engine Requirements [TR-18]
+
+The execution engine turns the preflight and discovery contracts of
+`TR-04` and `TR-05` into a runtime that runs against a live cluster. It
+observes only: it never mutates cluster state and never modifies a
+wrapped open-source system.
+
+- The executor is a Python 3.11+ package under `tools/obskit/` with its
+  own dependency manifest (`pyproject.toml` plus pinned requirements);
+  it never extends `requirements-ci.txt`, which stays lint-only.
+- Cluster access is read-only. The bundled RBAC manifest grants only
+  get, list, and watch verbs; secret values are never read, only
+  presence and metadata.
+- Every emitted report conforms to its published schema:
+  `contracts/discovery/PREFLIGHT_REPORT_SCHEMA.json` for preflight and
+  `contracts/discovery/DISCOVERY_PROBES_SCHEMA.json` for discovery.
+- Outputs are deterministic: identical cluster state and contract
+  inputs produce byte-identical reports, with stable ordering and no
+  environment-dependent fields outside designated metadata.
+- Grading, mode recommendation, and remediation derive exclusively from
+  `contracts/compatibility/GRADING_RULES.json`,
+  `MODE_DECISION_TABLE.json`, and `REMEDIATION_CATALOG.json`; no
+  grading or decision rule is hardcoded in executor code.
+- The CLI mode and the optional in-cluster Job mode execute the same
+  code path and produce interchangeable reports.
+- The executor has no provider-specific dependency; provider detection
+  surfaces only through the adapter contracts of `TR-03`.
+- CI validation is offline and fixture-driven; live-cluster integration
+  runs (for example against kind) exist but are never CI-gated.
+
+## 19. Guided Installation Experience Requirements [TR-19]
+
+The guided installer drives an operator from preflight to verified
+readiness in one contracted flow. It composes the `TR-18` executor, the
+install contract of `TR-05`, and the required artifacts of `TR-14`.
+
+- The install flow order is contract-fixed: preflight, grading, mode
+  recommendation, install contract capture, render, Argo CD bootstrap,
+  post-install readiness.
+- Captured answers always validate against
+  `contracts/install/INSTALL_CONTRACT_SCHEMA.json`; invalid answers
+  fail the run before any render or bootstrap step executes.
+- Non-interactive mode has full parity: an answers file drives exactly
+  the flow the interactive wizard drives, and every interactive run is
+  reproducible from its recorded answers.
+- Installation is idempotent and resumable: re-running a completed
+  install changes nothing, and a failed run resumes from the last
+  completed step instead of restarting.
+- Rendering is GitOps-only, consistent with
+  `contracts/management/PROPAGATION_RECONCILIATION_CONTRACT_V1.yaml`
+  (`TR-17`): the installer emits overlay and bootstrap manifests for
+  the GitOps controller and performs no direct mutable API writes for
+  persistent configuration.
+- The installer never forks or patches wrapped open-source systems;
+  configuration flows only through the wrap methods allowed by `TR-17`.
+- The installer core has no provider-specific dependency; provider
+  specifics enter only through adapters (`TR-03`).
+- Readiness is evidence-based: the flow ends by invoking the
+  post-install readiness checks and emitting an install summary with
+  next steps.
+
+## 20. Configuration Rendering Runtime Requirements [TR-20]
+
+The rendering runtime executes the propagation and reconciliation
+contract of `TR-17`: it turns the unified configuration document into
+committed native configuration. It writes Git content only and never
+performs a live configuration write.
+
+- The renderer is a Python 3.11+ package under `tools/obskit/` with its
+  own dependency manifest (`pyproject.toml` plus pinned requirements);
+  it never extends `requirements-ci.txt`, which stays lint-only.
+- Input is the schema-validated unified configuration document plus its
+  propagation bindings
+  (`contracts/management/UNIFIED_CONFIG_SCHEMA_V1.json`); output is
+  written only at each binding's `render_target` path within the
+  registered config surface.
+- Rendering is deterministic: identical document and binding inputs
+  produce byte-identical rendered files, and re-rendering an unchanged
+  document produces no diff and no commit.
+- Every rendered file carries the generated-file header marker and
+  every propagation commit carries the required commit trailers defined
+  in `contracts/management/PROPAGATION_RECONCILIATION_CONTRACT_V1.yaml`.
+- Drift tooling compares rendered state against live state and emits
+  the rendered-versus-live diff surface consumed by the `TR-12`
+  meta-monitoring drift alerts.
+- Rollback is a re-render from a prior unified document revision
+  through the same render-and-commit pipeline; a separate apply channel
+  is forbidden. Rollback tooling follows the mode-parameterized
+  conventions of `scripts/ops/run_rollback_drill.sh`.
+- The renderer never forks or patches a wrapped open-source system;
+  rendered output flows only through the wrap methods allowed by
+  `TR-17`.
+- CI validation is offline and fixture-driven; no live cluster or Git
+  remote is required to prove determinism or idempotency.
+
+## 21. Tenant Control Plane Service Requirements [TR-21]
+
+The tenant control plane service executes the tenant lifecycle contract
+of `TR-16` behind an API. Every lifecycle transition materializes as a
+GitOps render; the service performs no direct mutable cluster writes
+for persistent configuration.
+
+- The service is FastAPI on typed Python 3.11+ under
+  `services/tenancy/` with its own dependency manifest; it never
+  extends `requirements-ci.txt`.
+- The API surface is fixed by
+  `contracts/tenancy/TENANT_CONTROL_PLANE_API_V1.yaml` (OpenAPI):
+  tenant CRUD plus provision, suspend, resume, offboard, and purge with
+  exactly the state machine and idempotent-replay semantics of
+  `contracts/tenancy/TENANT_LIFECYCLE_CONTRACT_V1.yaml`.
+- Lifecycle execution renders per-tenant overlays per
+  `contracts/tenancy/TENANT_OVERLAY_GENERATION_CONTRACT_V1.yaml`,
+  reusing the `TR-20` renderer; core charts are never modified per
+  tenant.
+- Provisioning renders the isolation artifacts of
+  `contracts/tenancy/TENANT_ISOLATION_MATRIX_V1.yaml`: per-tenant
+  OpenSearch roles, role mappings, and dashboard spaces, one Neo4j
+  database per tenant in graph-enabled mode, and per-tenant vector
+  indices with mandatory retrieval filters.
+- Destructive transitions are blocked without an approval record per
+  `contracts/policy/APPROVAL_FLOW_V1.yaml`, honoring its timeout and
+  escalation rules.
+- Every transition emits an audit record (`TR-09`) carrying the tenant
+  id; seeded denial fixtures prove that unapproved destructive
+  transitions and cross-tenant operations are rejected.
+- CI validation is offline: fixtures exercise the service logic without
+  a live cluster or Git remote.
+
+## 22. Unified Management Portal Requirements [TR-22]
+
+The portal is the operator's single pane: one place to reach every
+wrapped UI, change unified configuration, and manage tenants. It fronts
+wrapped systems without forking them and writes configuration only
+through Git.
+
+- The portal backend lives under `services/portal/` in typed Python
+  3.11+ with its own dependency manifest; the frontend stack is chosen
+  and justified by its ADR and stays minimal in v1.
+- The portal contract
+  (`contracts/management/PORTAL_CONTRACT_V1.yaml`) defines views, API
+  surface, and authentication; it is the single source of portal
+  scope.
+- Navigation derives from the UI catalog of
+  `contracts/management/SINGLE_PANE_ACCESS_CONTRACT_V1.yaml`; every
+  cataloged wrapped UI is reachable from the portal.
+- Unified configuration edits flow through the `TR-20` renderer: an
+  edit becomes a Git commit reconciled by the GitOps controller; the
+  portal performs no live configuration writes.
+- Tenant management is delegated to the `TR-21` control plane API; the
+  portal holds no tenant lifecycle logic of its own.
+- Authentication follows the admin access plane (`TR-03`) with SSO and
+  role mapping; tenant scoping enforces `TR-16` so a tenant-scoped
+  role sees only its tenant's views.
+- The portal surfaces a platform health summary sourced from the
+  meta-monitoring signals of `TR-12`.
+- Portal reachability and login join the admin GUI smoke checks of
+  `scripts/validate/admin_gui_smoke.sh`; contract validation in CI is
+  offline.
+
+## 23. Metering, Billing, and Commercial Operations Requirements [TR-23]
+
+Commercial operations meter tenant usage, bind tenants to plans, and
+export billing data. The core stays vendor-neutral; billing vendors
+integrate only through adapters.
+
+- Usage dimensions are contract-fixed in
+  `contracts/commercial/METERING_CONTRACT_V1.yaml`: ingest GB per day
+  per signal, retention days, active tenants, and query volume,
+  sourced from platform telemetry already in OpenSearch with no new
+  collection path.
+- The metering collector writes usage records to control-plane indices
+  (`control-tenancy-*`), honoring the control-plane versus data-plane
+  separation of `TR-16`; every usage record carries the tenant id, and
+  a record without one is rejected.
+- The plan catalog binds every plan to the `tier` enum of
+  `contracts/tenancy/TENANT_CONTRACT_SCHEMA_V1.json`; every plan
+  defines quota bounds that hook into the Batch 15 tenant quotas, and
+  a plan without quota bounds is invalid.
+- Quota breach handling is evidence-based: breaches surface through
+  the `TR-12` alerting path and every enforcement action emits an
+  audit record (`TR-09`) carrying the tenant id.
+- Billing integration lives under `adapters/billing/` following the
+  house adapter pattern (`*_COMPATIBILITY_V1.yaml`,
+  `STUB_METADATA.json`, `ROLLBACK_UNINSTALL_NOTES.md`, `README.md`);
+  the Stripe reference adapter is a stub and the invoice-export
+  contract is vendor-neutral.
+- A billing adapter never mutates the platform core; fork-like core
+  mutation is rejected by validation.
+- CI validation is offline and fixture-driven with seeded rejection
+  fixtures.
+
+## 24. Live-Cluster Validation Evidence and Runtime Activation Requirements [TR-24]
+
+Live validation proves declared runtime behavior on a real cluster and
+activates the AI/MCP runtime under the same evidence discipline.
+Everything here runs on disposable clusters and never gates pull
+requests.
+
+- Live runs execute only on disposable kind/k3d clusters provisioned
+  through the contracted harness
+  (`contracts/evidence/DISPOSABLE_CLUSTER_HARNESS_CONTRACT_V1.yaml`)
+  with a fixed profile, sizing bounds, and guaranteed teardown; a
+  cluster is never reused across runs.
+- The only permitted install path on the harness is the Batch 18
+  guided installer (`TR-19`); a hand-assembled install invalidates the
+  evidence it produces.
+- Every runtime-only completion check from Batches 4-12 executes live -
+  restore and rollback drills, GUI smoke including the portal, and the
+  cross-tenant denial scenarios `SDN-B15-001` through `SDN-B15-009` -
+  and captures an evidence artifact under `artifacts/evidence/`.
+- Captured evidence is additive: affected `*_VALIDATION.json`
+  contracts gain `captured_evidence` references while their declared
+  blocks stay in place, and schema files are never renamed (`TR-14`).
+- Live execution is manual or nightly and orchestrator-owned; the
+  nightly e2e workflow ships disabled by default and is never wired
+  into PR gating.
+- AI runtime activation deploys KAgent, KHook, and the MCP gateway
+  from `gitops/platform/ai/` with the MCP catalog and governance
+  contracts (`TR-15`) enforced, not relaxed, on the live cluster.
+- Model providers are pluggable through the adapter pattern; provider
+  keys resolve through the secrets backend and never appear in
+  configuration or Git.
+- The trigger-to-approval rehearsal - KHook trigger, casefile,
+  read-path investigation, action-gate approval with a human-surrogate
+  step - must pass with policy, redaction, and audit intact.
+- Production activation follows
+  `docs/operations/PRODUCTION_ACTIVATION_SIGNOFF_WORKFLOW.md`; a
+  quantitative threshold that cannot be measured counts as a failed
+  gate.
+
+## 25. Release Engineering and Production Operations Requirements [TR-25]
+
+The platform ships as a versioned product. Releases are tag-driven,
+supply-chain hardened, and upgrade-tested before any production claim.
+
+- Versioning is semver; every release is a Git tag with a
+  `CHANGELOG.md` entry following the convention fixed in
+  `contracts/release/RELEASE_ENGINEERING_CONTRACT_V1.yaml`.
+- Release artifacts are packaged Helm charts and OCI artifacts with a
+  defined publication path and a stated artifact signing posture.
+- The wrapped-system registry
+  (`contracts/management/WRAPPED_SYSTEM_REGISTRY_V1.yaml`) carries
+  concrete version pins for `opensearch`, `opensearch-dashboards`,
+  and `argocd`, verified against upstream releases; the
+  `fail_if_production_pin_missing` rule passes for production
+  profiles.
+- A pinned set must install cleanly on the disposable harness
+  (`TR-24`) before it ships.
+- An N-1 to N upgrade test installs the previous tagged state,
+  upgrades to the current state, and verifies that data and
+  configuration survive (`TR-12`).
+- The platform's own SLOs are productionized as a `contracts/slo_ops/`
+  extension so the product is operable as a service (`TR-11`).
+- CI performs image scanning and SBOM generation for release
+  artifacts.
+- Commercial distribution requires a completed OSS license compliance
+  review per `contracts/release/LICENSE_COMPLIANCE_CONTRACT_V1.yaml`:
+  a license inventory of all bundled systems, their obligations, and
+  an attribution file.
+- Seeded rejection fixtures - an unpinned production profile and a
+  bundled system missing from the license inventory - must fail
+  validation.
+
+## 26. Product Documentation and GA Readiness Requirements [TR-26]
+
+Product documentation is a release artifact with the same gating
+discipline as code. GA is a reviewed, evidence-backed state, not a
+declaration.
+
+- The product documentation tree lives under `docs/product/` with an
+  `INDEX.md` and an audience map covering evaluator, installer and
+  operator, tenant administrator, end user, and commercial
+  administrator.
+- Core guides derive from delivered flows, not aspirations: the
+  installation guide from the Batch 18 install flow (`TR-19`), the
+  configuration guide from the unified configuration document
+  (`TR-20`), and the operations guide from the operator runbooks.
+- The API reference is generated from
+  `contracts/tenancy/TENANT_CONTROL_PLANE_API_V1.yaml` (`TR-21`);
+  hand-written drift from the contract is a validation failure.
+- Commercial documents cover pricing and packaging bound to the
+  `TR-23` plan catalog and a support and onboarding playbook; the
+  repository `README.md` presents the product.
+- A docs-coverage matrix maps every Batch 17-25 capability to a
+  product documentation section; an unmapped capability fails
+  validation, and links across the tree are validated.
+- GA readiness is recorded in a signed
+  `docs/product/GA_READINESS_REVIEW.md` walking the definition of
+  done in `docs/auxiliary/planning/SAAS_PRODUCTIZATION_PLAN.md` with
+  an evidence link for every item.
