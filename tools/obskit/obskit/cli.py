@@ -1,0 +1,161 @@
+"""obskit command-line interface.
+
+Subcommands: preflight, discover, evaluate. The optional in-cluster
+Job mode runs this same CLI in a container - one code path, so CLI and
+Job reports are interchangeable (TR-18).
+
+Subcommand handlers import their modules lazily: the parser stays
+importable even while later-batch modules are still landing, and the
+stdlib-only core never drags optional dependencies in.
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from collections.abc import Sequence
+
+
+def _add_reader_flags(parser: argparse.ArgumentParser) -> None:
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument(
+        "--snapshot",
+        help="path to a recorded cluster snapshot (fixture mode)",
+    )
+    source.add_argument(
+        "--live",
+        action="store_true",
+        help="read a live cluster via the Kubernetes API "
+        "(requires the obskit[k8s] extra)",
+    )
+    parser.add_argument(
+        "--kubeconfig",
+        help="kubeconfig path for live mode (default: standard "
+        "resolution order)",
+    )
+    parser.add_argument(
+        "--context", help="kubeconfig context for live mode"
+    )
+    parser.add_argument(
+        "--cluster-name",
+        help="cluster name recorded in reports (live mode default: "
+        "the kubeconfig context name)",
+    )
+    parser.add_argument(
+        "--output",
+        default="-",
+        help="report destination file, or '-' for stdout (default)",
+    )
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="obskit",
+        description="Observability Kit discovery and preflight "
+        "execution engine (read-only)",
+    )
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    preflight = subparsers.add_parser(
+        "preflight",
+        help="run every contracted preflight check class and emit a "
+        "schema-conformant preflight report",
+    )
+    _add_reader_flags(preflight)
+
+    discover = subparsers.add_parser(
+        "discover",
+        help="probe storage/ingress, GitOps/secrets integrations, and "
+        "workload inventory; emit a schema-conformant probes report",
+    )
+    _add_reader_flags(discover)
+
+    evaluate = subparsers.add_parser(
+        "evaluate",
+        help="derive capability matrix, compatibility grade, mode "
+        "recommendation, and remediation list from one "
+        "preflight-plus-discovery run",
+    )
+    evaluate.add_argument(
+        "--preflight",
+        required=True,
+        help="path to a preflight report produced by "
+        "'obskit preflight'",
+    )
+    evaluate.add_argument(
+        "--discovery",
+        required=True,
+        help="path to a discovery probes report produced by "
+        "'obskit discover'",
+    )
+    evaluate.add_argument(
+        "--contracts-dir",
+        default="contracts",
+        help="repository contracts directory holding "
+        "compatibility/GRADING_RULES.json, MODE_DECISION_TABLE.json, "
+        "and REMEDIATION_CATALOG.json (default: ./contracts)",
+    )
+    evaluate.add_argument(
+        "--output-dir",
+        required=True,
+        help="directory receiving capability_matrix.json, "
+        "compatibility_result.json, mode_recommendation.json, and "
+        "remediation_list.json",
+    )
+    evaluate.add_argument(
+        "--profiles",
+        help="optional JSON file supplying profiles discovery cannot "
+        "observe (object_storage, identity); discovered profiles "
+        "default from the capability matrix",
+    )
+    evaluate.add_argument(
+        "--evaluation-only",
+        action="store_true",
+        help="mode input: this run evaluates the product rather than "
+        "installing it",
+    )
+    evaluate.add_argument(
+        "--allow-new-backend-components",
+        choices=["true", "false"],
+        default="true",
+        help="mode input: new backend components may be deployed "
+        "(default: true)",
+    )
+    evaluate.add_argument(
+        "--require-in-cluster-collectors",
+        choices=["true", "false"],
+        default="true",
+        help="mode input: collectors must run in-cluster "
+        "(default: true)",
+    )
+    evaluate.add_argument(
+        "--has-compatible-existing-services",
+        choices=["auto", "true", "false"],
+        default="auto",
+        help="mode input: compatible existing services are present; "
+        "'auto' derives it from the discovery probes report "
+        "(default: auto)",
+    )
+
+    return parser
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
+    if args.command == "preflight":
+        from obskit.preflight import run as run_preflight
+
+        return run_preflight(args)
+    if args.command == "discover":
+        from obskit.discovery import run as run_discover
+
+        return run_discover(args)
+    if args.command == "evaluate":
+        from obskit.evaluate import run as run_evaluate
+
+        return run_evaluate(args)
+    raise AssertionError(f"unhandled command {args.command!r}")
+
+
+if __name__ == "__main__":
+    sys.exit(main())

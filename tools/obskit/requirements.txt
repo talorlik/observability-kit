@@ -1,0 +1,6 @@
+# Pinned requirements for the obskit executor (Batch 17, TR-18).
+# Core is stdlib-only; this file pins the optional live-mode extra so
+# `pip install -r requirements.txt` reproduces the [k8s] environment.
+# Never merge these into requirements-ci.txt (lint-only by policy).
+# Re-pinned by the Batch 25 release process.
+kubernetes==36.0.2
