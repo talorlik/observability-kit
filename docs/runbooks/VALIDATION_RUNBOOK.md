@@ -229,8 +229,18 @@ The Batch 17 live kind-cluster probe
 (`scripts/validate/discovery_executor_kind_integration.sh`) is never
 CI-gated and refuses contexts not created by kind.
 
+Run focused Batch 18 validation (guided installer - install flow
+contract structure, offline wizard/render/finalize tests, seeded
+invalid-answers rejection, real-CLI end-to-end with idempotent
+re-run):
+
+```bash
+bash scripts/ci/validate_guided_installer.sh
+bash scripts/ci/validate_batch18_smoke.sh
+```
+
 Run the full report-generating aggregator across every registered
-batch (currently 1-9, 9A, 10-17):
+batch (currently 1-9, 9A, 10-18):
 
 ```bash
 bash scripts/ci/validate_all_batches_with_report.sh
@@ -271,6 +281,7 @@ The `.github/workflows/ci.yaml` workflow enforces:
 - tenancy contract validation (Batch 15)
 - management plane contract validation (Batch 16)
 - discovery executor validation (Batch 17)
+- guided installer validation (Batch 18)
 - GitOps structure checks
 - no hard-coded environment value checks
 - runbook baseline checks

@@ -68,6 +68,9 @@ _OVERLAY_TEMPLATE = """\
 # gitops/overlays/base/platform-core-values.yaml by the Argo CD
 # bootstrap Application. Every value is derived from the validated
 # install contract; this file carries no hand-maintained state.
+# baseDomain, deploymentMode, environment, and profiles.* are contract
+# metadata without a platform-core chart binding yet; the Batch 19
+# configuration renderer binds them to native configs (TR-20).
 baseDomain: {base_domain}
 deploymentMode: {deployment_mode}
 environment: {environment}

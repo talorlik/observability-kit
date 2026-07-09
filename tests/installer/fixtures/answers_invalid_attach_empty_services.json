@@ -1,0 +1,14 @@
+{
+  "cluster_name": "attach-empty",
+  "environment": "dev",
+  "deployment_mode": "attach",
+  "gitops_repo_url": "https://git.example.com/platform/observability-gitops.git",
+  "gitops_path": "clusters/dev/platform",
+  "base_domain": "dev.example.internal",
+  "storage_profile": "standard",
+  "object_storage_profile": "s3-compatible",
+  "identity_profile": "oidc",
+  "secret_profile": "external-secrets",
+  "ingress_profile": "nginx",
+  "attached_services": {}
+}

@@ -75,6 +75,7 @@ declare -a VALIDATION_CRITERIA=(
   "Validate tenant schema with seeded invalid rejection, per-tenant isolation matrix coverage, cross-tenant denial fixtures, lifecycle transitions with purge evidence, and per-tenant overlay generation safety."
   "Validate wrapped-system registry coverage with fork rejection, unified configuration binding completeness, GitOps-only propagation with drift detection, and single-pane UI catalog auth mapping."
   "Validate read-only executor RBAC, preflight and discovery report schema conformance, deterministic grading and mode and remediation outputs, offline fixture-driven validator pass, and executor operator runbook completeness."
+  "Validate install flow contract step order, wizard answer validation with seeded invalid-answers rejection, GitOps-only render output, post-install readiness invocation with install summary, and installation guide completeness."
 )
 
 declare -a SCRIPT_PATHS=(
@@ -96,6 +97,7 @@ declare -a SCRIPT_PATHS=(
   "scripts/ci/validate_batch15_smoke.sh"
   "scripts/ci/validate_batch16_smoke.sh"
   "scripts/ci/validate_batch17_smoke.sh"
+  "scripts/ci/validate_batch18_smoke.sh"
 )
 
 declare -a STATUSES=()

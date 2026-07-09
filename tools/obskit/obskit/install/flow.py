@@ -477,8 +477,9 @@ def _print_bootstrap_instruction(
         "  2. Bootstrap the Argo CD controller from that commit:\n"
         f"       kubectl apply -k"
         f" {answers.gitops_path}/bootstrap/argocd/\n"
-        "  3. Re-run 'obskit install' with the same --output-dir to"
-        " resume at post-install readiness."
+        "  3. The flow now runs post-install readiness and emits the"
+        " install summary; after the cluster reconciles, re-run"
+        " 'obskit install' with the same --output-dir to re-verify."
     )
 
 

@@ -84,11 +84,22 @@ def capture_answers(
     ):
         attached: dict[str, str] = {}
         for field_name in ATTACHED_SERVICE_FIELDS:
+            # The schema requires opensearch_endpoint for attach and
+            # hybrid modes: attaching means reusing an existing
+            # OpenSearch, and an empty value would silently deploy
+            # the standalone default backend instead.
+            required = field_name == "opensearch_endpoint"
+            suffix = "" if required else " (empty to skip)"
             value = _ask(
                 input_fn,
-                f"attached_services.{field_name} "
-                "(empty to skip): ",
+                f"attached_services.{field_name}{suffix}: ",
             )
+            while required and not value:
+                value = _ask(
+                    input_fn,
+                    f"attached_services.{field_name} is required for"
+                    f" {answers['deployment_mode']} mode: ",
+                )
             if value:
                 attached[field_name] = value
         answers["attached_services"] = attached

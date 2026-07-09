@@ -227,9 +227,11 @@ def _validate(
                 errors,
             )
 
-    # Standalone if/then (outside allOf), for completeness of the
-    # contracted keyword set.
-    if "if" in schema and "allOf" not in schema:
+    # Standalone if/then, evaluated unconditionally: guarding it
+    # behind the absence of allOf would silently drop a top-level
+    # conditional on a schema that carries both, contradicting the
+    # fail-loudly contract of this validator.
+    if "if" in schema:
         if _matches(instance, schema["if"]):
             _validate(
                 instance,

@@ -13,6 +13,58 @@ first. Entry format:
 - Follow-up: <action for a future batch, or "none">
 ```
 
+## 2026-07-09 - Batch 18 - Guided Installer Semantics and Gotchas
+
+- Decision: `docs/adr/ADR_0002_GUIDED_INSTALL_FLOW.md` fixes the
+  installer as the `obskit.install` subpackage (stdlib-only, JSON
+  answers files because the core cannot parse YAML, template-emitted
+  YAML output, hand-rolled JSON-Schema subset validator that fails
+  loudly on unimplemented keywords). Non-obvious calls beyond the
+  ADR: (1) the rendered bootstrap Application is MULTI-SOURCE
+  (`sources` with a `ref: values` entry) because a bare `$values`
+  valueFile never resolves in a single-source Application - the
+  committed `gitops/apps/platform-core-application.yaml` carries
+  that exact pre-existing bug and still needs the same fix (spawned
+  as a follow-up task); the documented operator convention is that
+  the GitOps repo carries the kit's `gitops/` tree and the CONTENTS
+  of `rendered/` land under `gitops_path`. (2) Contract-first fix:
+  `contracts/install/INSTALL_CONTRACT_SCHEMA.json` (a Batch 1
+  artifact) now requires `attached_services.opensearch_endpoint` for
+  attach/hybrid - an empty attached_services object previously
+  validated and would silently deploy the standalone default
+  backend. (3) Overlay keys `baseDomain`/`deploymentMode`/
+  `environment`/`profiles.*`/`attachedServices` are contract
+  metadata with no platform-core chart binding yet; only
+  `opensearch.endpoint` binds today - Batch 19's renderer owns the
+  deep wiring. (4) Live-mode resume: cluster-reading steps always
+  re-execute (no stable digest); the flow contract invariant is
+  qualified accordingly. (5) Post-install readiness is
+  scaffold-based until Batch 23; the runbook says so explicitly.
+- Why: TR-19 parity/idempotency/GitOps-only invariants plus the
+  stdlib-only posture inherited from ADR-0001; the Application and
+  schema fixes came out of the wave-2 spec review and the pre-merge
+  code review (both agents verified against live Argo CD semantics
+  and empirical schema probing).
+- Follow-up: fix the same `$values` bug in `gitops/apps/`
+  Applications (task chip spawned); add a `gitops_revision` field to
+  the install contract schema (targetRevision is hardcoded `main`) -
+  input for Batch 19 or 26; Batch 19 binds the overlay metadata keys
+  to native configs; Batch 23 replaces scaffold readiness with live
+  evidence through the same finalize step.
+
+## 2026-07-09 - Batch 18 - All-Batches Report Registration Gotcha
+
+- Decision: registering a batch in
+  `scripts/ci/validate_all_batches_with_report.sh` requires
+  extending FOUR parallel arrays: `BATCH_IDS`, `BATCH_NAMES`,
+  `SCRIPT_PATHS`, and `VALIDATION_CRITERIA`. Missing any of them
+  fails the run at line ~114 with `unbound variable` only AFTER
+  every earlier batch has executed (~2 minutes wasted per miss).
+- Why: discovered when the Batch 18 registration extended only the
+  first two arrays and the full regression failed post-Batch-17.
+- Follow-up: every Batch 19-26 run registers itself the same way -
+  extend all four arrays in one edit (also recorded in auto-memory).
+
 ## 2026-07-09 - Batch 17 - Discovery Executor Architecture Calls
 
 - Decision: `docs/adr/ADR_0001_DISCOVERY_EXECUTOR_ARCHITECTURE.md`

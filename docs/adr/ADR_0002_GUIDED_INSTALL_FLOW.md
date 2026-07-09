@@ -91,7 +91,8 @@ with these fixed boundaries:
   bootstrap manifests (`bootstrap/argocd/kustomization.yaml`,
   `bootstrap/argocd/platform-core-application.yaml`). Every rendered
   file carries a generated-file header marker naming the guided
-  installer, mirroring the propagation contract's marker convention. YAML is emitted from fixed templates with deterministic
+  installer, mirroring the propagation contract's marker convention.
+  YAML is emitted from fixed templates with deterministic
   substitution - the stdlib cannot parse YAML, but writing it from
   templates keeps renders byte-identical without a dependency.
 - The `argocd-bootstrap` step emits and verifies bootstrap manifests

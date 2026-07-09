@@ -118,7 +118,17 @@ The final step invokes
 `install_summary.json` plus a human-readable summary listing each
 readiness section and the next steps. A failed readiness check makes
 the installer exit non-zero; the summary is still written for
-diagnosis. Confirm:
+diagnosis.
+
+> [!IMPORTANT]
+> Until the Batch 23 live-cluster harness lands, the readiness check
+> validates the declared readiness report contract (sections show
+> `pending`), not live cluster state. `readiness.passed: true` means
+> the readiness contract holds; live evidence capture arrives with
+> Batch 23. Cluster-level confirmation is the Argo CD health check
+> below.
+
+Confirm:
 
 - installer exit code `0`;
 - `install_summary.json` shows `readiness.passed: true` and every

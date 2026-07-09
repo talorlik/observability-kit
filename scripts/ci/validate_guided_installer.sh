@@ -98,11 +98,9 @@ if found_steps != EXPECTED_STEPS:
         "contract steps are not the contracted sequence: "
         f"found {found_steps}"
     )
-if found_orders != sorted(found_orders) or len(found_orders) != len(
-    EXPECTED_STEPS
-):
+if found_orders != list(range(1, len(EXPECTED_STEPS) + 1)):
     errors.append(
-        f"contract step order values are not ascending 1..7: "
+        f"contract step order values are not exactly 1..7: "
         f"{found_orders}"
     )
 
@@ -192,6 +190,10 @@ PY
 
 found_any=false
 for fixture in tests/installer/fixtures/answers_invalid_*.json; do
+  # Guard against an unexpanded glob: without matches the loop body
+  # would otherwise run once with the literal pattern and pass for
+  # the wrong reason (obskit fails on the unreadable path).
+  [ -f "${fixture}" ] || continue
   found_any=true
   out_dir="${snapshot_dir}/out-$(basename "${fixture}" .json)"
   if PYTHONPATH=tools/obskit python3 -m obskit install \
@@ -213,5 +215,46 @@ if [ "${found_any}" != "true" ]; then
   echo "ERROR: no seeded invalid-answers fixtures found"
   exit 1
 fi
+
+echo "Running the real CLI end-to-end with valid answers..."
+e2e_dir="${snapshot_dir}/e2e"
+run_install() {
+  PYTHONPATH=tools/obskit python3 -m obskit install \
+    --snapshot "${snapshot_dir}/snapshot.json" \
+    --profiles tests/executor/fixtures/profiles_reference.json \
+    --answers tests/installer/fixtures/answers_valid.json \
+    --output-dir "${e2e_dir}" \
+    --repo-root . >/dev/null
+}
+if ! run_install; then
+  echo "ERROR: valid-answers install did not exit 0"
+  exit 1
+fi
+for expected in \
+  "install_summary.json" \
+  "rendered/bootstrap/argocd/kustomization.yaml" \
+  "rendered/bootstrap/argocd/platform-core-application.yaml"; do
+  if [ ! -f "${e2e_dir}/${expected}" ]; then
+    echo "ERROR: valid-answers install missing output: ${expected}"
+    exit 1
+  fi
+done
+# Overlay path depends on the fixture's environment answer.
+if ! find "${e2e_dir}/rendered/overlays" -name \
+  "platform-core-values.yaml" | grep -q .; then
+  echo "ERROR: valid-answers install rendered no overlay"
+  exit 1
+fi
+before="$(find "${e2e_dir}" -type f -exec shasum {} + | sort)"
+if ! run_install; then
+  echo "ERROR: idempotent re-run did not exit 0"
+  exit 1
+fi
+after="$(find "${e2e_dir}" -type f -exec shasum {} + | sort)"
+if [ "${before}" != "${after}" ]; then
+  echo "ERROR: re-running a completed install changed files"
+  exit 1
+fi
+echo "Real-CLI end-to-end and idempotent re-run passed."
 
 echo "Guided installer validation passed."
