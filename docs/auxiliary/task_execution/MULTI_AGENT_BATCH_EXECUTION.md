@@ -98,7 +98,7 @@ separates consecutive waves. Task numbers are the TASKS.md numbering.
 - Batch 22: `[1] -> [2, 3] -> [4] -> [5] -> [6]`
 - Batch 23: `[1] -> [2] -> [3] -> [4] -> [5] -> [6]` (single lane)
 - Batch 24: `[1] -> [2] -> [3] -> [4] -> [5] -> [6]` (single lane)
-- Batch 25: `[1] -> [2, 4] -> [3] -> [5] -> [6]`
+- Batch 25: `[1] -> [2, 4] -> [3, 7] -> [5] -> [6]`
 - Batch 26: `[1] -> [2, 3, 4] -> [5] -> [6]`
 
 Single-lane batches gain nothing from parallel implementers: run them

@@ -908,6 +908,16 @@ requests.
   `docs/operations/PRODUCTION_ACTIVATION_SIGNOFF_WORKFLOW.md`; a
   quantitative threshold that cannot be measured counts as a failed
   gate.
+- Two local stack profiles are contract-fixed: `evidence-disposable`
+  (a kind or k3d cluster on the local Docker engine - OrbStack on the
+  reference development machine - created and destroyed per evidence
+  run) and `dev-persistent` (the OrbStack built-in Kubernetes cluster
+  with the dev overlay and a documented reset procedure, for
+  day-to-day development, never for evidence capture).
+- The harness writes and uses an isolated kubeconfig and refuses any
+  context it did not create; shared and cloud clusters (EKS, GKE,
+  AKS, on-prem production) are structurally unreachable from harness
+  runs.
 
 ## 25. Release Engineering and Production Operations Requirements [TR-25]
 
@@ -941,6 +951,13 @@ supply-chain hardened, and upgrade-tested before any production claim.
 - Seeded rejection fixtures - an unpinned production profile and a
   bundled system missing from the license inventory - must fail
   validation.
+- A production reference architecture
+  (`contracts/release/PRODUCTION_REFERENCE_ARCHITECTURE_V1.yaml`)
+  defines the production-grade stack for any conformant Kubernetes
+  cluster: HA topology, sizing tiers by tenant scale, storage and
+  ingress requirements via the compatibility profiles, backup and DR
+  posture, and the `prod` overlay mapping. Production claims require
+  a cluster that grades `supported` against it.
 
 ## 26. Product Documentation and GA Readiness Requirements [TR-26]
 

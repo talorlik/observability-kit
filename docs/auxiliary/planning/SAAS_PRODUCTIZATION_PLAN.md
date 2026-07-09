@@ -305,6 +305,31 @@ both must pass the full regression suite against the then-current local
 `main` before their squash-merges land; the second merger rebases its
 worktree on the updated `main` and re-runs gates.
 
+### Deployment Stacks
+
+The plan targets three cluster roles, and no run may confuse them:
+
+- **Development stack (laptop).** The OrbStack built-in Kubernetes
+  cluster with the `dev` overlay: persistent, reduced sizing, single
+  replicas, documented reset procedure. For day-to-day iteration
+  only; never an evidence source. The reference development machine
+  (OrbStack 2.x, 24 GB RAM, 8 CPUs, kind installed) is sufficient
+  for the full dev-sized stack.
+- **Evidence harness (disposable).** A kind cluster created on the
+  local Docker engine (OrbStack) per Batch 23 run and destroyed
+  after evidence capture. The harness uses an isolated kubeconfig
+  and refuses contexts it did not create, so shared and cloud
+  clusters are structurally unreachable.
+- **Production stack.** Any CNCF-conformant multi-node Kubernetes
+  cluster (managed or on-prem) that grades `supported` against the
+  compatibility matrix and conforms to the production reference
+  architecture delivered by Batch 25
+  (`contracts/release/PRODUCTION_REFERENCE_ARCHITECTURE_V1.yaml`):
+  HA topology, sizing tiers, storage and ingress profiles, backup
+  and DR posture, `prod` overlay. Production installs use the same
+  guided installer with the `prod` overlay - the stack differs by
+  profile, never by code path.
+
 ## 6. Milestones
 
 Each milestone is complete only when its acceptance evidence exists as
@@ -479,6 +504,10 @@ runnable check with captured evidence.
 13. `scripts/ci/validate_all_batches_with_report.sh` reports green for
     every batch, including 17-26, and the GA readiness review (Batch
     26) is signed off.
+14. The production reference architecture is published and a
+    production-grade cluster profile grades `supported` against it;
+    the development stack and evidence harness roles are documented
+    and enforced by the harness contract.
 
 ## 10. Execution Entry Point
 
