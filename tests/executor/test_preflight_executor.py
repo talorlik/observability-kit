@@ -137,6 +137,55 @@ def test_default_output_is_stdout() -> None:
     assert [item["id"] for item in report["checks"]] == EXPECTED_CHECK_ORDER
 
 
+def test_operator_errors_are_clean_not_tracebacks() -> None:
+    """Expected input errors print one clean line and exit 1."""
+    cases = [
+        str(FIXTURES / "does_not_exist.json"),
+    ]
+    with tempfile.TemporaryDirectory() as tmp:
+        malformed = Path(tmp) / "malformed.json"
+        malformed.write_text("{not json")
+        clusterless = Path(tmp) / "clusterless.json"
+        clusterless.write_text("{}")
+        cases.extend([str(malformed), str(clusterless)])
+        for snapshot in cases:
+            proc = subprocess.run(
+                ["python3", "-m", "obskit.cli", "preflight",
+                 "--snapshot", snapshot],
+                cwd=ROOT,
+                env=_cli_env(),
+                capture_output=True,
+                text=True,
+            )
+            assert proc.returncode == 1, (snapshot, proc.returncode)
+            assert "Traceback" not in proc.stderr, (snapshot, proc.stderr)
+            assert "obskit preflight: error:" in proc.stderr, proc.stderr
+
+
+def test_failing_reader_accessor_yields_report_not_crash() -> None:
+    """A reader accessor raising mid-check (live-mode partial RBAC)
+    still produces a schema-valid report with check_execution_error."""
+    import sys
+
+    sys.path.insert(0, str(ROOT / "tools" / "obskit"))
+    from obskit.preflight import evaluate_preflight
+    from obskit.reader import FixtureReader
+
+    class _DenyingReader(FixtureReader):
+        def crd_names(self) -> tuple[str, ...]:
+            raise RuntimeError("simulated live API denial (403)")
+
+    reader = _DenyingReader(FIXTURES / "snapshot_preflight_pass.json")
+    report = evaluate_preflight(reader)
+    by_id = {c["id"]: c for c in report["checks"]}
+    crd = by_id["required_crd_readiness"]
+    assert crd["status"] == "fail", crd
+    assert crd["reason_code"] == "check_execution_error", crd
+    assert report["summary"]["outcome"] == "fail"
+    # Untouched checks still evaluate normally.
+    assert by_id["required_permissions"]["status"] == "pass"
+
+
 if __name__ == "__main__":
     test_pass_fixture_all_checks_pass_exit_zero()
     print("test_pass_fixture_all_checks_pass_exit_zero passed")
@@ -144,3 +193,7 @@ if __name__ == "__main__":
     print("test_fail_fixture_statuses_and_exit_one passed")
     test_default_output_is_stdout()
     print("test_default_output_is_stdout passed")
+    test_operator_errors_are_clean_not_tracebacks()
+    print("test_operator_errors_are_clean_not_tracebacks passed")
+    test_failing_reader_accessor_yields_report_not_crash()
+    print("test_failing_reader_accessor_yields_report_not_crash passed")

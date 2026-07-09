@@ -63,7 +63,8 @@ cluster_access:
     - watch
   secret_policy:
     read_values: false
-    read_metadata_only: true
+    rbac_grants_secret_access: false
+    detection_of_secret_integrations: crds-and-workloads-only
 
 input_backends:
   interface: ClusterReader

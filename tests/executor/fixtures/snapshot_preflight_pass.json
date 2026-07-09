@@ -16,7 +16,8 @@
     "list:storage.k8s.io/storageclasses": true,
     "list:networking.k8s.io/ingressclasses": true,
     "list:apiextensions.k8s.io/customresourcedefinitions": true,
-    "list:apiregistration.k8s.io/apiservices": true
+    "list:apiregistration.k8s.io/apiservices": true,
+    "list:batch/cronjobs": true
   },
   "api_versions": [
     "v1",

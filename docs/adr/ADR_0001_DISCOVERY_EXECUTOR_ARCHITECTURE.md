@@ -52,8 +52,10 @@ Build the executor as a Python 3.11+ package named `obskit` under
   `evaluate`) built on stdlib `argparse`. The optional in-cluster Job
   mode runs the same CLI in a container with a mounted kubeconfig or
   in-cluster service account - one code path, interchangeable reports.
-- A bundled RBAC manifest grants exactly `get`, `list`, and `watch`.
-  Secret access is metadata-only: names and types, never `data`.
+- A bundled RBAC manifest grants exactly `get`, `list`, and `watch`,
+  and grants no Secret access at all: secret integrations are
+  detected via their CRDs and workloads, so Secret values are
+  structurally unreadable rather than merely unread.
 - Determinism rules: stable sort order for every collection, JSON
   emitted with sorted keys and fixed separators, and no
   environment-dependent values outside the report `metadata` block.
@@ -140,9 +142,9 @@ without buying anything the executor needs at this scale.
 
 1. [x] Record boundaries in
    `contracts/discovery/EXECUTOR_ARCHITECTURE_CONTRACT_V1.yaml`.
-2. [ ] Implement `obskit preflight` and `obskit discover` against the
+2. [x] Implement `obskit preflight` and `obskit discover` against the
    Batch 3 schemas (Batch 17 Tasks 2-3).
-3. [ ] Implement `obskit evaluate` over the Batch 2 contract files
+3. [x] Implement `obskit evaluate` over the Batch 2 contract files
    (Batch 17 Task 4).
-4. [ ] Wire the offline fixture harness and validators into CI
+4. [x] Wire the offline fixture harness and validators into CI
    (Batch 17 Task 5).

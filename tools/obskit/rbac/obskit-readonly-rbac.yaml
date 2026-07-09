@@ -51,6 +51,10 @@ rules:
       - daemonsets
       - statefulsets
     verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources:
+      - cronjobs
+    verbs: ["get", "list", "watch"]
   - apiGroups: ["storage.k8s.io"]
     resources:
       - storageclasses

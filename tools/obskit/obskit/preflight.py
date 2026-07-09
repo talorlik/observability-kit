@@ -87,6 +87,7 @@ READ_PERMISSIONS: tuple[tuple[str, str], ...] = (
     ("list", "apps/deployments"),
     ("list", "apps/daemonsets"),
     ("list", "apps/statefulsets"),
+    ("list", "batch/cronjobs"),
     ("list", "storage.k8s.io/storageclasses"),
     ("list", "networking.k8s.io/ingressclasses"),
     ("list", "apiextensions.k8s.io/customresourcedefinitions"),
@@ -133,6 +134,7 @@ FLUX_CONTROLLER_NAMES: frozenset[str] = frozenset(
 )
 
 REASON_CONNECTIVITY_FAILED = "cluster_connectivity_failed"
+REASON_CHECK_EXECUTION_ERROR = "check_execution_error"
 REASON_RBAC_MISSING = "rbac_access_missing"
 REASON_API_UNAVAILABLE = "required_api_unavailable"
 REASON_GATEWAY_CRDS_REQUIRED = "gateway_api_crds_required"
@@ -385,7 +387,23 @@ def evaluate_preflight(reader: ClusterReader) -> dict[str, object]:
             for check_id, _ in _GATED_CHECKS
         )
     else:
-        checks.extend(evaluate(reader) for _, evaluate in _GATED_CHECKS)
+        for check_id, evaluate_check in _GATED_CHECKS:
+            try:
+                checks.append(evaluate_check(reader))
+            except Exception:  # noqa: BLE001 - live API denials (403)
+                # A reader accessor failing mid-check (live mode with
+                # partial RBAC) must still yield a schema-valid report
+                # with a non-zero exit, not a traceback. No exception
+                # detail is emitted: messages can carry host-specific
+                # values, which would break output determinism.
+                checks.append(
+                    CheckResult(
+                        check_id,
+                        _DESCRIPTIONS[check_id],
+                        STATUS_FAIL,
+                        REASON_CHECK_EXECUTION_ERROR,
+                    )
+                )
     return {
         "metadata": report_metadata(SOURCE_MARKER),
         "cluster": reader.cluster_info().to_dict(),

@@ -140,20 +140,39 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+# Expected operator errors: bad paths, malformed input documents,
+# missing document keys, and misconfiguration (e.g. live mode without
+# the [k8s] extra). These print one clean line instead of a traceback;
+# genuine bugs still surface as tracebacks.
+_OPERATOR_ERRORS = (OSError, ValueError, KeyError, RuntimeError)
+
+
+def _describe_error(exc: BaseException) -> str:
+    if isinstance(exc, KeyError):
+        return f"missing key {exc.args[0]!r} in input document"
+    return str(exc) or exc.__class__.__name__
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    if args.command == "preflight":
-        from obskit.preflight import run as run_preflight
+    try:
+        if args.command == "preflight":
+            from obskit.preflight import run as run_preflight
 
-        return run_preflight(args)
-    if args.command == "discover":
-        from obskit.discovery import run as run_discover
+            return run_preflight(args)
+        if args.command == "discover":
+            from obskit.discovery import run as run_discover
 
-        return run_discover(args)
-    if args.command == "evaluate":
-        from obskit.evaluate import run as run_evaluate
+            return run_discover(args)
+        if args.command == "evaluate":
+            from obskit.evaluate import run as run_evaluate
 
-        return run_evaluate(args)
+            return run_evaluate(args)
+    except _OPERATOR_ERRORS as exc:
+        sys.stderr.write(
+            f"obskit {args.command}: error: {_describe_error(exc)}\n"
+        )
+        return 1
     raise AssertionError(f"unhandled command {args.command!r}")
 
 

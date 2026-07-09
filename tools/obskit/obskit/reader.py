@@ -82,9 +82,25 @@ class FixtureReader:
                 f"snapshot {snapshot_path} has no 'cluster' key"
             )
 
+    def _shaped(self, key: str, expected: type) -> object:
+        """Fetch a snapshot key, failing loudly on a wrong shape.
+
+        Deliberately raises ValueError (not assert): shape errors in
+        operator-supplied snapshots are expected input errors and must
+        survive `python -O`.
+        """
+        default: object = [] if expected is list else {}
+        value = self._doc.get(key, default)
+        if not isinstance(value, expected):
+            raise ValueError(
+                f"snapshot key {key!r} must be a "
+                f"{expected.__name__}, got {type(value).__name__}"
+            )
+        return value
+
     def cluster_info(self) -> ClusterInfo:
-        cluster = self._doc["cluster"]
-        assert isinstance(cluster, dict)
+        cluster = self._shaped("cluster", dict)
+        assert isinstance(cluster, dict)  # narrowed by _shaped
         return ClusterInfo(
             name=str(cluster["name"]),
             kubernetes_version=str(
@@ -97,23 +113,23 @@ class FixtureReader:
         return bool(self._doc.get("connectivity", True))
 
     def can_i(self, verb: str, resource: str) -> bool:
-        permissions = self._doc.get("permissions", {})
-        assert isinstance(permissions, dict)
+        permissions = self._shaped("permissions", dict)
+        assert isinstance(permissions, dict)  # narrowed by _shaped
         return bool(permissions.get(f"{verb}:{resource}", False))
 
     def api_versions(self) -> tuple[str, ...]:
-        values = self._doc.get("api_versions", [])
-        assert isinstance(values, list)
+        values = self._shaped("api_versions", list)
+        assert isinstance(values, list)  # narrowed by _shaped
         return tuple(sorted(str(v) for v in values))
 
     def crd_names(self) -> tuple[str, ...]:
-        values = self._doc.get("crds", [])
-        assert isinstance(values, list)
+        values = self._shaped("crds", list)
+        assert isinstance(values, list)  # narrowed by _shaped
         return tuple(sorted(str(v) for v in values))
 
     def storage_classes(self) -> tuple[StorageClassInfo, ...]:
-        values = self._doc.get("storage_classes", [])
-        assert isinstance(values, list)
+        values = self._shaped("storage_classes", list)
+        assert isinstance(values, list)  # narrowed by _shaped
         items = [
             StorageClassInfo(
                 name=str(v["name"]),
@@ -125,8 +141,8 @@ class FixtureReader:
         return tuple(sorted(items, key=lambda s: s.name))
 
     def ingress_classes(self) -> tuple[IngressClassInfo, ...]:
-        values = self._doc.get("ingress_classes", [])
-        assert isinstance(values, list)
+        values = self._shaped("ingress_classes", list)
+        assert isinstance(values, list)  # narrowed by _shaped
         items = [
             IngressClassInfo(
                 name=str(v["name"]),
@@ -137,13 +153,13 @@ class FixtureReader:
         return tuple(sorted(items, key=lambda i: i.name))
 
     def namespaces(self) -> tuple[str, ...]:
-        values = self._doc.get("namespaces", [])
-        assert isinstance(values, list)
+        values = self._shaped("namespaces", list)
+        assert isinstance(values, list)  # narrowed by _shaped
         return tuple(sorted(str(v) for v in values))
 
     def workloads(self) -> tuple[WorkloadRef, ...]:
-        values = self._doc.get("workloads", [])
-        assert isinstance(values, list)
+        values = self._shaped("workloads", list)
+        assert isinstance(values, list)  # narrowed by _shaped
         items = [
             WorkloadRef(
                 namespace=str(v["namespace"]),
@@ -157,8 +173,8 @@ class FixtureReader:
         )
 
     def services(self) -> tuple[ServiceInfo, ...]:
-        values = self._doc.get("services", [])
-        assert isinstance(values, list)
+        values = self._shaped("services", list)
+        assert isinstance(values, list)  # narrowed by _shaped
         items = [
             ServiceInfo(
                 namespace=str(v["namespace"]),
@@ -227,14 +243,21 @@ class LiveReader:
                 "(see tools/obskit/requirements.txt)"
             ) from exc
         self._client = client
-        try:
-            config.load_incluster_config()
-            self._context_name = "in-cluster"
-        except config.ConfigException:
+        # Explicit flags always win: a CLI run inside a pod that names
+        # a kubeconfig means the operator wants that cluster, not the
+        # pod's own service account.
+        if kubeconfig or context:
             config.load_kube_config(
                 config_file=kubeconfig, context=context
             )
             self._context_name = context or "current-context"
+        else:
+            try:
+                config.load_incluster_config()
+                self._context_name = "in-cluster"
+            except config.ConfigException:
+                config.load_kube_config()
+                self._context_name = "current-context"
         self._api = client.ApiClient()
         self._cluster_name = cluster_name or self._context_name
 
@@ -336,11 +359,13 @@ class LiveReader:
 
     def workloads(self) -> tuple[WorkloadRef, ...]:
         apps = self._client.AppsV1Api(self._api)
+        batch = self._client.BatchV1Api(self._api)
         items: list[WorkloadRef] = []
         listing = [
             ("Deployment", apps.list_deployment_for_all_namespaces),
             ("DaemonSet", apps.list_daemon_set_for_all_namespaces),
             ("StatefulSet", apps.list_stateful_set_for_all_namespaces),
+            ("CronJob", batch.list_cron_job_for_all_namespaces),
         ]
         for kind, lister in listing:
             for item in lister().items:
