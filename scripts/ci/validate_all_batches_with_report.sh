@@ -28,6 +28,7 @@ declare -a BATCH_IDS=(
   "12"
   "13"
   "14"
+  "15"
 )
 
 declare -a BATCH_NAMES=(
@@ -46,6 +47,7 @@ declare -a BATCH_NAMES=(
   "Risk Scoring and Assisted RCA Readiness"
   "Core Adapter Integrations"
   "AI/MCP Runtime Validation and Productization"
+  "SaaS Multi-Tenancy and Customer Isolation"
 )
 
 declare -a VALIDATION_CRITERIA=(
@@ -64,6 +66,7 @@ declare -a VALIDATION_CRITERIA=(
   "Validate deterministic score reruns, backtest and evidence bundle contracts, and approval evidence before RCA suggestion release."
   "Validate adapter contract schema coverage, profile-driven activation safety, identity and secrets and network stub metadata, CI contract gating, CI/CD neutrality checks, and adapter operations guide completeness."
   "Validate AI agent boundary, governance, and state contracts; MCP catalog and tool response contracts; AI runtime base, MCP read-path, multi-agent, KHook trigger, and action-gate scaffolding; and KAgent/KHook release readiness."
+  "Validate tenant schema with seeded invalid rejection, per-tenant isolation matrix coverage, cross-tenant denial fixtures, lifecycle transitions with purge evidence, and per-tenant overlay generation safety."
 )
 
 declare -a SCRIPT_PATHS=(
@@ -82,6 +85,7 @@ declare -a SCRIPT_PATHS=(
   "scripts/ci/validate_batch12_smoke.sh"
   "scripts/ci/validate_batch13_smoke.sh"
   "scripts/ci/validate_batch14_smoke.sh"
+  "scripts/ci/validate_batch15_smoke.sh"
 )
 
 declare -a STATUSES=()
@@ -136,7 +140,7 @@ fi
   echo "# Batch Validation Report"
   echo ""
   echo "- Generated at (UTC): \`$TIMESTAMP_UTC\`"
-  echo "- Scope: Batch smoke validation scripts (\`1-14\` + \`9A\`)"
+  echo "- Scope: Batch smoke validation scripts (all ${#BATCH_IDS[@]} registered batches)"
   echo "- Source criteria: \`docs/auxiliary/task_execution/IMPLEMENTATION_BATCH_COMMAND_SHEET.md\`"
   echo "- Overall status: \`$OVERALL_STATUS\`"
   echo "- Passed: \`$PASSED_COUNT\`"

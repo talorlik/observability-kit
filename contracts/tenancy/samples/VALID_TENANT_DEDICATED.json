@@ -1,0 +1,44 @@
+{
+  "tenant_id": "globex-prod",
+  "display_name": "Globex Industries (Production)",
+  "tier": "enterprise",
+  "isolation_class": "dedicated-stack",
+  "residency": {
+    "region": "eu-west",
+    "data_residency_required": true,
+    "pool": "dedicated",
+    "allowed_regions": ["eu-west"]
+  },
+  "lifecycle_state": "provisioning",
+  "owner": {
+    "name": "Miriam Okafor",
+    "email": "miriam.okafor@globex.example",
+    "team": "cloud-platform"
+  },
+  "contacts": [
+    {
+      "role": "technical",
+      "email": "platform-ops@globex.example"
+    },
+    {
+      "role": "security",
+      "email": "secops@globex.example"
+    },
+    {
+      "role": "operations",
+      "email": "noc@globex.example"
+    }
+  ],
+  "quotas": {
+    "ingest": {
+      "max_gb_per_day": 500,
+      "max_events_per_second": 50000
+    },
+    "retention": {
+      "logs_days": 90,
+      "metrics_days": 395,
+      "traces_days": 30
+    }
+  },
+  "created_at": "2026-07-01T08:00:00Z"
+}

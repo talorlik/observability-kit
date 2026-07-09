@@ -1,0 +1,369 @@
+# Tenant lifecycle contract (Batch 15 Task 3, TR-16 with TR-09 audit
+# obligations). Defines the state machine over the lifecycle_state enum in
+# contracts/tenancy/TENANT_CONTRACT_SCHEMA_V1.json, the artifacts each
+# transition creates or removes per isolation class, and the evidence and
+# retention rules that make purge provable. Transitions are idempotent by
+# contract: re-running a transition that already completed is a no-op that
+# leaves the tenant in the same end state and emits an audit record marked
+# as a replay. Destructive transitions delegate approval semantics to
+# contracts/policy/APPROVAL_FLOW_V1.yaml instead of redefining them.
+metadata:
+  contract: tenant-lifecycle
+  version: v1
+  batch: TB-15
+  requirement_markers:
+    - TR-16
+    - TR-09
+  authoritative_schema: contracts/tenancy/TENANT_CONTRACT_SCHEMA_V1.json
+  related_contracts:
+    # Sibling Batch 15 contracts. Partition and overlay identifiers used
+    # below are defined in these files; this contract references them by
+    # name and never redefines their isolation or rendering rules.
+    isolation_matrix: contracts/tenancy/TENANT_ISOLATION_MATRIX_V1.yaml
+    overlay_generation: contracts/tenancy/TENANT_OVERLAY_GENERATION_CONTRACT_V1.yaml
+    approval_flow: contracts/policy/APPROVAL_FLOW_V1.yaml
+
+state_machine:
+  # States are exactly the lifecycle_state enum of
+  # TENANT_CONTRACT_SCHEMA_V1.json. No additional states are permitted.
+  states:
+    - provisioning
+    - active
+    - suspended
+    - offboarding
+    - purged
+  initial_state: provisioning
+  terminal_states:
+    - purged
+  invariants:
+    - "Every transition attempt (applied, replayed, or denied) emits an
+      audit record carrying tenant_id (TR-09)."
+    - "The lifecycle_state field in the tenant contract document is the
+      single source of truth; executors reconcile toward it and never
+      infer state from store contents."
+    - "No transition weakens the deny-by-default cross-tenant rules of
+      the isolation matrix or the Batch 8 team isolation beneath it."
+    - "Transitions use only native mechanisms of the wrapped systems
+      (OpenSearch security roles, dashboard spaces, Neo4j
+      multi-database); no forked components."
+    - "There are no transitions out of purged. Re-onboarding a returning
+      customer is a new provision with a new tenant contract document."
+
+transitions:
+  provision:
+    description: >-
+      Create all tenant partitions and access artifacts for the declared
+      isolation class, then mark the tenant active. Entered when an
+      operator submits a tenant contract document that validates against
+      TENANT_CONTRACT_SCHEMA_V1.json with lifecycle_state: provisioning.
+    from:
+      - provisioning
+    to: active
+    trigger:
+      type: operator-initiated
+      detail: >-
+        Operator submits the tenant contract; completion to active is
+        automated once every provisioning output below is verified
+        healthy (automated verification, no second human step).
+    preconditions:
+      - "Tenant contract document validates against the authoritative
+        schema."
+      - "tenant_id is not present in any lifecycle state other than
+        provisioning (a purged tenant_id may be reused only via a new
+        contract document)."
+      - "Residency constraints are satisfiable by the target data plane
+        before any partition is created."
+    idempotent: true
+    idempotency_statement: >-
+      Re-running provision for a tenant already active is a no-op: every
+      creation step is apply-style (create-if-absent, converge-if-drifted),
+      the end state remains active, and the audit record is marked
+      replay=true. A partially failed provision is safely re-run to
+      completion for the same reason.
+    outputs_by_isolation_class:
+      # Partition identifiers below are defined per store in
+      # TENANT_ISOLATION_MATRIX_V1.yaml; overlay identifiers are defined
+      # in TENANT_OVERLAY_GENERATION_CONTRACT_V1.yaml. This contract
+      # names what must exist; the siblings define how it is isolated
+      # and rendered.
+      shared-partition:
+        - "Tenant field partition and per-tenant security roles plus role
+          mappings inside the shared indices, per the shared-partition
+          rows of TENANT_ISOLATION_MATRIX_V1.yaml (logs, metrics,
+          traces)."
+        - "Per-tenant dashboard space bound to those roles."
+        - "Mandatory tenant retrieval filters on the shared vector
+          indices, per the vector rows of the isolation matrix."
+        - "Tenant-scoped graph access rules per the graph rows of the
+          isolation matrix (no dedicated database in this class)."
+      dedicated-indices:
+        - "Per-tenant OpenSearch indices named tenant-<id>-<signal>-*
+          with per-tenant roles and role mappings, per the
+          dedicated-indices rows of TENANT_ISOLATION_MATRIX_V1.yaml."
+        - "Per-tenant dashboard space bound to those roles."
+        - "Per-tenant vector indices with mandatory retrieval filters."
+        - "One Neo4j database per tenant in graph-enabled mode."
+      dedicated-stack:
+        - "Per-tenant GitOps overlay rendered from the tenant contract,
+          per TENANT_OVERLAY_GENERATION_CONTRACT_V1.yaml (ApplicationSet
+          style, tool-neutral); core charts are never modified."
+        - "Per-tenant store instances (OpenSearch, dashboards, vector,
+          graph) deployed from that overlay, each carrying the
+          dedicated-stack partitions of TENANT_ISOLATION_MATRIX_V1.yaml."
+    audit:
+      record_required: true
+      required_fields:
+        - tenant_id
+        - transition
+        - actor
+        - requested_at
+        - completed_at
+        - replay
+
+  suspend:
+    description: >-
+      Stop tenant ingest and revoke tenant UI access while retaining all
+      tenant data and continuing audit capture.
+    from:
+      - active
+    to: suspended
+    trigger:
+      type: operator-or-automated
+      detail: >-
+        Operator action (commercial or security grounds) or automated
+        policy action (sustained quota breach per the tenant contract
+        quotas block, or billing signal from the active provider
+        adapter).
+    preconditions:
+      - "Tenant is active."
+      - "Automated triggers must cite the violated policy in the audit
+        record; operator triggers must cite a reason."
+    semantics:
+      ingest: >-
+        Stopped at the collector routing layer; tenant-attributed
+        telemetry is rejected, not buffered into another tenant's
+        partition.
+      data: >-
+        Retained in place. No indices, spaces, vector indices, graph
+        databases, or overlays are deleted or narrowed.
+      ui_access: >-
+        Tenant user access to dashboard spaces and query APIs is revoked
+        by disabling the tenant role mappings, never by deleting roles
+        or spaces.
+      audit: >-
+        Audit capture continues for the tenant throughout suspension;
+        suspension never pauses TR-09 evidence collection.
+    idempotent: true
+    idempotency_statement: >-
+      Re-running suspend for a tenant already suspended is a no-op: the
+      end state remains suspended, no additional artifacts change, and
+      the audit record is marked replay=true.
+    audit:
+      record_required: true
+      required_fields:
+        - tenant_id
+        - transition
+        - actor
+        - trigger_type
+        - reason
+        - replay
+
+  resume:
+    description: >-
+      Reverse a suspension: re-enable ingest and restore UI access using
+      the artifacts retained during suspension. Defined so that suspend
+      is provably non-destructive.
+    from:
+      - suspended
+    to: active
+    trigger:
+      type: operator-initiated
+      detail: >-
+        Operator action after the suspension cause is resolved
+        (commercial clearance or automated-policy violation cleared).
+    preconditions:
+      - "Tenant is suspended."
+      - "The triggering cause recorded at suspension is marked resolved
+        in the audit trail."
+    idempotent: true
+    idempotency_statement: >-
+      Re-running resume for a tenant already active is a no-op with end
+      state active and an audit record marked replay=true.
+    audit:
+      record_required: true
+      required_fields:
+        - tenant_id
+        - transition
+        - actor
+        - reason
+        - replay
+
+  offboard:
+    description: >-
+      Begin controlled removal of a tenant: ingest and UI access are
+      terminally revoked, data enters its contractual retention window,
+      and the tenant becomes eligible for purge only after that window
+      elapses. Destructive: approval-gated.
+    from:
+      - active
+      - suspended
+    to: offboarding
+    trigger:
+      type: operator-initiated
+      detail: >-
+        Operator action backed by an approved offboarding request.
+        Never automated.
+    approval:
+      # Approval semantics are owned by the approval flow contract; this
+      # transition only binds itself to a risk class defined there.
+      contract: contracts/policy/APPROVAL_FLOW_V1.yaml
+      risk_class: write.high-risk
+      note: >-
+        Required approval fields, pending timeout, and escalation follow
+        the write.high-risk rules of the approval flow contract; they
+        are not redefined here.
+    preconditions:
+      - "Approved offboarding request exists and is referenced by
+        approval_id in the audit record."
+      - "Tenant is active or suspended."
+    semantics:
+      ingest: "Stopped, as in suspend, but not reversible via resume."
+      data: >-
+        Retained for the full retention window derived from the tenant
+        contract quotas.retention block (the longest of logs_days,
+        metrics_days, traces_days, plus any residency-mandated hold).
+        Nothing is deleted during offboarding.
+      ui_access: "Revoked as in suspend."
+      audit: "Continues throughout offboarding."
+    idempotent: true
+    idempotency_statement: >-
+      Re-running offboard for a tenant already offboarding is a no-op:
+      the retention clock is not reset, the end state remains
+      offboarding, and the audit record is marked replay=true.
+    audit:
+      record_required: true
+      required_fields:
+        - tenant_id
+        - transition
+        - actor
+        - approval_id
+        - retention_window_ends_at
+        - replay
+
+  purge:
+    description: >-
+      Irreversibly delete every tenant data partition and access
+      artifact, capture deletion evidence per store, and mark the tenant
+      purged. Terminal and destructive: approval-gated at the highest
+      risk class.
+    from:
+      - offboarding
+    to: purged
+    trigger:
+      type: operator-initiated
+      detail: >-
+        Operator action backed by an approved purge request. Never
+        automated; retention expiry makes a tenant eligible for purge
+        but never executes it.
+    approval:
+      contract: contracts/policy/APPROVAL_FLOW_V1.yaml
+      risk_class: write.critical
+      note: >-
+        write.critical rules of the approval flow contract apply,
+        including the manual workflow requirement and change_ticket
+        field; they are not redefined here.
+    preconditions:
+      - "Offboarding is complete: offboard transition applied and its
+        audit record present."
+      - "The retention window recorded at offboarding
+        (retention_window_ends_at) has elapsed."
+      - "No legal or residency hold flag is set on the tenant in the
+        control plane."
+      - "Approved purge request exists and is referenced by approval_id
+        and change_ticket in the audit record."
+    idempotent: true
+    idempotency_statement: >-
+      Re-running purge for a tenant already purged is a no-op: deletion
+      steps are delete-if-present, absent artifacts satisfy their
+      evidence checks, the end state remains purged, and the audit
+      record is marked replay=true. A partially failed purge is safely
+      re-run until every evidence artifact is captured.
+    retention_rules:
+      honored_before_deletion: true
+      detail: >-
+        Deletion never starts before the retention window recorded at
+        offboarding has elapsed. Residency constraints from the tenant
+        contract apply to evidence artifacts as they did to the data:
+        evidence for a residency-pinned tenant stays in the declared
+        region.
+    evidence_capture:
+      # One evidence artifact per store proves deletion. Partition names
+      # match TENANT_ISOLATION_MATRIX_V1.yaml; overlay names match
+      # TENANT_OVERLAY_GENERATION_CONTRACT_V1.yaml.
+      opensearch_indices:
+        proves: "All tenant-<id>-<signal>-* indices deleted, or shared
+          indices contain zero documents for the tenant partition
+          (shared-partition class)."
+        artifact: >-
+          Store listing filtered by the tenant partition returning
+          empty, captured with timestamp and store identity.
+      security_roles_and_mappings:
+        proves: "All per-tenant roles and role mappings removed."
+        artifact: >-
+          Security configuration listing showing no role or mapping
+          referencing the tenant_id.
+      dashboard_spaces:
+        proves: "Per-tenant dashboard space and its saved objects
+          deleted."
+        artifact: >-
+          Spaces listing showing the tenant space absent, plus a saved
+          objects query for the tenant scope returning empty.
+      vector_indices:
+        proves: "Per-tenant vector indices deleted, or shared vector
+          indices contain zero tenant-filtered embeddings."
+        artifact: >-
+          Vector store listing or tenant-filtered count returning zero.
+      graph_database:
+        proves: "The per-tenant graph database dropped (dedicated
+          classes) or all tenant-scoped graph entities removed
+          (shared-partition class)."
+        artifact: >-
+          Database listing excluding the tenant database, or a
+          tenant-scoped entity count returning zero.
+      gitops_overlay:
+        proves: "Per-tenant overlay removed and no longer rendered
+          (dedicated-stack class; recorded as not-applicable for other
+          classes)."
+        artifact: >-
+          Version-control change removing the overlay plus a render of
+          the application set showing no tenant application.
+    evidence_retention:
+      # Evidence and the purge audit record are control-plane records:
+      # they carry the tenant_id and deletion proofs but never tenant
+      # telemetry payloads (TR-16 control-plane / data-plane rule).
+      store: control-plane
+      retention_days_default: 365
+      detail: >-
+        Evidence artifacts and the purge audit record are retained for
+        the configured evidence retention period after purge (default
+        365 days; deployments may extend, never shorten, via the
+        management plane). They are immutable for that period.
+    audit:
+      record_required: true
+      required_fields:
+        - tenant_id
+        - transition
+        - actor
+        - approval_id
+        - change_ticket
+        - evidence_artifact_refs
+        - purged_at
+        - replay
+
+execution_gates:
+  # House pattern shared with APPROVAL_FLOW_V1.yaml: gates evaluated by
+  # every lifecycle executor before mutating anything.
+  validate_contract_document_before_transition: true
+  deny_on_missing_preconditions: true
+  deny_on_unknown_transition_or_state: true
+  emit_audit_record_on_denial: true

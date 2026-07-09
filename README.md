@@ -338,6 +338,7 @@ Report outputs:
 - `docs/runbooks/KHOOK_TROUBLESHOOTING_RUNBOOK.md`
 - `docs/runbooks/MCP_GATEWAY_OPERATIONS_RUNBOOK.md`
 - `docs/runbooks/CASEFILE_REVIEW_RUNBOOK.md`
+- `docs/runbooks/SAAS_TENANCY_RUNBOOK.md`
 
 ## Project-Local Snyk Path
 

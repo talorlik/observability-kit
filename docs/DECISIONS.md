@@ -13,6 +13,27 @@ first. Entry format:
 - Follow-up: <action for a future batch, or "none">
 ```
 
+## 2026-07-09 - Batch 15 - Tenancy Contract Semantics
+
+- Decision: four load-bearing choices made during Batch 15. (1) Vector
+  indices never co-mingle tenants and retrieval filters fail closed;
+  graph isolation is always one Neo4j database per tenant - these are
+  floors that apply even to the `shared-partition` class. (2) The
+  lifecycle contract adds a `resume` transition beyond the four named
+  in TASKS.md so `suspended` is provably non-destructive. (3) Denial
+  fixtures mirror the isolation matrix's per-scenario semantics
+  (`deny` for runtime scenarios, `reject` for config-validation ones)
+  rather than a uniform `deny` literal. (4) The schema's
+  `allowed_regions` prose was softened to non-normative because JSON
+  Schema cannot express region-membership across fields; enforcement
+  is procedural.
+- Why: approximate-kNN filtering and Neo4j's lack of row-level
+  security make store-level isolation the only defensible posture;
+  the rest keep contracts machine-checkable and internally consistent
+  (spec-review findings, wave 2).
+- Follow-up: when a tenancy validator gains sample-level region
+  checks, re-tighten the `allowed_regions` wording.
+
 ## 2026-07-09 - Batch n/a - Adopt /run-batch and Wave-Based Execution
 
 - Decision: added the `/run-batch` command

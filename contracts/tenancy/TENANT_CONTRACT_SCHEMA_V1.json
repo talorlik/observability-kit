@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observability-kit.local/contracts/tenancy/schema/v1",
+  "title": "Tenant Contract",
+  "description": "Authoritative descriptor for one customer tenant (TR-16). The tenant_id must be safe for OpenSearch index naming under the tenant-<id>-<signal>-* convention. Customer isolation layers on top of Batch 8 team isolation and never weakens it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "tenant_id",
+    "display_name",
+    "tier",
+    "isolation_class",
+    "residency",
+    "lifecycle_state",
+    "owner",
+    "contacts",
+    "quotas",
+    "created_at"
+  ],
+  "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "Lowercase slug embedded verbatim in index names (tenant-<id>-<signal>-*), roles, and dashboard space names. No uppercase, underscores, dots, or leading/trailing hyphens; bounded so derived index names stay within store limits.",
+      "pattern": "^[a-z0-9]([a-z0-9-]{0,30}[a-z0-9])?$"
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "tier": {
+      "type": "string",
+      "enum": ["starter", "standard", "premium", "enterprise"]
+    },
+    "isolation_class": {
+      "type": "string",
+      "description": "shared-partition: shared indices partitioned by tenant field and security roles. dedicated-indices: per-tenant indices, roles, and dashboard spaces in shared stores. dedicated-stack: per-tenant store instances rendered from per-tenant GitOps overlays.",
+      "enum": ["shared-partition", "dedicated-indices", "dedicated-stack"]
+    },
+    "residency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["region", "data_residency_required", "pool"],
+      "properties": {
+        "region": {
+          "type": "string",
+          "description": "Provider-neutral region label the tenant's data plane is pinned to (e.g. eu-central, us-east). Interpreted by the active provider adapter, never by core.",
+          "minLength": 1
+        },
+        "data_residency_required": {
+          "type": "boolean",
+          "description": "When true, tenant telemetry must never be stored or processed outside the declared region."
+        },
+        "pool": {
+          "type": "string",
+          "description": "shared: tenant data lives in the shared regional storage pool. dedicated: tenant gets its own storage pool.",
+          "enum": ["shared", "dedicated"]
+        },
+        "allowed_regions": {
+          "type": "array",
+          "description": "Optional replication allowlist. Operators should include the primary region; region membership is enforced procedurally by the tenancy validator, not by this schema.",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "lifecycle_state": {
+      "type": "string",
+      "enum": ["provisioning", "active", "suspended", "offboarding", "purged"]
+    },
+    "owner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "email"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "email": {
+          "type": "string",
+          "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+        },
+        "team": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "contacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["role", "email"],
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": ["technical", "billing", "security", "operations"]
+          },
+          "email": {
+            "type": "string",
+            "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+          }
+        }
+      }
+    },
+    "quotas": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ingest", "retention"],
+      "properties": {
+        "ingest": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["max_gb_per_day"],
+          "properties": {
+            "max_gb_per_day": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "max_events_per_second": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "retention": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["logs_days", "metrics_days", "traces_days"],
+          "properties": {
+            "logs_days": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3650
+            },
+            "metrics_days": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3650
+            },
+            "traces_days": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3650
+            }
+          }
+        }
+      }
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "isolation_class": {
+            "const": "dedicated-stack"
+          }
+        },
+        "required": ["isolation_class"]
+      },
+      "then": {
+        "properties": {
+          "residency": {
+            "properties": {
+              "pool": {
+                "const": "dedicated"
+              }
+            },
+            "required": ["pool"]
+          }
+        },
+        "required": ["residency"]
+      }
+    }
+  ]
+}

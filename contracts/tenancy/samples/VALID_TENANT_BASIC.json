@@ -1,0 +1,39 @@
+{
+  "tenant_id": "acme-dev",
+  "display_name": "Acme Corp (Development)",
+  "tier": "standard",
+  "isolation_class": "shared-partition",
+  "residency": {
+    "region": "eu-central",
+    "data_residency_required": false,
+    "pool": "shared"
+  },
+  "lifecycle_state": "active",
+  "owner": {
+    "name": "Dana Lieber",
+    "email": "dana.lieber@acme.example",
+    "team": "platform-engineering"
+  },
+  "contacts": [
+    {
+      "role": "technical",
+      "email": "sre-oncall@acme.example"
+    },
+    {
+      "role": "billing",
+      "email": "finops@acme.example"
+    }
+  ],
+  "quotas": {
+    "ingest": {
+      "max_gb_per_day": 50,
+      "max_events_per_second": 5000
+    },
+    "retention": {
+      "logs_days": 14,
+      "metrics_days": 30,
+      "traces_days": 7
+    }
+  },
+  "created_at": "2026-06-01T09:30:00Z"
+}

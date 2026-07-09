@@ -1,0 +1,486 @@
+# Tenant data isolation matrix (Batch 15 Task 2, TB-15 | TR-16).
+#
+# Defines, for every signal store, the per-tenant partitioning rule for
+# each isolation class declared in the tenant contract, plus the
+# deny-by-default cross-tenant rule set and the seeded denial scenarios
+# that Batch 15 Task 5 turns into rejection fixtures.
+#
+# Isolation is achieved only through native mechanisms of the wrapped
+# systems (OpenSearch security roles, document-level security, and
+# Dashboards tenant spaces; Neo4j multi-database). Forking a wrapped
+# system to achieve isolation is forbidden (TR-16).
+
+metadata:
+  contract: tenant-isolation-matrix
+  version: v1
+  batch: TB-15
+  requirements:
+    - TR-16
+    - TR-07
+    - TR-09
+  isolation_class_source:
+    contract: contracts/tenancy/TENANT_CONTRACT_SCHEMA_V1.json
+    field: isolation_class
+    classes:
+      - shared-partition
+      - dedicated-indices
+      - dedicated-stack
+  related_contracts:
+    tenant_lifecycle: contracts/tenancy/TENANT_LIFECYCLE_CONTRACT_V1.yaml
+    overlay_generation: >-
+      contracts/tenancy/TENANT_OVERLAY_GENERATION_CONTRACT_V1.yaml
+    batch8_validation: >-
+      contracts/security/TEAM_ENV_ISOLATION_VALIDATION.json
+    batch8_roles: gitops/platform/search/opensearch/security/roles/team_env_isolation_roles.yaml
+
+naming:
+  # Placeholders used throughout this matrix. Values are resolved from
+  # the tenant contract and the environment overlay at render time;
+  # nothing here hardcodes a concrete tenant, environment, or region.
+  placeholders:
+    tenant_id: >-
+      Lowercase slug from the tenant contract (schema pattern
+      ^[a-z0-9]([a-z0-9-]{0,30}[a-z0-9])?$), embedded verbatim in index
+      names, role names, dashboard space names, and graph database
+      names.
+    signal: One of logs, metrics, traces, vectors.
+    env: Environment segment inherited from Batch 8; never hardcoded.
+    team: Team segment inherited from Batch 8; never hardcoded.
+  telemetry_index_pattern: "tenant-<tenant_id>-<signal>-*"
+  telemetry_index_with_batch8_segments: >-
+    tenant-<tenant_id>-<signal>-<env>-<team>-*
+  vector_index_pattern: "tenant-<tenant_id>-vectors-*"
+  graph_database: "tenant-<tenant_id>"
+  dashboard_space: "tenant-<tenant_id>"
+  roles:
+    reader: "tenant-<tenant_id>-<signal>-reader"
+    writer: "tenant-<tenant_id>-<signal>-writer"
+  role_mapping: "tenant-<tenant_id>-<signal>-mapping"
+  role_mapping_backends: >-
+    Backend role names in role mappings are resolved by the active
+    identity backend adapter (Batch 13); no identity-provider group ids
+    are hardcoded in core.
+
+isolation_matrix:
+  logs:
+    store: opensearch
+    shared-partition:
+      partitioning: >-
+        Tenant shares the Batch 8 per-env/per-team log indices. Every
+        document carries an immutable tenant_id field stamped by the
+        collector pipeline at ingest; reads are constrained by a
+        document-level security filter on that field.
+      index_pattern: "logs-<env>-<team>-*"
+      document_level_security:
+        required: true
+        filter: '{"term": {"tenant_id": "<tenant_id>"}}'
+      roles:
+        reader: "tenant-<tenant_id>-logs-reader"
+        writer: null
+      write_path: >-
+        Tenant principals never write. Log documents are written only
+        by the platform collector service identity, which stamps
+        tenant_id and rejects documents without it.
+      role_mapping: "tenant-<tenant_id>-logs-mapping"
+      dashboard_space: "tenant-<tenant_id>"
+    dedicated-indices:
+      partitioning: >-
+        Per-tenant log indices in the shared OpenSearch cluster. The
+        tenant namespace prefix is the isolation boundary; roles match
+        only the tenant's own prefix.
+      index_pattern: "tenant-<tenant_id>-logs-*"
+      document_level_security:
+        required: false
+        note: >-
+          Index-name isolation is primary; the tenant_id document field
+          is still stamped at ingest for audit and purge evidence.
+      roles:
+        reader: "tenant-<tenant_id>-logs-reader"
+        writer: "tenant-<tenant_id>-logs-writer"
+      write_path: >-
+        Writer role is bound only to the per-tenant collector pipeline
+        service identity, never to tenant user principals.
+      role_mapping: "tenant-<tenant_id>-logs-mapping"
+      dashboard_space: "tenant-<tenant_id>"
+    dedicated-stack:
+      partitioning: >-
+        Per-tenant OpenSearch instance rendered from the tenant's
+        generated GitOps overlay (TENANT_OVERLAY_GENERATION_CONTRACT_V1);
+        core charts are never modified per tenant. Instance boundary is
+        the primary isolation; index naming stays identical to
+        dedicated-indices so tooling is uniform.
+      index_pattern: "tenant-<tenant_id>-logs-*"
+      document_level_security:
+        required: false
+        note: Same audit/purge stamping rule as dedicated-indices.
+      roles:
+        reader: "tenant-<tenant_id>-logs-reader"
+        writer: "tenant-<tenant_id>-logs-writer"
+      write_path: Same rule as dedicated-indices, per-instance.
+      role_mapping: "tenant-<tenant_id>-logs-mapping"
+      dashboard_space: "tenant-<tenant_id>"
+
+  metrics:
+    store: opensearch
+    shared-partition:
+      partitioning: >-
+        Tenant shares the Batch 8 per-env/per-team metric indices with
+        an immutable tenant_id field stamped at ingest and enforced by
+        document-level security on read.
+      index_pattern: "metrics-<env>-<team>-*"
+      document_level_security:
+        required: true
+        filter: '{"term": {"tenant_id": "<tenant_id>"}}'
+      roles:
+        reader: "tenant-<tenant_id>-metrics-reader"
+        writer: null
+      write_path: >-
+        Writes only via the platform collector service identity, which
+        stamps tenant_id and rejects unstamped documents.
+      role_mapping: "tenant-<tenant_id>-metrics-mapping"
+      dashboard_space: "tenant-<tenant_id>"
+    dedicated-indices:
+      partitioning: >-
+        Per-tenant metric indices in the shared cluster; the tenant
+        namespace prefix is the isolation boundary.
+      index_pattern: "tenant-<tenant_id>-metrics-*"
+      document_level_security:
+        required: false
+        note: tenant_id stamped at ingest for audit and purge evidence.
+      roles:
+        reader: "tenant-<tenant_id>-metrics-reader"
+        writer: "tenant-<tenant_id>-metrics-writer"
+      write_path: >-
+        Writer role bound only to the per-tenant collector pipeline
+        service identity.
+      role_mapping: "tenant-<tenant_id>-metrics-mapping"
+      dashboard_space: "tenant-<tenant_id>"
+    dedicated-stack:
+      partitioning: >-
+        Per-tenant OpenSearch instance from the generated overlay;
+        index naming unchanged from dedicated-indices.
+      index_pattern: "tenant-<tenant_id>-metrics-*"
+      document_level_security:
+        required: false
+        note: Same audit/purge stamping rule as dedicated-indices.
+      roles:
+        reader: "tenant-<tenant_id>-metrics-reader"
+        writer: "tenant-<tenant_id>-metrics-writer"
+      write_path: Same rule as dedicated-indices, per-instance.
+      role_mapping: "tenant-<tenant_id>-metrics-mapping"
+      dashboard_space: "tenant-<tenant_id>"
+
+  traces:
+    store: opensearch
+    shared-partition:
+      partitioning: >-
+        Tenant shares the Batch 8 per-env/per-team trace indices with
+        an immutable tenant_id field stamped at ingest and enforced by
+        document-level security on read.
+      index_pattern: "traces-<env>-<team>-*"
+      document_level_security:
+        required: true
+        filter: '{"term": {"tenant_id": "<tenant_id>"}}'
+      roles:
+        reader: "tenant-<tenant_id>-traces-reader"
+        writer: null
+      write_path: >-
+        Writes only via the platform collector service identity, which
+        stamps tenant_id and rejects unstamped documents.
+      role_mapping: "tenant-<tenant_id>-traces-mapping"
+      dashboard_space: "tenant-<tenant_id>"
+    dedicated-indices:
+      partitioning: >-
+        Per-tenant trace indices in the shared cluster; the tenant
+        namespace prefix is the isolation boundary.
+      index_pattern: "tenant-<tenant_id>-traces-*"
+      document_level_security:
+        required: false
+        note: tenant_id stamped at ingest for audit and purge evidence.
+      roles:
+        reader: "tenant-<tenant_id>-traces-reader"
+        writer: "tenant-<tenant_id>-traces-writer"
+      write_path: >-
+        Writer role bound only to the per-tenant collector pipeline
+        service identity.
+      role_mapping: "tenant-<tenant_id>-traces-mapping"
+      dashboard_space: "tenant-<tenant_id>"
+    dedicated-stack:
+      partitioning: >-
+        Per-tenant OpenSearch instance from the generated overlay;
+        index naming unchanged from dedicated-indices.
+      index_pattern: "tenant-<tenant_id>-traces-*"
+      document_level_security:
+        required: false
+        note: Same audit/purge stamping rule as dedicated-indices.
+      roles:
+        reader: "tenant-<tenant_id>-traces-reader"
+        writer: "tenant-<tenant_id>-traces-writer"
+      write_path: Same rule as dedicated-indices, per-instance.
+      role_mapping: "tenant-<tenant_id>-traces-mapping"
+      dashboard_space: "tenant-<tenant_id>"
+
+  vectors:
+    store: opensearch-knn
+    # The vector tier never co-mingles tenants inside one index, even
+    # for shared-partition tenants: approximate-kNN result filtering is
+    # a weaker guarantee than index-name isolation, so the floor for
+    # vectors is dedicated-indices semantics in every class, plus a
+    # mandatory tenant retrieval filter as defense in depth.
+    shared-partition:
+      partitioning: >-
+        Per-tenant vector index in the shared cluster (floor rule:
+        never a shared vector index). Every retrieval must carry the
+        tenant filter; unfiltered queries fail closed.
+      index_pattern: "tenant-<tenant_id>-vectors-*"
+      mandatory_retrieval_filter:
+        required: true
+        filter: '{"term": {"tenant_id": "<tenant_id>"}}'
+        on_missing_filter: reject
+        on_tenant_mismatch: deny
+      roles:
+        reader: "tenant-<tenant_id>-vectors-reader"
+        writer: "tenant-<tenant_id>-vectors-writer"
+      write_path: >-
+        Writer role bound only to the extraction/embedding pipeline
+        service identity (Batch 10), scoped to the tenant namespace.
+      role_mapping: "tenant-<tenant_id>-vectors-mapping"
+      dashboard_space: "tenant-<tenant_id>"
+    dedicated-indices:
+      partitioning: >-
+        Per-tenant vector index in the shared cluster; identical to the
+        shared-partition floor, retained as an explicit row so the
+        class matrix stays total.
+      index_pattern: "tenant-<tenant_id>-vectors-*"
+      mandatory_retrieval_filter:
+        required: true
+        filter: '{"term": {"tenant_id": "<tenant_id>"}}'
+        on_missing_filter: reject
+        on_tenant_mismatch: deny
+      roles:
+        reader: "tenant-<tenant_id>-vectors-reader"
+        writer: "tenant-<tenant_id>-vectors-writer"
+      write_path: Same rule as shared-partition.
+      role_mapping: "tenant-<tenant_id>-vectors-mapping"
+      dashboard_space: "tenant-<tenant_id>"
+    dedicated-stack:
+      partitioning: >-
+        Per-tenant vector index inside the tenant's dedicated
+        OpenSearch instance; the mandatory retrieval filter still
+        applies as defense in depth.
+      index_pattern: "tenant-<tenant_id>-vectors-*"
+      mandatory_retrieval_filter:
+        required: true
+        filter: '{"term": {"tenant_id": "<tenant_id>"}}'
+        on_missing_filter: reject
+        on_tenant_mismatch: deny
+      roles:
+        reader: "tenant-<tenant_id>-vectors-reader"
+        writer: "tenant-<tenant_id>-vectors-writer"
+      write_path: Same rule as shared-partition, per-instance.
+      role_mapping: "tenant-<tenant_id>-vectors-mapping"
+      dashboard_space: "tenant-<tenant_id>"
+
+  graph:
+    store: neo4j
+    applies_when: graph-enabled mode (Batch 11 graph module active)
+    # Neo4j has no native row-level security, so property-based
+    # partitioning inside one database is not an acceptable isolation
+    # mechanism. The floor for the graph tier in every class is one
+    # Neo4j database per tenant (native multi-database).
+    shared-partition:
+      partitioning: >-
+        One Neo4j database per tenant in the shared Neo4j instance
+        (floor rule: never property-partitioned shared graphs).
+      database: "tenant-<tenant_id>"
+      access:
+        principals: >-
+          Per-tenant Neo4j roles grant reader access to the tenant
+          database only; graph sync jobs hold writer access to the
+          tenant database only.
+        session_scope: >-
+          Every driver session is pinned to the tenant database; the
+          database name is injected from the tenant contract, never
+          from caller input.
+        system_database: denied to tenant principals
+      dashboard_space: "tenant-<tenant_id>"
+    dedicated-indices:
+      partitioning: >-
+        Identical to shared-partition: one database per tenant in the
+        shared Neo4j instance. Kept as an explicit row so the class
+        matrix stays total.
+      database: "tenant-<tenant_id>"
+      access:
+        principals: Same rule as shared-partition.
+        session_scope: Same rule as shared-partition.
+        system_database: denied to tenant principals
+      dashboard_space: "tenant-<tenant_id>"
+    dedicated-stack:
+      partitioning: >-
+        Per-tenant Neo4j instance rendered from the tenant's generated
+        GitOps overlay; database naming unchanged so graph tooling is
+        uniform across classes.
+      database: "tenant-<tenant_id>"
+      access:
+        principals: Same rule as shared-partition, per-instance.
+        session_scope: Same rule as shared-partition.
+        system_database: denied to tenant principals
+      dashboard_space: "tenant-<tenant_id>"
+
+cross_tenant_access:
+  default: deny
+  posture: >-
+    Cross-tenant access or leakage is a hard failure, not a policy
+    preference (TR-16). Any read, write, query, dashboard object, or
+    role grant that reaches another tenant's partition must be denied
+    at runtime and rejected at configuration-validation time. There is
+    no allow-list mechanism between tenants.
+  rules:
+    - id: CTR-01
+      name: no-foreign-index-pattern
+      rule: >-
+        No tenant-scoped role may carry an index pattern, alias, or
+        index-template match that resolves to any index in another
+        tenant's namespace, nor a wildcard (for example tenant-* or
+        logs-*) that spans more than one tenant namespace.
+    - id: CTR-02
+      name: shared-partition-dls-mandatory
+      rule: >-
+        Every role granting read on a shared-partition index must
+        include the document-level security filter pinning tenant_id to
+        exactly one tenant. Roles on shared indices without that filter
+        are invalid configuration.
+    - id: CTR-03
+      name: no-cross-tenant-dashboard-space
+      rule: >-
+        Dashboard spaces are per tenant. No role mapping may place a
+        tenant principal in another tenant's space, and no dashboard
+        saved object may reference index patterns outside its own
+        tenant's namespace.
+    - id: CTR-04
+      name: mandatory-vector-tenant-filter
+      rule: >-
+        Every vector retrieval must carry the tenant retrieval filter
+        matching the caller's tenant identity. Queries missing the
+        filter are rejected (fail closed, never fail open); queries
+        whose filter names a different tenant are denied.
+    - id: CTR-05
+      name: graph-database-scope
+      rule: >-
+        Graph queries execute only against the caller tenant's own
+        database. Cross-database queries, database enumeration, and
+        system-database access are denied to tenant principals.
+    - id: CTR-06
+      name: tenant-principals-never-write-telemetry
+      rule: >-
+        Tenant user principals never hold telemetry write permissions.
+        Writes flow only through platform pipeline service identities
+        scoped to a single tenant namespace.
+    - id: CTR-07
+      name: operator-access-is-control-plane-only
+      rule: >-
+        Only named control-plane operator roles may span tenant
+        namespaces. They are break-glass, audited per TR-09 with the
+        tenant id on every record, and are never mapped to tenant
+        principals or tenant-facing identities.
+  # Named seeded-denial scenarios. Batch 15 Task 5 turns each id into
+  # a rejection fixture consumed by validate_tenancy_contracts.sh; a
+  # fixture that is not rejected/denied fails the batch.
+  seeded_denial_scenarios:
+    - id: SDN-B15-001
+      store: logs
+      enforcement_point: runtime
+      description: >-
+        A tenant-a principal issues a search against a tenant-b log
+        index (tenant-b namespace or shared index without tenant-a
+        DLS match). Expected: denied.
+      expected_decision: deny
+    - id: SDN-B15-002
+      store: metrics
+      enforcement_point: config-validation
+      description: >-
+        A proposed role for tenant-a includes an index pattern that
+        also matches tenant-b metric indices. Expected: configuration
+        rejected before apply (CTR-01).
+      expected_decision: reject
+    - id: SDN-B15-003
+      store: traces
+      enforcement_point: runtime
+      description: >-
+        A tenant-a principal queries traces through an alias that
+        resolves into tenant-b trace indices. Expected: denied.
+      expected_decision: deny
+    - id: SDN-B15-004
+      store: dashboards
+      enforcement_point: config-validation
+      description: >-
+        A role mapping places a tenant-a principal in the tenant-b
+        dashboard space. Expected: configuration rejected (CTR-03).
+      expected_decision: reject
+    - id: SDN-B15-005
+      store: vectors
+      enforcement_point: runtime
+      description: >-
+        A vector retrieval arrives without the mandatory tenant
+        filter. Expected: rejected, fail closed (CTR-04).
+      expected_decision: reject
+    - id: SDN-B15-006
+      store: vectors
+      enforcement_point: runtime
+      description: >-
+        A vector retrieval carries a tenant filter naming tenant-b
+        while the caller identity belongs to tenant-a. Expected:
+        denied (CTR-04).
+      expected_decision: deny
+    - id: SDN-B15-007
+      store: graph
+      enforcement_point: runtime
+      description: >-
+        A graph session authenticated as a tenant-a principal targets
+        the tenant-b database or the system database. Expected: denied
+        (CTR-05).
+      expected_decision: deny
+    - id: SDN-B15-008
+      store: logs
+      enforcement_point: config-validation
+      description: >-
+        A shared-partition read role omits the document-level security
+        tenant filter. Expected: configuration rejected (CTR-02).
+      expected_decision: reject
+    - id: SDN-B15-009
+      store: all
+      enforcement_point: config-validation
+      description: >-
+        A tenant-scoped role requests a spanning wildcard such as
+        tenant-* or logs-* across tenant namespaces. Expected:
+        configuration rejected (CTR-01).
+      expected_decision: reject
+
+layering:
+  batch8_team_env_isolation:
+    statement: >-
+      Batch 8 team and environment isolation remains fully intact
+      inside every tenant partition and must never be weakened by
+      tenancy. Tenant isolation is an additional outer boundary, not a
+      replacement: removing, broadening, or bypassing a Batch 8 role,
+      index pattern, or dashboard scope as part of tenant provisioning
+      is a contract violation.
+    composition:
+      - >-
+        Team and environment index segments nest inside the tenant
+        namespace: tenant-<tenant_id>-<signal>-<env>-<team>-* remains
+        matched by the tenant pattern tenant-<tenant_id>-<signal>-*.
+      - >-
+        In shared-partition mode the Batch 8 patterns
+        (<signal>-<env>-<team>-*) are kept as-is and the tenant
+        boundary is layered on top via the mandatory tenant_id
+        document-level security filter.
+      - >-
+        Batch 8 team/env roles are instantiated per tenant and scoped
+        strictly within that tenant's namespace; a per-tenant team role
+        is never broader than its Batch 8 equivalent.
+      - >-
+        Dashboard team/env scoping applies within the per-tenant
+        space; cross-team denial inside one tenant is still enforced
+        exactly as validated by
+        contracts/security/TEAM_ENV_ISOLATION_VALIDATION.json.
