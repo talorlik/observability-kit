@@ -51,8 +51,13 @@ Rules that override everything else:
   scripts/ci/validate_tenancy_contracts.sh after any change touching
   isolation surfaces.
 - Live-cluster work (Batches 23-24) uses a DISPOSABLE local cluster
-  only (kind or k3d). Never target a shared or production cluster.
-  Tear the cluster down after evidence capture.
+  only: kind on the local Docker engine (OrbStack on this machine).
+  The harness must create and use an ISOLATED kubeconfig and must
+  refuse any context it did not create - the default kubeconfig
+  contains cloud production contexts (EKS) that must be structurally
+  unreachable. The OrbStack built-in Kubernetes cluster is the
+  persistent dev stack only, never an evidence target. Tear the
+  disposable cluster down after evidence capture.
 - Gates: 3 fix attempts per gate, then up to 2 root-cause repair cycles
   per batch. If still red: commit WIP on the branch, leave the worktree
   intact, record the exact blocker in docs/DECISIONS.md, and continue

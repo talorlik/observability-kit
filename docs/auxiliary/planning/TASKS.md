@@ -891,12 +891,21 @@ without ever gating pull requests on a live cluster.
    - Dependencies: Batch 17, Batch 18, Batch 19.
    - Completion check:
      `docs/adr/ADR_0007_DISPOSABLE_CLUSTER_HARNESS.md` records the
-     decision: live validation runs only on disposable kind/k3d
-     clusters, never on shared or long-lived clusters, and is never
-     CI-gated on pull requests;
+     decision: live validation runs only on disposable kind (or k3d)
+     clusters created on the local Docker engine - OrbStack on the
+     reference development machine - never on shared or long-lived
+     clusters, and is never CI-gated on pull requests;
      `contracts/evidence/DISPOSABLE_CLUSTER_HARNESS_CONTRACT_V1.yaml`
-     fixes the kind/k3d profile, node sizing, and teardown
-     guarantees; `scripts/dev/live_cluster_harness.sh` is the single
+     fixes the kind/k3d profile, node sizing, teardown guarantees,
+     and two local stack profiles: `evidence-disposable` (kind
+     cluster, created and destroyed per run) and `dev-persistent`
+     (the OrbStack built-in Kubernetes cluster with the dev overlay
+     and a documented reset procedure, for day-to-day iteration -
+     never used for evidence capture); the harness writes and uses
+     an ISOLATED kubeconfig and refuses to operate on any context it
+     did not create (cloud and shared contexts, e.g. EKS/GKE/AKS
+     ARNs, are structurally unreachable);
+     `scripts/dev/live_cluster_harness.sh` is the single
      mode-parameterized entry point for create, run, and teardown.
 2. Run the full end-to-end install on the harness.
    - Dependencies: Task 1.
@@ -1050,6 +1059,20 @@ commercial distribution.
      tag-to-publication flow, pin bumps, upgrade testing, and the
      license and SBOM gates and is linked from `README.md` and the
      runbook index.
+7. Publish the production stack reference architecture.
+   - Dependencies: Tasks 1-2.
+   - Completion check:
+     `contracts/release/PRODUCTION_REFERENCE_ARCHITECTURE_V1.yaml`
+     defines the production-grade stack for any conformant
+     Kubernetes cluster (cloud or on-prem): multi-node HA topology
+     with anti-affinity, sizing tiers mapped to tenant scale,
+     storage class and ingress requirements expressed through the
+     Batch 2 compatibility profiles, backup and DR posture, and the
+     mapping to the `prod` overlay under `gitops/overlays/`; a
+     compliant cluster grades `supported` in the compatibility
+     matrix; `validate_release_engineering.sh` asserts the
+     document's required sections; the Batch 26 `OPERATIONS_GUIDE.md`
+     consumes it as its production deployment source.
 
 ## Batch 26 - Product Documentation and GA Readiness [TB-26 | TR-14, TR-26]
 

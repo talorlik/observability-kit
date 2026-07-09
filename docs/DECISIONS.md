@@ -13,6 +13,26 @@ first. Entry format:
 - Follow-up: <action for a future batch, or "none">
 ```
 
+## 2026-07-09 - Batch n/a - Deployment Stack Roles
+
+- Decision: three cluster roles are now contract-fixed. Development
+  stack: the OrbStack built-in Kubernetes cluster with the dev
+  overlay (persistent, resettable, never an evidence source).
+  Evidence harness: a disposable kind cluster on the local Docker
+  engine (OrbStack), created and destroyed per Batch 23/24 run, using
+  an isolated kubeconfig that refuses contexts it did not create.
+  Production stack: any conformant multi-node cluster that grades
+  supported against the Batch 25 production reference architecture
+  (new Batch 25 Task 7); production installs use the same installer
+  with the prod overlay - stacks differ by profile, never code path.
+- Why: verified on the reference machine (OrbStack 2.2.1 running,
+  kind installed, 24 GB RAM / 8 CPUs - sufficient for the dev-sized
+  stack) and the default kubeconfig carries live EKS production
+  contexts, so harness isolation must be structural, not
+  convention-based.
+- Follow-up: Batch 23 Task 1 implements the kubeconfig fencing;
+  Batch 25 Task 7 delivers the reference architecture.
+
 ## 2026-07-09 - Batch n/a - SaaS Productization Backlog (17-26)
 
 - Decision: authored Batches 17-26 and TR-18..TR-26 as the complete
