@@ -43,6 +43,7 @@ the install entrypoint below.
 | 14    | `MCP_GATEWAY_OPERATIONS_RUNBOOK.md`                      | MCP gateway health, per-tool quota, failover                       |
 | 14    | `CASEFILE_REVIEW_RUNBOOK.md`                             | Case-file lifecycle review and replay                              |
 | 14    | `KHOOK_TROUBLESHOOTING_RUNBOOK.md`                       | KHook trigger dedupe / burst-control diagnosis                     |
+| 15    | `SAAS_TENANCY_RUNBOOK.md`                                | Tenant onboarding, isolation verification, lifecycle, purge drill  |
 
 ## Conventions
 

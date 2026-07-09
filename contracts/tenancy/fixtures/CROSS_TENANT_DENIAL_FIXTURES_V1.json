@@ -1,0 +1,125 @@
+{
+  "schema_version": "v1",
+  "batch": "TB-15",
+  "source_matrix": "contracts/tenancy/TENANT_ISOLATION_MATRIX_V1.yaml",
+  "description": "Seeded cross-tenant rejection fixtures (Batch 15 Task 5). One fixture per seeded_denial_scenarios entry in the tenant isolation matrix. Each fixture describes an attempted cross-tenant access and the decision the platform must produce: deny (runtime enforcement) or reject (configuration-validation enforcement). A fixture whose expected_decision is anything other than a denial outcome fails validate_tenancy_contracts.sh.",
+  "fixtures": [
+    {
+      "scenario_id": "SDN-B15-001",
+      "description": "A tenant-a principal issues a search against a tenant-b log index (tenant-b namespace or shared index without tenant-a DLS match).",
+      "enforcement_point": "runtime",
+      "attempted_access": {
+        "actor_tenant": "tenant-a",
+        "target_tenant": "tenant-b",
+        "store": "logs",
+        "action": "search-foreign-log-index"
+      },
+      "denied_by_rule": null,
+      "expected_decision": "deny"
+    },
+    {
+      "scenario_id": "SDN-B15-002",
+      "description": "A proposed role for tenant-a includes an index pattern that also matches tenant-b metric indices; the configuration is rejected before apply.",
+      "enforcement_point": "config-validation",
+      "attempted_access": {
+        "actor_tenant": "tenant-a",
+        "target_tenant": "tenant-b",
+        "store": "metrics",
+        "action": "apply-role-with-foreign-index-pattern"
+      },
+      "denied_by_rule": "CTR-01",
+      "expected_decision": "reject"
+    },
+    {
+      "scenario_id": "SDN-B15-003",
+      "description": "A tenant-a principal queries traces through an alias that resolves into tenant-b trace indices.",
+      "enforcement_point": "runtime",
+      "attempted_access": {
+        "actor_tenant": "tenant-a",
+        "target_tenant": "tenant-b",
+        "store": "traces",
+        "action": "query-traces-via-foreign-alias"
+      },
+      "denied_by_rule": null,
+      "expected_decision": "deny"
+    },
+    {
+      "scenario_id": "SDN-B15-004",
+      "description": "A role mapping places a tenant-a principal in the tenant-b dashboard space; the configuration is rejected.",
+      "enforcement_point": "config-validation",
+      "attempted_access": {
+        "actor_tenant": "tenant-a",
+        "target_tenant": "tenant-b",
+        "store": "dashboards",
+        "action": "map-principal-into-foreign-dashboard-space"
+      },
+      "denied_by_rule": "CTR-03",
+      "expected_decision": "reject"
+    },
+    {
+      "scenario_id": "SDN-B15-005",
+      "description": "A vector retrieval arrives without the mandatory tenant filter; the query is rejected, failing closed.",
+      "enforcement_point": "runtime",
+      "attempted_access": {
+        "actor_tenant": "tenant-a",
+        "target_tenant": "all-tenants",
+        "store": "vectors",
+        "action": "vector-retrieval-without-tenant-filter"
+      },
+      "denied_by_rule": "CTR-04",
+      "expected_decision": "reject"
+    },
+    {
+      "scenario_id": "SDN-B15-006",
+      "description": "A vector retrieval carries a tenant filter naming tenant-b while the caller identity belongs to tenant-a.",
+      "enforcement_point": "runtime",
+      "attempted_access": {
+        "actor_tenant": "tenant-a",
+        "target_tenant": "tenant-b",
+        "store": "vectors",
+        "action": "vector-retrieval-with-foreign-tenant-filter"
+      },
+      "denied_by_rule": "CTR-04",
+      "expected_decision": "deny"
+    },
+    {
+      "scenario_id": "SDN-B15-007",
+      "description": "A graph session authenticated as a tenant-a principal targets the tenant-b database or the system database.",
+      "enforcement_point": "runtime",
+      "attempted_access": {
+        "actor_tenant": "tenant-a",
+        "target_tenant": "tenant-b",
+        "store": "graph",
+        "action": "graph-session-against-foreign-or-system-database"
+      },
+      "denied_by_rule": "CTR-05",
+      "expected_decision": "deny"
+    },
+    {
+      "scenario_id": "SDN-B15-008",
+      "description": "A shared-partition read role omits the document-level security tenant filter; the configuration is rejected.",
+      "enforcement_point": "config-validation",
+      "attempted_access": {
+        "actor_tenant": "tenant-a",
+        "target_tenant": "all-tenants",
+        "store": "logs",
+        "action": "apply-shared-partition-read-role-without-dls-filter"
+      },
+      "denied_by_rule": "CTR-02",
+      "expected_decision": "reject"
+    },
+    {
+      "scenario_id": "SDN-B15-009",
+      "description": "A tenant-scoped role requests a spanning wildcard such as tenant-* or logs-* across tenant namespaces; the configuration is rejected.",
+      "enforcement_point": "config-validation",
+      "attempted_access": {
+        "actor_tenant": "tenant-a",
+        "target_tenant": "all-tenants",
+        "store": "all",
+        "action": "apply-role-with-tenant-spanning-wildcard"
+      },
+      "denied_by_rule": "CTR-01",
+      "expected_decision": "reject"
+    }
+  ]
+}

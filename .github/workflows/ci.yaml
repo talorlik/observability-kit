@@ -82,6 +82,9 @@ jobs:
       - name: Kagent Khook release scaffolding checks
         run: bash scripts/ci/validate_kagent_khook_release.sh
 
+      - name: Tenancy contract checks
+        run: bash scripts/ci/validate_tenancy_contracts.sh
+
       - name: Preflight and discovery checks
         run: bash scripts/ci/validate_preflight_and_discovery.sh
 

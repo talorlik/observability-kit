@@ -1,0 +1,152 @@
+{
+  "schema_version": "v1",
+  "invalid_tenants": {
+    "bad_tenant_id_for_index_naming": {
+      "expected_rejection_reason": "tenant_id.pattern-violation-index-unsafe",
+      "descriptor": {
+        "tenant_id": "Acme_Corp.Prod-",
+        "display_name": "Acme Corp (Bad Slug)",
+        "tier": "standard",
+        "isolation_class": "shared-partition",
+        "residency": {
+          "region": "eu-central",
+          "data_residency_required": false,
+          "pool": "shared"
+        },
+        "lifecycle_state": "active",
+        "owner": {
+          "name": "Dana Lieber",
+          "email": "dana.lieber@acme.example"
+        },
+        "contacts": [
+          {
+            "role": "technical",
+            "email": "sre-oncall@acme.example"
+          }
+        ],
+        "quotas": {
+          "ingest": {
+            "max_gb_per_day": 50
+          },
+          "retention": {
+            "logs_days": 14,
+            "metrics_days": 30,
+            "traces_days": 7
+          }
+        },
+        "created_at": "2026-06-01T09:30:00Z"
+      }
+    },
+    "unknown_isolation_class": {
+      "expected_rejection_reason": "isolation_class.enum-violation",
+      "descriptor": {
+        "tenant_id": "initech-prod",
+        "display_name": "Initech (Unknown Isolation Class)",
+        "tier": "premium",
+        "isolation_class": "vpc-peered",
+        "residency": {
+          "region": "us-east",
+          "data_residency_required": false,
+          "pool": "shared"
+        },
+        "lifecycle_state": "active",
+        "owner": {
+          "name": "Bill Lumbergh",
+          "email": "bill.lumbergh@initech.example"
+        },
+        "contacts": [
+          {
+            "role": "technical",
+            "email": "ops@initech.example"
+          }
+        ],
+        "quotas": {
+          "ingest": {
+            "max_gb_per_day": 100
+          },
+          "retention": {
+            "logs_days": 30,
+            "metrics_days": 90,
+            "traces_days": 14
+          }
+        },
+        "created_at": "2026-05-15T10:00:00Z"
+      }
+    },
+    "missing_lifecycle_state": {
+      "expected_rejection_reason": "lifecycle_state.required-property-absent",
+      "descriptor": {
+        "tenant_id": "umbrella-stg",
+        "display_name": "Umbrella (No Lifecycle State)",
+        "tier": "starter",
+        "isolation_class": "dedicated-indices",
+        "residency": {
+          "region": "ap-southeast",
+          "data_residency_required": false,
+          "pool": "shared"
+        },
+        "owner": {
+          "name": "Ada Wong",
+          "email": "ada.wong@umbrella.example"
+        },
+        "contacts": [
+          {
+            "role": "operations",
+            "email": "noc@umbrella.example"
+          }
+        ],
+        "quotas": {
+          "ingest": {
+            "max_gb_per_day": 10
+          },
+          "retention": {
+            "logs_days": 7,
+            "metrics_days": 14,
+            "traces_days": 3
+          }
+        },
+        "created_at": "2026-04-20T16:45:00Z"
+      }
+    },
+    "dedicated_stack_with_shared_residency_pool": {
+      "expected_rejection_reason": "isolation_class.dedicated-stack-requires-dedicated-pool",
+      "descriptor": {
+        "tenant_id": "hooli-prod",
+        "display_name": "Hooli (Dedicated Stack on Shared Pool)",
+        "tier": "enterprise",
+        "isolation_class": "dedicated-stack",
+        "residency": {
+          "region": "us-west",
+          "data_residency_required": true,
+          "pool": "shared"
+        },
+        "lifecycle_state": "provisioning",
+        "owner": {
+          "name": "Gavin Belson",
+          "email": "gavin.belson@hooli.example"
+        },
+        "contacts": [
+          {
+            "role": "technical",
+            "email": "platform@hooli.example"
+          },
+          {
+            "role": "security",
+            "email": "secops@hooli.example"
+          }
+        ],
+        "quotas": {
+          "ingest": {
+            "max_gb_per_day": 1000
+          },
+          "retention": {
+            "logs_days": 90,
+            "metrics_days": 365,
+            "traces_days": 30
+          }
+        },
+        "created_at": "2026-07-02T11:15:00Z"
+      }
+    }
+  }
+}
