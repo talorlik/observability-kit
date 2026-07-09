@@ -45,6 +45,7 @@ the install entrypoint below.
 | 14    | `KHOOK_TROUBLESHOOTING_RUNBOOK.md`                       | KHook trigger dedupe / burst-control diagnosis                     |
 | 15    | `SAAS_TENANCY_RUNBOOK.md`                                | Tenant onboarding, isolation verification, lifecycle, purge drill  |
 | 16    | `UNIFIED_CONFIGURATION_RUNBOOK.md`                       | Unified config change flow, drift response, per-system upgrades    |
+| 17    | `DISCOVERY_EXECUTOR_OPERATOR_GUIDE.md`                   | obskit executor: CLI and Job runs, RBAC, reports, remediation      |
 
 ## Conventions
 

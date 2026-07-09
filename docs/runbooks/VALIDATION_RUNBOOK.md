@@ -217,8 +217,20 @@ AI/MCP scripts above):
 bash scripts/ci/validate_batch14_smoke.sh
 ```
 
-Run the full report-generating aggregator across every batch (1-9, 9A,
-10-14):
+Run focused Batch 17 validation (discovery executor runtime - offline
+fixture-driven tests, contract structure, RBAC read-only checks):
+
+```bash
+bash scripts/ci/validate_discovery_executor.sh
+bash scripts/ci/validate_batch17_smoke.sh
+```
+
+The Batch 17 live kind-cluster probe
+(`scripts/validate/discovery_executor_kind_integration.sh`) is never
+CI-gated and refuses contexts not created by kind.
+
+Run the full report-generating aggregator across every registered
+batch (currently 1-9, 9A, 10-17):
 
 ```bash
 bash scripts/ci/validate_all_batches_with_report.sh
@@ -256,6 +268,9 @@ The `.github/workflows/ci.yaml` workflow enforces:
 - AI agent boundary, governance, state, and MCP contract validation (Batch 14)
 - AI runtime, MCP read-path, multi-agent, KHook, action-gate, and KAgent
   release scaffolding validation (Batch 14)
+- tenancy contract validation (Batch 15)
+- management plane contract validation (Batch 16)
+- discovery executor validation (Batch 17)
 - GitOps structure checks
 - no hard-coded environment value checks
 - runbook baseline checks

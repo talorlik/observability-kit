@@ -340,6 +340,7 @@ Report outputs:
 - `docs/runbooks/CASEFILE_REVIEW_RUNBOOK.md`
 - `docs/runbooks/SAAS_TENANCY_RUNBOOK.md`
 - `docs/runbooks/UNIFIED_CONFIGURATION_RUNBOOK.md`
+- `docs/runbooks/DISCOVERY_EXECUTOR_OPERATOR_GUIDE.md`
 
 ## Project-Local Snyk Path
 
