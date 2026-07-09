@@ -13,6 +13,24 @@ first. Entry format:
 - Follow-up: <action for a future batch, or "none">
 ```
 
+## 2026-07-09 - Batch n/a - Production Validation Deferred
+
+- Decision: production-cluster validation is deferred to a separate,
+  owner-initiated engagement after GA readiness. Batches 17-26
+  complete entirely on the local stacks; autonomous runs must never
+  provision, modify, or delete cloud resources. The EKS contexts in
+  the local kubeconfig are stale remnants of a decommissioned
+  cluster, not targets. The isolated-kubeconfig fencing in the
+  harness contract stays: it costs one flag and protects exactly the
+  end-stage moment when a live production cluster context appears.
+- Why: owner direction (production tests at the very end, on a
+  cluster spun up for that purpose); prevents an autonomous session
+  from interpreting "production tests" as license to create billable
+  infrastructure.
+- Follow-up: post-GA, provision a short-lived production-grade
+  cluster, install with the prod overlay, run readiness plus
+  reference-architecture conformance, capture evidence, tear down.
+
 ## 2026-07-09 - Batch n/a - Deployment Stack Roles
 
 - Decision: three cluster roles are now contract-fixed. Development
