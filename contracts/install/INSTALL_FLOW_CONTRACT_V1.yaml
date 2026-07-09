@@ -1,0 +1,194 @@
+# Guided install flow contract (Batch 18 Task 1, TR-19).
+#
+# Fixes the step order the guided installer executes and the invariants
+# every step honors. The installer (`obskit install`, tools/obskit/)
+# loads this contract at runtime and asserts its own step sequence
+# against it, so order drift between contract and implementation fails
+# loudly instead of shipping.
+#
+# Decided by docs/adr/ADR_0002_GUIDED_INSTALL_FLOW.md. The flow
+# composes the Batch 17 executor (preflight, discovery, evaluation) and
+# the Batch 1 install contract schema; rendering follows the GitOps-only
+# propagation rules of the Batch 16 management plane.
+
+metadata:
+  contract: guided-install-flow
+  version: v1
+  owner: platform-observability
+  technical_requirements:
+    - TR-05
+    - TR-14
+    - TR-19
+  decided_by: docs/adr/ADR_0002_GUIDED_INSTALL_FLOW.md
+  validated_by: scripts/ci/validate_guided_installer.sh
+  related_contracts:
+    - contracts/install/INSTALL_CONTRACT_SCHEMA.json
+    - contracts/discovery/EXECUTOR_ARCHITECTURE_CONTRACT_V1.yaml
+    - contracts/management/PROPAGATION_RECONCILIATION_CONTRACT_V1.yaml
+
+runtime:
+  package_root: tools/obskit/
+  entry_point: obskit install
+  modes:
+    interactive: >-
+      Prompts collect every answer the install contract schema
+      requires; captured answers are recorded to answers.json so the
+      run is reproducible non-interactively.
+    non_interactive: >-
+      obskit install --answers <file> drives exactly the same step
+      sequence with no prompts; parity with interactive mode is a
+      contract invariant, not a convenience.
+
+# The contracted step order. Steps run strictly in ascending order;
+# each step declares what it emits and what halts the flow. The
+# installer must execute exactly these step ids in exactly this order.
+steps:
+  - id: preflight
+    order: 1
+    description: >-
+      Run every contracted preflight check class via the Batch 17
+      executor and emit a schema-conformant preflight report.
+    emits:
+      - preflight_report.json
+    halt_if: >-
+      any preflight check class reports status fail; remediation
+      guidance accompanies the halt.
+  - id: grading
+    order: 2
+    description: >-
+      Derive the capability matrix, compatibility result, and
+      remediation list from the preflight and discovery outputs using
+      the Batch 2 contract files, via the Batch 17 evaluation engine.
+    emits:
+      - capability_matrix.json
+      - compatibility_result.json
+      - remediation_list.json
+    halt_if: >-
+      the compatibility grade is blocked; the remediation list is the
+      operator's fix path.
+  - id: mode-recommendation
+    order: 3
+    description: >-
+      Resolve the deployment mode recommendation from the mode
+      decision table; the recommendation seeds the contract-capture
+      step's deployment_mode answer.
+    emits:
+      - mode_recommendation.json
+    halt_if: no rule in the mode decision table matches the inputs.
+  - id: contract-capture
+    order: 4
+    description: >-
+      Capture install answers interactively or from --answers, then
+      validate them against the install contract schema. Validation
+      failure halts the flow before any render or bootstrap step
+      executes, with a non-zero exit code.
+    emits:
+      - answers.json
+      - install_contract.json
+    halt_if: >-
+      the captured answers do not validate against
+      contracts/install/INSTALL_CONTRACT_SCHEMA.json.
+  - id: render
+    order: 5
+    description: >-
+      Turn the validated install contract into an environment overlay
+      deterministically. Rendering writes files only and performs no
+      cluster API writes; re-rendering the same contract produces
+      byte-identical output.
+    emits:
+      - rendered/overlays/<environment>/platform-core-values.yaml
+    halt_if: rendered output fails its structural self-check.
+  - id: argocd-bootstrap
+    order: 6
+    description: >-
+      Emit the Argo CD bootstrap manifests for the rendered overlay
+      and print the operator apply instruction. The installer never
+      applies manifests itself: committing rendered output to the
+      GitOps repository and bootstrapping the controller are operator
+      actions, keeping propagation GitOps-only.
+    emits:
+      - rendered/bootstrap/argocd/kustomization.yaml
+      - rendered/bootstrap/argocd/platform-core-application.yaml
+    halt_if: bootstrap manifests fail their structural self-check.
+  - id: post-install-readiness
+    order: 7
+    description: >-
+      Invoke scripts/validate/post_install_readiness.sh and emit the
+      install summary with readiness results and next steps. A failed
+      readiness check yields a non-zero installer exit code.
+    emits:
+      - install_summary.json
+    halt_if: the post-install readiness check exits non-zero.
+
+invariants:
+  answers_validate_before_render: >-
+    Captured answers always validate against
+    contracts/install/INSTALL_CONTRACT_SCHEMA.json; invalid answers
+    fail the run with a non-zero exit code before any render or
+    bootstrap step executes.
+  non_interactive_parity: >-
+    An answers file drives exactly the flow the interactive wizard
+    drives, and every interactive run is reproducible from its
+    recorded answers.json.
+  idempotent_and_resumable: >-
+    Re-running a completed install changes nothing and exits zero; a
+    failed run resumes from the first incomplete step, keyed by the
+    install_state.json journal and input digests. Digests key on
+    recorded snapshot inputs: in live mode the cluster-reading steps
+    (preflight, grading, mode recommendation, readiness) always
+    re-execute, because live cluster state has no stable digest.
+  gitops_only_render: >-
+    The render and bootstrap steps emit overlay and bootstrap
+    manifests for the GitOps controller and perform no direct mutable
+    API writes for persistent configuration, per
+    contracts/management/PROPAGATION_RECONCILIATION_CONTRACT_V1.yaml.
+  generated_file_header: >-
+    Every rendered file carries the generated-file header marker so
+    hand edits are detectable and the renderer stays the only writer.
+  wrap_never_fork: >-
+    The installer never forks or patches wrapped open-source systems;
+    configuration flows only through allowed wrap methods.
+  provider_neutral_core: >-
+    The installer core has no provider-specific dependency; provider
+    specifics enter only through adapters.
+  deterministic_outputs: >-
+    Identical answers and cluster inputs produce byte-identical
+    reports and rendered manifests; the install_state.json journal is
+    the only mutable artifact and carries no determinism claim.
+
+compliance:
+  rules:
+    - id: fail_if_step_order_changed
+      severity: error
+      fail_if: >-
+        the installer executes steps in any order other than the one
+        this contract fixes, or skips a step without recording it as
+        complete in a prior run.
+      reason: >-
+        TR-19 fixes the flow order by contract; an out-of-order or
+        skipped step invalidates every downstream artifact.
+    - id: fail_if_invalid_answers_reach_render
+      severity: error
+      fail_if: >-
+        a render or bootstrap step executes for answers that did not
+        validate against the install contract schema.
+      reason: >-
+        Rendering an invalid contract produces manifests with no
+        contractual source of truth.
+    - id: fail_if_installer_writes_cluster_api
+      severity: error
+      fail_if: >-
+        any install step performs a direct mutable cluster API write
+        for persistent configuration.
+      reason: >-
+        Propagation is GitOps-only (TR-17); installer-applied state
+        has no rendered source of truth and cannot be rolled back by
+        Git revert.
+    - id: fail_if_render_not_byte_identical
+      severity: error
+      fail_if: >-
+        re-rendering the same validated install contract produces
+        output that differs byte-for-byte from the prior render.
+      reason: >-
+        Determinism is what makes resume, drift detection, and
+        captured evidence sound.

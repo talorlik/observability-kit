@@ -28,7 +28,12 @@
     },
     "deployment_mode": {
       "type": "string",
-      "enum": ["quickstart", "attach", "standalone", "hybrid"]
+      "enum": [
+        "quickstart",
+        "attach",
+        "standalone",
+        "hybrid"
+      ]
     },
     "gitops_repo_url": {
       "type": "string",
@@ -104,13 +109,27 @@
       "if": {
         "properties": {
           "deployment_mode": {
-            "enum": ["attach", "hybrid"]
+            "enum": [
+              "attach",
+              "hybrid"
+            ]
           }
         },
-        "required": ["deployment_mode"]
+        "required": [
+          "deployment_mode"
+        ]
       },
       "then": {
-        "required": ["attached_services"]
+        "required": [
+          "attached_services"
+        ],
+        "properties": {
+          "attached_services": {
+            "required": [
+              "opensearch_endpoint"
+            ]
+          }
+        }
       }
     }
   ]

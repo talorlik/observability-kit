@@ -1,0 +1,18 @@
+{
+  "cluster_name": "reference-cluster",
+  "environment": "dev",
+  "deployment_mode": "hybrid",
+  "gitops_repo_url": "https://git.example.com/platform/observability-gitops.git",
+  "gitops_path": "clusters/dev/platform",
+  "base_domain": "observability.example.com",
+  "storage_profile": "standard-rwo",
+  "object_storage_profile": "s3-compatible",
+  "identity_profile": "oidc",
+  "secret_profile": "external-secrets",
+  "ingress_profile": "nginx-ingress",
+  "attached_services": {
+    "opensearch_endpoint": "https://opensearch.observability.example.com:9200",
+    "dashboards_endpoint": "https://dashboards.observability.example.com",
+    "otlp_endpoint": "https://otlp.observability.example.com:4317"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "cluster_name": "staging-shared",
+  "environment": "staging",
+  "deployment_mode": "attach",
+  "gitops_repo_url": "https://github.com/example/observability-kit-gitops.git",
+  "gitops_path": "clusters/staging-shared",
+  "base_domain": "staging.example.internal",
+  "storage_profile": "standard",
+  "object_storage_profile": "s3-compatible",
+  "identity_profile": "oidc",
+  "secret_profile": "external-secrets",
+  "ingress_profile": "nginx",
+  "attached_services": {
+    "opensearch_endpoint": "https://opensearch.staging.example.internal:9200",
+    "dashboards_endpoint": "https://dashboards.staging.example.internal",
+    "otlp_endpoint": "https://otel-gateway.staging.example.internal:4317"
+  }
+}

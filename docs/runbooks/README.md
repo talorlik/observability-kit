@@ -46,6 +46,7 @@ the install entrypoint below.
 | 15    | `SAAS_TENANCY_RUNBOOK.md`                                | Tenant onboarding, isolation verification, lifecycle, purge drill  |
 | 16    | `UNIFIED_CONFIGURATION_RUNBOOK.md`                       | Unified config change flow, drift response, per-system upgrades    |
 | 17    | `DISCOVERY_EXECUTOR_OPERATOR_GUIDE.md`                   | obskit executor: CLI and Job runs, RBAC, reports, remediation      |
+| 18    | `GUIDED_INSTALLATION_GUIDE.md`                           | Guided installer: wizard, answers files, resume, readiness         |
 
 ## Conventions
 

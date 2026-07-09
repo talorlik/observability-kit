@@ -85,7 +85,7 @@ bash scripts/ci/check_no_hardcoded_env_values.sh
 bash scripts/ci/validate_all_batches_with_report.sh
 # Reports written to docs/reports/validation/
 # Covers every batch registered in its BATCH_IDS array (currently
-# 1-9A, 10-17; new batches register themselves when implemented).
+# 1-9A, 10-18; new batches register themselves when implemented).
 ```
 
 ### Running a Single Batch
@@ -111,6 +111,7 @@ bash scripts/ci/validate_batch14_smoke.sh              # Batch 14 (AI/MCP)
 bash scripts/ci/validate_tenancy_contracts.sh          # Batch 15
 bash scripts/ci/validate_management_plane_contracts.sh # Batch 16
 bash scripts/ci/validate_discovery_executor.sh         # Batch 17
+bash scripts/ci/validate_guided_installer.sh           # Batch 18
 ```
 
 Batch 17 delivers the `obskit` executor runtime under `tools/obskit/`
@@ -120,10 +121,16 @@ tests live in `tests/executor/`; the live kind probe is
 `scripts/validate/discovery_executor_kind_integration.sh` (never
 CI-gated).
 
-Batches 18-26 (SaaS productization: guided installer, config
-renderer, tenant control plane, portal, billing, live-cluster
-validation, AI activation, release engineering, product docs) are
-authored in `TASKS.md` but not yet implemented. Their plan is
+Batch 18 adds the guided installer on top of it: the `obskit install`
+subcommand (`tools/obskit/obskit/install/`) executes the seven-step
+flow fixed by `contracts/install/INSTALL_FLOW_CONTRACT_V1.yaml`
+(ADR-0002), emits GitOps-only rendered output, and is tested offline
+in `tests/installer/`.
+
+Batches 19-26 (SaaS productization: config renderer, tenant control
+plane, portal, billing, live-cluster validation, AI activation,
+release engineering, product docs) are authored in `TASKS.md` but not
+yet implemented. Their plan is
 `docs/auxiliary/planning/SAAS_PRODUCTIZATION_PLAN.md`; execute them via
 `/run-batch <N>` or the prompt in
 `docs/auxiliary/task_execution/SAAS_EXECUTION_PROMPT.md`.
