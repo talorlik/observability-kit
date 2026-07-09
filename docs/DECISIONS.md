@@ -13,6 +13,38 @@ first. Entry format:
 - Follow-up: <action for a future batch, or "none">
 ```
 
+## 2026-07-09 - Batch 17 - Discovery Executor Architecture Calls
+
+- Decision: `docs/adr/ADR_0001_DISCOVERY_EXECUTOR_ARCHITECTURE.md`
+  fixes the executor shape (Python 3.11+ `obskit` under
+  `tools/obskit/`, stdlib-only core, Kubernetes client as a lazy
+  `[k8s]` extra pinned to 36.0.2 - PyPI-verified latest, re-pin in
+  Batch 25). Non-obvious calls beyond the ADR: (1) RBAC grants zero
+  Secret access - stronger than the "metadata-only" TR-18 wording -
+  because secret integrations are detected via CRDs and workloads;
+  (2) the blocked-condition codes of GRADING_RULES.json map to
+  evaluation dimensions via a `BlockedCodeBindings` dataclass whose
+  field names are validated against the contract in BOTH directions
+  at load (contract growth or shrinkage fails loudly) - the one
+  sanctioned exception to "no decision rules in code", since the
+  contract has no machine-readable code-to-dimension mapping;
+  (3) preflight classifies missing-default-storage-class and
+  no-gitops-controller as `warn` (exit 0) because the Batch 18
+  installer remediates both; (4) reader accessors raising mid-check
+  (live partial RBAC) yield `fail`/`check_execution_error`, never a
+  traceback; (5) CronJobs were added to LiveReader, RBAC
+  (`batch/cronjobs`), and READ_PERMISSIONS for live/fixture report
+  parity.
+- Why: TR-18 hard constraints (offline lint-only CI, byte-identical
+  determinism, contract-sourced grading) plus code-review findings on
+  live-mode robustness and parity.
+- Follow-up: `kind` is deliberately absent from
+  COMPATIBILITY_MATRIX.json distributions, so live runs on the kind
+  evidence harness grade `blocked`/`unsupported_distribution`.
+  Batches 18 and 23 must decide deliberately: add `kind` to the
+  matrix as a conditional distribution (contract change with samples)
+  or capture the blocked grade as expected harness evidence.
+
 ## 2026-07-09 - Batch n/a - Session-Based Batch Execution
 
 - Decision: Batches 17-26 execute one per fresh session, in numeric

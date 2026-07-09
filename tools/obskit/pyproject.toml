@@ -1,0 +1,27 @@
+# Dependency manifest for the obskit discovery/preflight executor
+# (Batch 17, TR-18). This package owns its dependencies; nothing here
+# is ever added to requirements-ci.txt, which stays lint-only.
+#
+# The core is standard-library-only so CI can exercise the full engine
+# offline with no pip install. The Kubernetes client is an optional
+# extra used exclusively by the live-cluster reader.
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "obskit"
+version = "0.1.0"
+description = "Observability Kit discovery and preflight execution engine"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+k8s = ["kubernetes==36.0.2"]
+
+[project.scripts]
+obskit = "obskit.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["obskit*"]

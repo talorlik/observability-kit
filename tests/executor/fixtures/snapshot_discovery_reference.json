@@ -1,0 +1,119 @@
+{
+  "cluster": {
+    "name": "reference-cluster",
+    "kubernetes_version": "1.29",
+    "distribution": "kind"
+  },
+  "connectivity": true,
+  "api_versions": [
+    "v1",
+    "apps/v1",
+    "networking.k8s.io/v1",
+    "storage.k8s.io/v1"
+  ],
+  "crds": [
+    "applications.argoproj.io",
+    "appprojects.argoproj.io",
+    "clustersecretstores.external-secrets.io",
+    "externalsecrets.external-secrets.io",
+    "gatewayclasses.gateway.networking.k8s.io",
+    "gateways.gateway.networking.k8s.io",
+    "httproutes.gateway.networking.k8s.io"
+  ],
+  "storage_classes": [
+    {
+      "name": "standard-rwo",
+      "provisioner": "kubernetes.io/no-provisioner",
+      "default": true
+    },
+    {
+      "name": "nfs-rwx",
+      "provisioner": "nfs.csi.k8s.io",
+      "default": false
+    }
+  ],
+  "ingress_classes": [
+    {
+      "name": "nginx",
+      "controller": "k8s.io/ingress-nginx"
+    }
+  ],
+  "namespaces": [
+    "argocd",
+    "default",
+    "external-secrets",
+    "ingress-nginx",
+    "kube-system",
+    "payments",
+    "platform"
+  ],
+  "workloads": [
+    {
+      "namespace": "argocd",
+      "name": "argocd-application-controller",
+      "kind": "StatefulSet"
+    },
+    {
+      "namespace": "argocd",
+      "name": "argocd-repo-server",
+      "kind": "Deployment"
+    },
+    {
+      "namespace": "external-secrets",
+      "name": "external-secrets",
+      "kind": "Deployment"
+    },
+    {
+      "namespace": "ingress-nginx",
+      "name": "ingress-nginx-controller",
+      "kind": "Deployment"
+    },
+    {
+      "namespace": "kube-system",
+      "name": "kube-proxy",
+      "kind": "DaemonSet"
+    },
+    {
+      "namespace": "payments",
+      "name": "checkout-api",
+      "kind": "Deployment"
+    },
+    {
+      "namespace": "payments",
+      "name": "ledger-sync",
+      "kind": "CronJob"
+    },
+    {
+      "namespace": "platform",
+      "name": "reporting-worker",
+      "kind": "Deployment"
+    }
+  ],
+  "services": [
+    {
+      "namespace": "default",
+      "name": "kubernetes",
+      "ports": [443]
+    },
+    {
+      "namespace": "kube-system",
+      "name": "kube-dns",
+      "ports": [53]
+    },
+    {
+      "namespace": "payments",
+      "name": "checkout-api",
+      "ports": [80, 9090]
+    },
+    {
+      "namespace": "platform",
+      "name": "internal-notifier",
+      "ports": []
+    },
+    {
+      "namespace": "platform",
+      "name": "reporting-worker",
+      "ports": [8080]
+    }
+  ]
+}

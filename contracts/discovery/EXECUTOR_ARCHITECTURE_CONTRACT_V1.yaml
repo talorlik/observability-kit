@@ -1,0 +1,108 @@
+# Executor architecture contract for the discovery and preflight
+# execution engine (Batch 17 Task 1, TR-18).
+#
+# Machine-readable statement of the boundaries decided in
+# docs/adr/ADR_0001_DISCOVERY_EXECUTOR_ARCHITECTURE.md. The executor
+# turns the Batch 2/3 preflight and discovery contracts into a runtime
+# that runs against a live cluster. It observes only: it never mutates
+# cluster state and never modifies a wrapped open-source system.
+#
+# Consumed by:
+#   - scripts/ci/validate_discovery_executor.sh (structural checks)
+#   - tools/obskit/ (the implementation these boundaries govern)
+#   - Batch 18 guided installer (composes the executor per TR-19)
+
+metadata:
+  contract: discovery-executor-architecture
+  version: v1
+  owner: platform-observability
+  technical_requirements:
+    - TR-04
+    - TR-05
+    - TR-18
+  decided_by: docs/adr/ADR_0001_DISCOVERY_EXECUTOR_ARCHITECTURE.md
+  validated_by: scripts/ci/validate_discovery_executor.sh
+
+runtime:
+  language: python
+  minimum_version: "3.11"
+  package_root: tools/obskit/
+  package_name: obskit
+  dependency_manifest: tools/obskit/pyproject.toml
+  pinned_requirements: tools/obskit/requirements.txt
+  # requirements-ci.txt stays lint-only; the executor never extends it.
+  extends_requirements_ci: false
+  core_dependencies: stdlib-only
+  optional_extras:
+    - name: k8s
+      purpose: live-cluster reader (Kubernetes API client)
+      import_policy: lazy, live mode only
+  typing:
+    type_hints: mandatory
+    structured_data: frozen-dataclasses
+
+entrypoints:
+  cli:
+    command: obskit
+    framework: argparse
+    subcommands:
+      - preflight
+      - discover
+      - evaluate
+  in_cluster_job:
+    optional: true
+    same_code_path_as_cli: true
+    reports_interchangeable_with_cli: true
+
+cluster_access:
+  mode: read-only
+  rbac_manifest: tools/obskit/rbac/obskit-readonly-rbac.yaml
+  allowed_verbs:
+    - get
+    - list
+    - watch
+  secret_policy:
+    read_values: false
+    rbac_grants_secret_access: false
+    detection_of_secret_integrations: crds-and-workloads-only
+
+input_backends:
+  interface: ClusterReader
+  backends:
+    - name: live
+      source: kubernetes-api
+      requires_extra: k8s
+    - name: fixture
+      source: recorded-cluster-snapshot
+      drives_ci: true
+  identical_evaluation_path: true
+
+outputs:
+  determinism:
+    byte_identical_for_identical_inputs: true
+    stable_ordering: true
+    environment_dependent_fields_outside_metadata: false
+  reports:
+    - kind: preflight
+      schema: contracts/discovery/PREFLIGHT_REPORT_SCHEMA.json
+    - kind: discovery
+      schema: contracts/discovery/DISCOVERY_PROBES_SCHEMA.json
+  derived_results:
+    - kind: capability-matrix
+    - kind: compatibility-grade
+      rules: contracts/compatibility/GRADING_RULES.json
+    - kind: mode-recommendation
+      rules: contracts/compatibility/MODE_DECISION_TABLE.json
+    - kind: remediation-list
+      rules: contracts/compatibility/REMEDIATION_CATALOG.json
+  hardcoded_decision_rules: forbidden
+
+neutrality:
+  provider_specific_dependencies: forbidden
+  provider_detection_surface: adapter-contracts-only
+
+validation:
+  ci_mode: offline-fixture-driven
+  live_integration:
+    target: kind
+    ci_gated: false

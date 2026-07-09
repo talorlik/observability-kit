@@ -88,6 +88,9 @@ jobs:
       - name: Management plane contract checks
         run: bash scripts/ci/validate_management_plane_contracts.sh
 
+      - name: Discovery executor checks
+        run: bash scripts/ci/validate_discovery_executor.sh
+
       - name: Preflight and discovery checks
         run: bash scripts/ci/validate_preflight_and_discovery.sh
 

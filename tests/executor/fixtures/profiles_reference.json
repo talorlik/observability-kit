@@ -1,0 +1,4 @@
+{
+  "identity": "oidc",
+  "object_storage": "s3-compatible"
+}
