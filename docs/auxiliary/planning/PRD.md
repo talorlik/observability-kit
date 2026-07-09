@@ -371,6 +371,132 @@ configuration and management plane:
 - a single-pane UI catalog with consistent authentication mapping
 - no forks of wrapped open-source systems
 
+#### FR-033 Discovery Execution Engine
+
+The product shall execute the contracted preflight checks and discovery
+probes against a live cluster:
+
+- read-only execution under least-privilege RBAC
+- preflight and discovery reports conforming to the published schemas
+- generated capability matrix, compatibility grade, mode
+  recommendation, and remediation list
+- interchangeable CLI and in-cluster execution modes
+- deterministic outputs validated offline with fixtures in CI
+
+#### FR-034 Guided Installation Experience
+
+The product shall provide a guided installation flow from preflight to
+verified readiness:
+
+- an interactive wizard covering preflight, grading, mode
+  recommendation, install contract capture, render, bootstrap, and
+  readiness
+- a fully non-interactive mode with identical behavior from an answers
+  file
+- GitOps-only rendering of environment overlays and bootstrap manifests
+- idempotent, resumable installation runs
+- an install summary with readiness evidence and next steps
+
+#### FR-035 Configuration Rendering Runtime
+
+The product shall execute unified configuration propagation as a
+deterministic rendering runtime:
+
+- rendered native configuration at each binding's declared render
+  target
+- byte-identical outputs for identical inputs, with no-diff no-commit
+  behavior for unchanged documents
+- generated-file headers and commit trailers on all rendered output
+- rendered-versus-live drift detection feeding platform alerting
+- rollback by re-rendering a prior configuration revision
+
+#### FR-036 Tenant Control Plane
+
+The product shall manage the tenant lifecycle through a control-plane
+service:
+
+- an API for tenant CRUD and lifecycle transitions matching the
+  contracted state machine
+- lifecycle execution as GitOps renders of per-tenant overlays
+- provisioning of per-tenant isolation artifacts across all stores
+- approval-gated destructive transitions with tenant-scoped audit
+  records
+- seeded denial fixtures proving unapproved operations are rejected
+
+#### FR-037 Unified Management Portal
+
+The product shall provide a single management portal:
+
+- navigation to every cataloged wrapped UI
+- unified configuration editing with schema validation, committed
+  through Git only
+- tenant management views backed by the control-plane API
+- SSO with role mapping and tenant-scoped access
+- a platform health summary
+
+#### FR-038 Metering and Billing
+
+The product shall meter usage and support commercial operations:
+
+- contracted usage dimensions sourced from existing platform telemetry
+- usage records in control-plane indices, always tenant-attributed
+- a plan catalog bound to tenant tiers with enforced quota bounds
+- vendor-neutral billing through the adapter pattern with a Stripe
+  reference stub and invoice export
+- seeded rejection of unattributed usage and unbounded plans
+
+#### FR-039 Live-Cluster Validation Evidence
+
+The product shall prove declared runtime behavior on a live cluster:
+
+- a contracted disposable kind/k3d harness with guaranteed teardown
+- a full end-to-end install performed only by the guided installer
+- live execution of every runtime-only completion check, including
+  restore and rollback drills, GUI smoke, and cross-tenant denials
+- captured evidence artifacts referenced additively from validation
+  contracts, never replacing declared blocks
+- live runs kept out of PR gating, with an optional nightly workflow
+
+#### FR-040 AI/MCP Runtime Activation
+
+The product shall activate the AI/MCP runtime live:
+
+- a pluggable model-provider adapter with an Anthropic API reference
+  adapter, keys resolved through the secrets backend and never stored
+  in configuration
+- live deployment of KAgent, KHook, and the MCP gateway with catalog
+  and governance contracts enforced
+- a rehearsed trigger-to-approval flow with a human-surrogate
+  approval step
+- an executed go/no-go signoff with captured threshold evidence
+
+#### FR-041 Release Engineering and Upgrades
+
+The product shall ship as a versioned, upgradable release:
+
+- semver tags, a changelog convention, and tag-driven releases
+- packaged Helm charts and OCI artifacts with a defined signing
+  posture
+- concrete version pins for all wrapped systems in production
+  profiles
+- a proven N-1 to N upgrade path preserving data and configuration
+- image scanning, SBOM generation, and OSS license compliance for
+  commercial distribution
+
+#### FR-042 Product Documentation Set
+
+The product shall ship a complete product documentation set:
+
+- a `docs/product/` tree with an index and audience map
+- guides for evaluation, installation, configuration, operations,
+  tenant administration, and end users
+- an API reference generated from the control-plane OpenAPI contract
+- commercial pricing, packaging, and support documentation
+- a docs-coverage check mapping every productization capability to a
+  documentation section, plus link validation
+- a signed GA readiness review walking the productization definition
+  of done
+
 ### 6.2 Non-Functional Requirements
 
 #### NFR-001 Reliability
@@ -511,6 +637,17 @@ Before LLM-assisted RCA:
 - Hybrid retrieval orchestrator operational
 - RCA copilot API or UI available
 - Governance controls and evaluation evidence complete
+
+### Phase 6 - SaaS Productization
+
+- Discovery execution and guided installation operational end to end
+- Unified configuration rendering and drift detection operational
+- Tenant control plane, management portal, and metering operational
+- Live-cluster evidence captured for every runtime-only check
+- AI/MCP runtime activated live with a recorded go/no-go signoff
+- Versioned release pipeline with N-1 upgrade test, SBOM, and license
+  compliance complete
+- Product documentation set published and GA readiness review signed
 
 ## 8. Acceptance and Definition of Done
 

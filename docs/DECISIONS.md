@@ -13,6 +13,27 @@ first. Entry format:
 - Follow-up: <action for a future batch, or "none">
 ```
 
+## 2026-07-09 - Batch n/a - SaaS Productization Backlog (17-26)
+
+- Decision: authored Batches 17-26 and TR-18..TR-26 as the complete
+  gap-closure backlog from validated blueprint to operational SaaS,
+  governed by `SAAS_PRODUCTIZATION_PLAN.md` and executable via
+  `SAAS_EXECUTION_PROMPT.md`. Key calls: runtime tooling is Python
+  3.11+ under `tools/obskit/` and `services/` with dependency
+  manifests separate from `requirements-ci.txt`; every implementation
+  batch starts with an ADR; live-cluster batches (23-24) use
+  disposable kind/k3d clusters and are never PR-gated; billing and
+  model providers are adapter-class integrations to stay
+  vendor-neutral; the Batch 26 filenames in TASKS.md are authoritative
+  over the plan's documentation table.
+- Why: keeps the productization work inside the same contract-first,
+  wave-executed, evidence-gated methodology that built batches 1-16,
+  and keeps the core cloud-agnostic while commercial and AI vendor
+  choices stay swappable.
+- Follow-up: execute batches 17-26 in order; reconcile the plan's
+  documentation table if Batch 26 deliverables change during
+  execution.
+
 ## 2026-07-09 - Batch 16 - Management Plane Semantics
 
 - Decision: three load-bearing choices made during Batch 16. (1) The

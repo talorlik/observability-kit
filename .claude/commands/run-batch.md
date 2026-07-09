@@ -1,5 +1,5 @@
 ---
-description: Execute one Observability Kit batch (1-14 or 9A) end to end with multi-agent waves - worktree, tasks, gates, self-correction, squash-merge. Usage /run-batch <ID>
+description: Execute one Observability Kit batch (any batch defined in TASKS.md, e.g. 1-26 or 9A) end to end with multi-agent waves - worktree, tasks, gates, self-correction, squash-merge. Usage /run-batch <ID>
 argument-hint: <batch id, e.g. 7 or 9A>
 ---
 
