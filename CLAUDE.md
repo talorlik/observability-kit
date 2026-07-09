@@ -30,6 +30,15 @@ Primary languages: Bash, Python, Terraform, Helm/YAML.
 
 ## Common Commands
 
+### Running a Build Batch
+
+`/run-batch <ID>` (defined in `.claude/commands/run-batch.md`) executes one
+`TASKS.md` batch end to end: worktree, wave-based multi-agent task
+execution, validation gates with self-correction, squash-merge into local
+`main`, and decision capture into `docs/DECISIONS.md`. Wave plans and
+orchestration rules live in
+`docs/auxiliary/task_execution/MULTI_AGENT_BATCH_EXECUTION.md`.
+
 ### Setup
 
 ```bash
