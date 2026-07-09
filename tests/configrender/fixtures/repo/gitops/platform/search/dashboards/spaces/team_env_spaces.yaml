@@ -1,0 +1,10 @@
+spaces:
+  - id: team-a-dev
+    name: Team A Dev
+    disabledFeatures: []
+  - id: team-b-dev
+    name: Team B Dev
+    disabledFeatures: []
+  - id: platform-ops
+    name: Platform Ops
+    disabledFeatures: []

@@ -1,0 +1,21 @@
+tracesPipeline:
+  enabled: true
+  otlp:
+    tracesReceiver:
+      protocols:
+        grpc: {}
+        http:
+          endpoint: 0.0.0.0:4318
+  sampling:
+    default:
+      sampler: parentbased_traceidratio
+      ratio: 0.1
+    environmentOverrides:
+      dev: 1.0
+      staging: 0.2
+      prod: 0.05
+  processors:
+    - k8sattributes
+    - resource
+    - memory_limiter
+    - batch

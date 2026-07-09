@@ -94,6 +94,9 @@ jobs:
       - name: Guided installer checks
         run: bash scripts/ci/validate_guided_installer.sh
 
+      - name: Config renderer checks
+        run: bash scripts/ci/validate_config_renderer.sh
+
       - name: Preflight and discovery checks
         run: bash scripts/ci/validate_preflight_and_discovery.sh
 

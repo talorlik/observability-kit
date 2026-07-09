@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana
+  namespace: argocd
+  labels:
+    app.kubernetes.io/component: visualization
+    observability-kit.io/batch: "9A"
+spec:
+  project: default
+  # Multi-source Application: the chart comes from the upstream Grafana Helm
+  # repository (wrap, don't fork) and the values come from this repo via the
+  # $values ref. Grafana is a mandatory baseline component per
+  # contracts/visualization/SIGNAL_UI_OWNERSHIP.yaml (grafana_mandatory_core),
+  # so there is intentionally no enable/disable flag on this Application.
+  sources:
+    - repoURL: https://grafana.github.io/helm-charts
+      chart: grafana
+      # Pin the upstream chart version explicitly so upgrades are deliberate
+      # GitOps changes, never implicit drift from the upstream repo.
+      targetRevision: 10.5.15
+      helm:
+        releaseName: grafana
+        valueFiles:
+          - $values/gitops/platform/observability/grafana/values/grafana-values.yaml
+    - repoURL: https://github.com/example/observability-kit.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

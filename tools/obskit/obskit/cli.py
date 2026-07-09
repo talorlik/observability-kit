@@ -1,7 +1,7 @@
 """obskit command-line interface.
 
-Subcommands: preflight, discover, evaluate, install. The optional
-in-cluster
+Subcommands: preflight, discover, evaluate, install, render, drift,
+rollback. The optional in-cluster
 Job mode runs this same CLI in a container - one code path, so CLI and
 Job reports are interchangeable (TR-18).
 
@@ -208,6 +208,125 @@ def build_parser() -> argparse.ArgumentParser:
         "(default: auto)",
     )
 
+    render = subparsers.add_parser(
+        "render",
+        help="render the unified configuration document to native "
+        "configs at each binding's render_target, plus the render "
+        "manifest and prepared commit message (TR-20, GitOps-only)",
+    )
+    render.add_argument(
+        "--document",
+        required=True,
+        help="unified configuration document as JSON, validated "
+        "against contracts/management/UNIFIED_CONFIG_SCHEMA_V1.json",
+    )
+    render.add_argument(
+        "--contracts-dir",
+        default="contracts",
+        help="repository contracts directory holding the management "
+        "plane contracts (default: ./contracts)",
+    )
+    render.add_argument(
+        "--repo-root",
+        default=".",
+        help="repository root render targets are written under "
+        "(default: .)",
+    )
+    render.add_argument(
+        "--manifest-out",
+        help="override path for the render manifest (default: "
+        "<repo-root>/gitops/UNIFIED_CONFIG_RENDER_MANIFEST.json)",
+    )
+    render.add_argument(
+        "--commit-message-out",
+        help="write the prepared propagation commit message (with "
+        "the required trailers) to this path",
+    )
+    render.add_argument(
+        "--check",
+        action="store_true",
+        help="plan only: exit 3 listing targets that would change, "
+        "exit 0 when the tree already matches (no diff, no commit)",
+    )
+
+    drift = subparsers.add_parser(
+        "drift",
+        help="compare expected rendered bytes against a target tree "
+        "and emit the rendered-versus-live diff surface consumed by "
+        "the TR-12 drift alert path (read-only; exit 0 clean, 3 "
+        "drift detected)",
+    )
+    drift.add_argument(
+        "--document",
+        help="unified configuration document as JSON, validated "
+        "against contracts/management/UNIFIED_CONFIG_SCHEMA_V1.json",
+    )
+    drift.add_argument(
+        "--contracts-dir",
+        default="contracts",
+        help="repository contracts directory holding the management "
+        "plane contracts (default: ./contracts)",
+    )
+    drift.add_argument(
+        "--repo-root",
+        default=".",
+        help="target tree holding the live rendered state to diff "
+        "against (default: .); never written to",
+    )
+    drift.add_argument(
+        "--report-out",
+        help="also write the drift report to this path (must resolve "
+        "inside --repo-root); the report always goes to stdout",
+    )
+
+    rollback = subparsers.add_parser(
+        "rollback",
+        help="re-render a prior unified document revision through "
+        "the identical render-and-commit pipeline (never a separate "
+        "apply channel); dry-run by default",
+    )
+    rollback.add_argument(
+        "--document",
+        help="prior-revision unified configuration document as JSON",
+    )
+    rollback.add_argument(
+        "--mode",
+        choices=["dry-run", "real"],
+        default="dry-run",
+        help="dry-run (default): plan the rollback re-render and "
+        "report without writing anything; real: execute the "
+        "re-render and re-verify the tree afterwards",
+    )
+    rollback.add_argument(
+        "--expected-manifest",
+        help="render manifest previously committed for the prior "
+        "document revision; the planned manifest must be "
+        "byte-identical (deterministic rollback proof) or the "
+        "rollback refuses to proceed in either mode",
+    )
+    rollback.add_argument(
+        "--report-out",
+        help="also write the rollback report JSON to this path "
+        "(must resolve inside --repo-root); the report always goes "
+        "to stdout",
+    )
+    rollback.add_argument(
+        "--contracts-dir",
+        default="contracts",
+        help="repository contracts directory (default: ./contracts)",
+    )
+    rollback.add_argument(
+        "--repo-root",
+        default=".",
+        help="repository root render targets are written under "
+        "(default: .)",
+    )
+    rollback.add_argument(
+        "--commit-message-out",
+        help="write the prepared rollback commit message to this "
+        "path",
+    )
+
     return parser
 
 
@@ -243,6 +362,20 @@ def main(argv: Sequence[str] | None = None) -> int:
             from obskit.install.flow import run as run_install
 
             return run_install(args)
+        if args.command == "render":
+            from obskit.configrender.render import run as run_render
+
+            return run_render(args)
+        if args.command == "drift":
+            from obskit.configrender.drift import run as run_drift
+
+            return run_drift(args)
+        if args.command == "rollback":
+            from obskit.configrender.rollback import (
+                run as run_rollback,
+            )
+
+            return run_rollback(args)
     except _OPERATOR_ERRORS as exc:
         sys.stderr.write(
             f"obskit {args.command}: error: {_describe_error(exc)}\n"

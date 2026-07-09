@@ -5,7 +5,10 @@ configuration and management plane: changing platform configuration
 through the single unified document, responding to drift between
 rendered and live state, rolling back, upgrading each wrapped system
 through its own upstream mechanism, and operating the single-pane UI
-catalog.
+catalog. Batch 19 turned the contract-described flow into executable
+steps: the render, drift, and rollback stages below run through the
+`obskit` configuration rendering runtime
+(`tools/obskit/obskit/configrender/`, ADR-0003).
 
 > [!NOTE]
 > This runbook deviates from the single `Pre-checks` / `Procedure` /
@@ -60,12 +63,17 @@ forbidden and rejected by validation.
 - `contracts/management/WRAPPED_SYSTEM_REGISTRY_V1.yaml`
 - `contracts/management/UNIFIED_CONFIG_SCHEMA_V1.json`
 - `contracts/management/PROPAGATION_RECONCILIATION_CONTRACT_V1.yaml`
+- `contracts/management/RENDERER_ARCHITECTURE_CONTRACT_V1.yaml`
 - `contracts/management/SINGLE_PANE_ACCESS_CONTRACT_V1.yaml`
 - `contracts/management/samples/VALID_UNIFIED_CONFIG.yaml`
+- `contracts/management/samples/VALID_UNIFIED_CONFIG.json` (JSON twin,
+  the renderer's input form)
 - `contracts/management/samples/INVALID_UNIFIED_CONFIG_SAMPLES.json`
 - `contracts/management/samples/INVALID_REGISTRY_SAMPLES.json`
+- `docs/adr/ADR_0003_CONFIG_RENDERER_ARCHITECTURE.md`
 - `gitops/platform/search/dashboards/alerts/platform_health_rules.ndjson`
 - `scripts/ops/run_rollback_drill.sh`
+- `scripts/ops/run_config_rollback_drill.sh`
 - `scripts/validate/post_install_readiness.sh`
 
 ## Global Pre-Checks
@@ -80,7 +88,11 @@ bash scripts/ci/validate_management_plane_contracts.sh
 bash scripts/ci/validate_batch16_smoke.sh
 ```
 
-Both must pass before editing the unified document, responding to
+```bash
+bash scripts/ci/validate_config_renderer.sh
+```
+
+All must pass before editing the unified document, responding to
 drift, rolling back, or bumping a version pin. The contract validator
 proves the registry, the unified document, the propagation contract,
 and the UI catalog are mutually consistent; a red contract layer means
@@ -143,6 +155,40 @@ configuration files (Helm values, provisioning files, saved objects,
 alert rules) at each binding's `render_target`. Rendering is the only
 way native config under a registered config surface changes.
 
+The renderer consumes the document as JSON (the sample's JSON twin is
+the reference form). From the repository root:
+
+```bash
+PYTHONPATH=tools/obskit python3 -m obskit render \
+  --document <unified-document.json> \
+  --contracts-dir contracts \
+  --repo-root . \
+  --commit-message-out /tmp/config_render_commit_msg.txt
+```
+
+The run validates the document against the schema, enforces the
+cross-file binding rules, writes every binding's `render_target`
+through its cataloged strategy
+(`contracts/management/RENDERER_ARCHITECTURE_CONTRACT_V1.yaml`),
+refreshes `gitops/UNIFIED_CONFIG_RENDER_MANIFEST.json` (the digest
+manifest that carries the marker for comment-incapable formats), and
+prepares the commit message. A document that fails validation renders
+nothing (exit 2).
+
+Prove idempotency before committing - an unchanged document must
+report no diff:
+
+```bash
+PYTHONPATH=tools/obskit python3 -m obskit render \
+  --document <unified-document.json> \
+  --contracts-dir contracts \
+  --repo-root . \
+  --check
+```
+
+Exit 0 prints the no-diff, no-commit line; exit 3 lists targets that
+would change (expected only when the document actually changed).
+
 Invariants to hold the render to:
 
 - deterministic: identical document bytes in, byte-identical rendered
@@ -171,6 +217,14 @@ document revision that produced it:
 
 - `Unified-Config-Schema-Version`
 - `Unified-Config-Document-Digest`
+
+The renderer prepares a compliant message (`--commit-message-out`
+above); commit the rendered outputs with it:
+
+```bash
+git add gitops/
+git commit -F /tmp/config_render_commit_msg.txt
+```
 
 No rendered output may exist outside Git. A commit missing the
 trailers fails the compliance rule
@@ -267,6 +321,26 @@ and must include these signals:
 - `reconcile-sync-failure`
 - `render-idempotency-violation`
 
+Produce the rendered-versus-live diff surface on demand with the
+drift helper - it compares expected rendered bytes for the current
+document against a target tree (a live-exported config checkout or
+the delivery branch working tree) and never writes to it:
+
+```bash
+PYTHONPATH=tools/obskit python3 -m obskit drift \
+  --document <unified-document.json> \
+  --contracts-dir contracts \
+  --repo-root <target-tree> \
+  --report-out <target-tree>/drift_report.json
+```
+
+Exit 0 with `"status": "clean"` means no drift; exit 3 emits the
+drifted entries (path, system, unified key, expected and actual
+digests, signal) that the `TR-12` alert path consumes. The
+`render-idempotency-violation` signal marks a hand-edited rendered
+file or a renderer determinism regression; every other divergence is
+`config-drift-detected-per-system`.
+
 ### Triage
 
 1. Identify the affected system and config surface from the alert and
@@ -328,6 +402,27 @@ persistent configuration; the revert travels the same pipeline
    unified-document change, then re-render. Deterministic rendering
    makes rollback provable: the rolled-back document must re-render
    byte-identically to the previously committed rendered state.
+
+   Execute it with the rollback subcommand, which re-renders the
+   prior document revision through the identical render-and-commit
+   pipeline (there is no separate apply channel). `dry-run` is the
+   default mode and writes nothing:
+
+   ```bash
+   git show <prior-rev>:<unified-document.json> > /tmp/prior_doc.json
+   PYTHONPATH=tools/obskit python3 -m obskit rollback \
+     --document /tmp/prior_doc.json \
+     --contracts-dir contracts \
+     --repo-root . \
+     --expected-manifest <previously-committed-manifest.json>
+   ```
+
+   The `--expected-manifest` digest-equality proof asserts revert
+   plus re-render reproduces the previously committed rendered
+   bytes; a mismatch refuses to proceed. Re-run with `--mode real`
+   plus `--commit-message-out` to write the rollback render, then
+   commit it with the prepared message exactly like a forward
+   change.
 1. Rendered-commit revert: `git revert` of the rendered-output commit
    on the delivery branch. Permitted as an emergency short path when
    the renderer itself is suspect; the unified document must be
@@ -352,6 +447,20 @@ The drill covers GitOps revision rollback and post-rollback health
 verification. Run `real` mode only in non-production environments, and
 close every real drill with a matching Git revert so the delivery
 branch converges with the applied revision.
+
+Rehearse the configuration-specific rollback (unified-document revert
+plus deterministic re-render with the digest-equality proof) with the
+Batch 19 drill, which runs entirely in a scratch copy of the offline
+fixture tree:
+
+```bash
+bash scripts/ops/run_config_rollback_drill.sh
+```
+
+`dry-run` is the default mode; `real` executes the rollback re-render
+in the scratch tree and verifies the tree returns byte-identically to
+the prior rendered state. The drill refuses `real` mode when
+`ENVIRONMENT=production`.
 
 ## Per-System Upstream Upgrade Procedure
 
@@ -507,6 +616,10 @@ every record, never mapped to tenant principals.
   violation (`fail_if_render_not_deterministic`) or a hand-edited
   render target. Do not commit the diff; restore the rendered state
   and fix the edit source or the renderer.
+- Render interrupted mid-write: the renderer writes targets
+  sequentially (not atomically), so a crash can leave uncommitted
+  partial state in the working tree; a re-render or `git checkout` of
+  the targets repairs it, and drift detection surfaces any remainder.
 - A render target is missing the generated-file header marker: treat
   as a hand edit (`fail_if_render_target_hand_edited`); re-render to
   restore the marker and the renderer-owned content.

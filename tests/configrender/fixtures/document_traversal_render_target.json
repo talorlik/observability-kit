@@ -1,0 +1,169 @@
+{
+  "bindings": [
+    {
+      "native_path": {
+        "locator": "policy.states[0].transitions[0].conditions.min_index_age",
+        "repo_path": "gitops/platform/search/opensearch/ilm/logs-ilm-policy.json"
+      },
+      "render_target": "gitops/platform/search/opensearch/ilm/logs-ilm-policy.json",
+      "system": "opensearch",
+      "unified_key": "retention.logs_days"
+    },
+    {
+      "native_path": {
+        "locator": "policy.states[0].transitions[0].conditions.min_index_age",
+        "repo_path": "gitops/platform/search/opensearch/ilm/metrics-ilm-policy.json"
+      },
+      "render_target": "gitops/platform/search/opensearch/ilm/metrics-ilm-policy.json",
+      "system": "opensearch",
+      "unified_key": "retention.metrics_days"
+    },
+    {
+      "native_path": {
+        "locator": "policy.states[0].transitions[0].conditions.min_index_age",
+        "repo_path": "gitops/platform/search/opensearch/ilm/traces-ilm-policy.json"
+      },
+      "render_target": "gitops/platform/search/opensearch/ilm/traces-ilm-policy.json",
+      "system": "opensearch",
+      "unified_key": "retention.traces_days"
+    },
+    {
+      "native_path": {
+        "locator": "tracesPipeline.sampling.default.ratio",
+        "repo_path": "gitops/platform/observability/values/traces-pipeline.yaml"
+      },
+      "render_target": "gitops/../escaped.yaml",
+      "system": "opentelemetry-collector",
+      "unified_key": "tracing.sampling_ratio"
+    },
+    {
+      "native_path": {
+        "locator": "grafana.ini.security.cookie_secure",
+        "repo_path": "gitops/platform/observability/grafana/values/grafana-values.yaml"
+      },
+      "render_target": "gitops/platform/observability/grafana/values/grafana-values.yaml",
+      "system": "grafana",
+      "unified_key": "tls.enforce_secure_cookies"
+    },
+    {
+      "native_path": {
+        "locator": "monitor trigger action notification destinations per rule bundle",
+        "repo_path": "gitops/platform/search/dashboards/alerts/"
+      },
+      "render_target": "gitops/platform/search/dashboards/alerts/",
+      "system": "opensearch-dashboards",
+      "unified_key": "alerting.notification_channels"
+    },
+    {
+      "native_path": {
+        "locator": "sidecar.dashboards.enabled",
+        "repo_path": "gitops/platform/observability/grafana/values/grafana-values.yaml"
+      },
+      "render_target": "gitops/platform/observability/grafana/values/grafana-values.yaml",
+      "system": "grafana",
+      "unified_key": "dashboards.provisioning_enabled"
+    },
+    {
+      "native_path": {
+        "locator": "saved-object dashboard bundles (provisioned when enabled)",
+        "repo_path": "gitops/platform/search/dashboards/saved-objects/"
+      },
+      "render_target": "gitops/platform/search/dashboards/saved-objects/",
+      "system": "opensearch-dashboards",
+      "unified_key": "dashboards.provisioning_enabled"
+    },
+    {
+      "native_path": {
+        "locator": "graph module manifest (rendered only when enabled)",
+        "repo_path": "gitops/platform/graph/neo4j/neo4j_module.yaml"
+      },
+      "render_target": "gitops/platform/graph/neo4j/neo4j_module.yaml",
+      "system": "neo4j",
+      "unified_key": "graph.enabled"
+    },
+    {
+      "native_path": {
+        "locator": "graph.enabled",
+        "repo_path": "gitops/platform/observability/values/graph-pipeline.yaml"
+      },
+      "render_target": "gitops/platform/observability/values/graph-pipeline.yaml",
+      "system": "opentelemetry-collector",
+      "unified_key": "graph.enabled"
+    },
+    {
+      "native_path": {
+        "locator": "Browser exposure manifest (rendered only when enabled)",
+        "repo_path": "gitops/platform/graph/neo4j/browser-access.yaml"
+      },
+      "render_target": "gitops/platform/graph/neo4j/browser-access.yaml",
+      "system": "neo4j",
+      "unified_key": "graph.browser_access_enabled"
+    },
+    {
+      "native_path": {
+        "locator": "per-tenant roles and role mappings rendered from the class",
+        "repo_path": "gitops/platform/search/opensearch/security/"
+      },
+      "render_target": "gitops/platform/search/opensearch/security/",
+      "system": "opensearch",
+      "unified_key": "tenancy.default_isolation_class"
+    },
+    {
+      "native_path": {
+        "locator": "spaces (per-tenant space rendering)",
+        "repo_path": "gitops/platform/search/dashboards/spaces/team_env_spaces.yaml"
+      },
+      "render_target": "gitops/platform/search/dashboards/spaces/team_env_spaces.yaml",
+      "system": "opensearch-dashboards",
+      "unified_key": "tenancy.default_isolation_class"
+    },
+    {
+      "native_path": {
+        "locator": "spec.syncPolicy.automated per Application",
+        "repo_path": "gitops/apps/"
+      },
+      "render_target": "gitops/apps/",
+      "system": "argocd",
+      "unified_key": "delivery.auto_sync_enabled"
+    }
+  ],
+  "config": {
+    "alerting": {
+      "notification_channels": [
+        {
+          "kind": "slack",
+          "name": "platform-ops"
+        },
+        {
+          "kind": "pagerduty",
+          "name": "oncall-escalation"
+        }
+      ]
+    },
+    "dashboards": {
+      "provisioning_enabled": true
+    },
+    "delivery": {
+      "auto_sync_enabled": true
+    },
+    "graph": {
+      "browser_access_enabled": false,
+      "enabled": false
+    },
+    "retention": {
+      "logs_days": 30,
+      "metrics_days": 30,
+      "traces_days": 14
+    },
+    "tenancy": {
+      "default_isolation_class": "dedicated-indices"
+    },
+    "tls": {
+      "enforce_secure_cookies": true
+    },
+    "tracing": {
+      "sampling_ratio": 0.1
+    }
+  },
+  "schema_version": "v1"
+}

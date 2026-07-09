@@ -239,8 +239,18 @@ bash scripts/ci/validate_guided_installer.sh
 bash scripts/ci/validate_batch18_smoke.sh
 ```
 
+Run focused Batch 19 validation (configuration rendering runtime -
+renderer ADR and architecture contract, byte-identical re-render,
+header marker and commit trailer checks, drift diff surface, rollback
+drill in dry-run mode, seeded rejection documents):
+
+```bash
+bash scripts/ci/validate_config_renderer.sh
+bash scripts/ci/validate_batch19_smoke.sh
+```
+
 Run the full report-generating aggregator across every registered
-batch (currently 1-9, 9A, 10-18):
+batch (currently 1-9, 9A, 10-19):
 
 ```bash
 bash scripts/ci/validate_all_batches_with_report.sh
@@ -282,6 +292,7 @@ The `.github/workflows/ci.yaml` workflow enforces:
 - management plane contract validation (Batch 16)
 - discovery executor validation (Batch 17)
 - guided installer validation (Batch 18)
+- config renderer validation (Batch 19)
 - GitOps structure checks
 - no hard-coded environment value checks
 - runbook baseline checks
