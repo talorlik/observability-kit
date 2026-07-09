@@ -26,6 +26,9 @@ phased delivery toward optional assisted RCA.
 | 11 | `Do batch 11: graph foundation.` | Validate optional graph module enable and disable behavior, schema versioning, idempotent sync jobs, freshness alerts, dependency queries, and graph runbook dry run. |
 | 12 | `Do batch 12: risk scoring and assisted RCA readiness.` | Validate deterministic feature definitions, risk scoring outputs, backtesting evidence, hybrid retrieval evidence bundles, human approval workflow, and pilot go or hold record. |
 | 13 | `Do batch 13: core adapter integrations.` | Validate adapter contract schema coverage, profile-driven activation safety, identity/secrets/network stub metadata, CI contract gating, CI/CD neutrality checks, and adapter operations guide completeness. |
+| 14 | `Do batch 14: AI/MCP runtime validation and productization.` | Validate AI boundary/governance/state contracts, MCP catalog and gateway discovery contracts, AI/MCP scaffolding and GitOps artifacts, release readiness, and operator runbooks. |
+| 15 | `Do batch 15: SaaS multi-tenancy and customer isolation.` | Validate tenant schema and seeded invalid rejection, per-tenant isolation matrix, lifecycle and purge evidence, per-tenant overlay generation safety, and tenancy runbook completeness. |
+| 16 | `Do batch 16: unified configuration and management plane.` | Validate wrapped-system registry with fork rejection, unified configuration bindings, GitOps-only propagation and drift detection, single-pane UI catalog auth mapping, and unified configuration runbook completeness. |
 
 ## Optional Strict Commands
 

@@ -22,6 +22,9 @@ Run one batch at a time and require validation before moving forward.
 | 11 | `Do batch 11: graph foundation.` | Validate healthy core platform behavior with graph on and off, convergent repeated sync runs, and stale-data freshness alert triggering. |
 | 12 | `Do batch 12: risk scoring and assisted RCA readiness.` | Validate deterministic score reruns, backtest and evidence bundle contracts, and approval evidence before RCA suggestion release. |
 | 13 | `Do batch 13: core adapter integrations.` | Validate adapter contract schema coverage, profile-driven activation safety, identity and secrets and network stub metadata, CI contract gating, CI/CD neutrality checks, and adapter operations guide completeness. |
+| 14 | `Do batch 14: AI/MCP runtime validation and productization.` | Validate AI boundary, governance, and state contracts, MCP catalog and gateway discovery contracts, runtime, read-path, multi-agent, trigger, and action-gate scaffolding, AI/MCP GitOps artifacts, release readiness, and operator runbooks. |
+| 15 | `Do batch 15: SaaS multi-tenancy and customer isolation.` | Validate tenant schema with seeded invalid rejection, per-tenant isolation matrix coverage, lifecycle transitions with purge evidence, per-tenant overlay generation safety, and tenancy runbook completeness. |
+| 16 | `Do batch 16: unified configuration and management plane.` | Validate wrapped-system registry coverage with fork rejection, unified configuration binding completeness, GitOps-only propagation with drift detection, single-pane UI catalog auth mapping, and unified configuration runbook completeness. |
 
 ## Optional Strict Commands
 

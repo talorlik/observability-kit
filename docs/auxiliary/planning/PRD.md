@@ -347,6 +347,30 @@ The product shall include post-install validation for enabled admin GUIs:
 - role-scoped access checks for at least read-only and admin personas
 - traceable output in readiness reports
 
+#### FR-031 Customer Tenancy and Isolation
+
+The product shall serve multiple customers from one platform with
+customer-level isolation stronger than the team-level isolation of
+FR-017:
+
+- tenant descriptors with explicit isolation class and lifecycle state
+- per-tenant partitioning for indices, roles, dashboard spaces, vector
+  indices, and graph databases
+- deny-by-default cross-tenant access proven by seeded denial fixtures
+- purge-with-evidence offboarding honoring retention rules
+
+#### FR-032 Unified Configuration and Management Plane
+
+The product shall wrap bundled open-source systems behind one
+configuration and management plane:
+
+- a registry of wrapped systems with their upstream upgrade mechanisms
+- a unified configuration document propagated to native system
+  configuration through GitOps only
+- drift detection between rendered and live configuration
+- a single-pane UI catalog with consistent authentication mapping
+- no forks of wrapped open-source systems
+
 ### 6.2 Non-Functional Requirements
 
 #### NFR-001 Reliability

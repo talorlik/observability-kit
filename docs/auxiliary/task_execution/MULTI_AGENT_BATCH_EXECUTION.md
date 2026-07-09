@@ -88,6 +88,8 @@ separates consecutive waves. Task numbers are the TASKS.md numbering.
 - Batch 12: `[1, 4] -> [2, 5] -> [3] -> [6]`
 - Batch 13: `[1] -> [2] -> [3] -> [4] -> [5] -> [6]` (single lane)
 - Batch 14: `[1] -> [2, 3] -> [4] -> [5] -> [6] -> [7, 8] -> [9] -> [10]`
+- Batch 15: `[1] -> [2, 3, 4] -> [5] -> [6]`
+- Batch 16: `[1] -> [2, 4] -> [3] -> [5] -> [6]`
 
 Single-lane batches gain nothing from parallel implementers: run them
 inline in the orchestrator session and keep only the reviewer agents.

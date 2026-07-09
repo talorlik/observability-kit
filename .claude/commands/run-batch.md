@@ -26,7 +26,10 @@ explicitly says to stop - this runs unattended.
    empty or either check fails, STOP and report - list the batches that DO
    exist (`grep '^## Batch' docs/auxiliary/planning/TASKS.md` and
    `ls scripts/ci/validate_batch*_smoke.sh`). New batches are appended
-   over time; do not assume an upper bound.
+   over time; do not assume an upper bound. Bootstrap exception: if the
+   TASKS.md section exists but the smoke wrapper does not AND creating
+   that wrapper is one of the batch's own tasks, the batch is valid -
+   the wrapper is a deliverable of this run.
 2. Read the batch's section in `docs/auxiliary/planning/TASKS.md`. Its
    numbered tasks, their `Dependencies`, and their `Completion check`
    lines are the canonical work definition - follow them verbatim.
