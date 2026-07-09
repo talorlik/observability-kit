@@ -239,6 +239,19 @@ Produce the required output:
 8. What was captured to `docs/DECISIONS.md` and auto-memory (or "no new
    decisions to capture").
 
-Keep the report concise. If COMPLETED, end by stating the next batch to
-run (`/run-batch <next ID>`). The user can now safely clear context -
-everything durable is already written.
+Keep the report concise. Then close with the session handoff:
+
+1. Handoff verification, each item confirmed with evidence: `main` is
+   clean and carries this batch's squash commit (COMPLETED only); the
+   all-batches report is green; the worktree and branch are removed
+   (COMPLETED) or preserved (STOPPED); the decisions log is updated.
+2. The prompt for the next session. For batches of the SaaS
+   productization plan (17-26), print the continuation prompt from
+   `docs/auxiliary/task_execution/SAAS_EXECUTION_PROMPT.md`
+   instantiated for the next batch in its sequence (or for the SAME
+   batch if STOPPED, with a one-line fix note; or the plan's
+   Definition of Done completion report after Batch 26). For any
+   other batch, state `/run-batch <next ID>`.
+
+The user can now safely clear context - everything durable is already
+written.

@@ -1,100 +1,106 @@
 # SaaS Execution Prompt
 
-Copy the prompt below verbatim into a fresh Claude Code session opened
-at the repository root, with `main` checked out and a clean tree. It
-drives the full execution of
-`docs/auxiliary/planning/SAAS_PRODUCTIZATION_PLAN.md` (Batches 17-26)
-without stopping for confirmation.
+Session-based execution of
+`docs/auxiliary/planning/SAAS_PRODUCTIZATION_PLAN.md` (Batches 17-26):
+ONE batch per fresh Claude Code session, multi-agent waves inside each
+batch where the wave plan allows, strictly in numeric order. Batches
+the plan marks parallel-eligible (19 alongside 18; 21 and 22 after 20)
+are still run one per session - determinism over wall-clock.
 
-> [!NOTE]
-> The run is long. Each batch squash-merges to local `main` and captures
-> decisions durably, so the session survives context compaction and can
-> also be split: running `/run-batch <N>` per batch in separate sessions
-> follows the identical method and is the lower-risk variant.
+The chain is self-perpetuating: every session ends by verifying
+handoff prep and printing the continuation prompt for the next batch.
+You normally never edit a prompt by hand - you paste what the previous
+session printed. To regenerate one manually, take the kick-off prompt
+below and replace the batch number.
 
-## The Prompt
+Session flow:
+
+1. Open a fresh session at the repository root, `main` checked out,
+   clean tree.
+2. Paste the prompt for the current batch (kick-off for 17, or the
+   prompt the previous session printed).
+3. The session runs the batch end to end, then prints the report,
+   handoff verification, and the next prompt.
+4. Clear context or close the session; repeat with the printed prompt.
+
+## Kick-Off Prompt (Session 1 - Batch 17)
 
 ```text
-Execute the Observability Kit SaaS productization plan end to end,
-fully autonomously. I pre-approve all actions; do not ask for
-permissions or decisions - follow the plan's recommendations and record
-every judgment call in docs/DECISIONS.md.
+Continue the Observability Kit SaaS productization plan. This session
+executes Batch 17 and ONLY Batch 17, fully autonomously. I pre-approve
+all actions; do not ask for permissions or decisions - record judgment
+calls in docs/DECISIONS.md.
 
-Load context first, in order:
-1. CLAUDE.md
-2. docs/auxiliary/planning/SAAS_PRODUCTIZATION_PLAN.md (authoritative
-   for scope, sequencing, milestones, and the Definition of Done)
-3. .claude/commands/run-batch.md (the batch execution method)
-4. docs/auxiliary/task_execution/MULTI_AGENT_BATCH_EXECUTION.md (wave
-   plans, agent roles, file-scope rules)
-
-Then execute Batches 17, 18, 19, 20, 21, 22, 23, 24, 25, 26 strictly in
-that order. For EACH batch follow the /run-batch methodology in full:
-per-batch worktree off local main; wave-based multi-agent
-implementation with disjoint file scopes; spec-review subagent per
-wave; an ADR before any technology choice; batch validator + smoke
-wrapper + shared gates + full all-batches regression before merge;
-squash-merge into local main from the primary checkout (never from
-inside a worktree); remove the worktree and branch; append decisions to
-docs/DECISIONS.md. The bootstrap exception applies: each new batch
+First read docs/auxiliary/planning/SAAS_PRODUCTIZATION_PLAN.md for
+product context, then invoke /run-batch 17 and follow it end to end:
+per-batch worktree off local main; multi-agent waves where the wave
+plan in docs/auxiliary/task_execution/MULTI_AGENT_BATCH_EXECUTION.md
+allows, sequential otherwise; spec review per wave; an ADR before any
+technology choice; batch validator + smoke wrapper + shared gates +
+full all-batches regression; squash-merge into local main from the
+primary checkout (never from inside a worktree); worktree and branch
+cleanup; decision capture. The bootstrap exception applies: the batch
 creates its own smoke wrapper and registers itself in
 validate_all_batches_with_report.sh, both command sheets, CI, and the
-runbook link validator.
+runbook link validator where its tasks say so.
 
-Rules that override everything else:
-- NEVER push main. Push feature branches only.
-- Never modify wrapped open-source code; wrap via Helm values, CRDs, or
-  provisioning APIs. `fork` is a forbidden wrap method.
-- Persistent configuration flows GitOps-only per
-  contracts/management/PROPAGATION_RECONCILIATION_CONTRACT_V1.yaml.
+Standing rules:
+- NEVER push main. Push the feature branch only.
+- NEVER provision, modify, or delete cloud resources or clusters
+  (anything billable). Live-cluster work uses only the disposable
+  local kind harness with its isolated kubeconfig per the Batch 23
+  harness contract; the OrbStack built-in cluster is the persistent
+  dev stack only. Production-cluster validation is a deferred,
+  user-initiated post-GA engagement.
+- Never fork or modify wrapped open-source code. Persistent
+  configuration flows GitOps-only.
 - Tenant isolation must never weaken; rerun
   scripts/ci/validate_tenancy_contracts.sh after any change touching
   isolation surfaces.
-- Live-cluster work (Batches 23-24) uses a DISPOSABLE local cluster
-  only: kind on the local Docker engine (OrbStack on this machine).
-  The harness must create and use an ISOLATED kubeconfig and must
-  refuse any context it did not create - the default kubeconfig may
-  carry cloud contexts (today stale EKS remnants, later a live
-  production cluster) and they must be structurally unreachable
-  either way. The OrbStack built-in Kubernetes cluster is the
-  persistent dev stack only, never an evidence target. Tear the
-  disposable cluster down after evidence capture.
-- NEVER provision, modify, or delete cloud resources or clusters
-  (EKS, GKE, AKS, VMs, DNS, anything billable). Production-cluster
-  validation is deliberately deferred to a separate, user-initiated
-  engagement after GA readiness - it is OUT OF SCOPE for this run,
-  and "production tests" never justify creating cloud
-  infrastructure.
-- Gates: 3 fix attempts per gate, then up to 2 root-cause repair cycles
-  per batch. If still red: commit WIP on the branch, leave the worktree
-  intact, record the exact blocker in docs/DECISIONS.md, and continue
-  with the next batch ONLY if it does not depend on the stopped one;
-  otherwise stop and produce the failure report.
-- Do not stop between batches for confirmation, and do not stop because
-  the session is long. Durable state (merged main, docs/DECISIONS.md,
-  docs/reports/validation/) survives context compaction: if you lose
-  track, reload the four context documents plus
-  docs/reports/validation/BATCH_VALIDATION_REPORT_LATEST.md and resume
-  from the first unmerged batch.
+- Gates: 3 fix attempts per gate, then up to 2 root-cause repair
+  cycles. If still red, follow the /run-batch failure path (WIP
+  commit, worktree preserved, STOPPED report) - never merge red work.
 
-Done means the plan's Definition of Done (section 9) holds in full,
-including: one squash commit per batch 17-26 on local main;
-validate_all_batches_with_report.sh green across all 27 registered
-batches; a fresh disposable cluster taken from empty to an onboarded
-tenant using only the shipped tooling and documented flows; every
-runtime-only completion check backed by captured evidence; the complete
-docs/product/ tree published; versioned release artifacts produced; the
-three to-be-pinned versions resolved.
-
-Final output: a completion report with per-batch status and commit ids,
-the final all-batches summary, links to every product document,
-evidence locations, and residual risks with owners.
+End the session with exactly three things:
+1. The /run-batch Step 7 report for this batch.
+2. Handoff verification, each item confirmed with evidence: main is
+   clean and carries this batch's squash commit; the all-batches
+   report is green including this batch; the worktree and branch are
+   removed; docs/DECISIONS.md carries this batch's entry (or "no new
+   decisions to capture").
+3. The continuation prompt for the next batch in the sequence
+   17, 18, 19, 20, 21, 22, 23, 24, 25, 26: print THIS ENTIRE PROMPT
+   verbatim inside a text code fence with the batch number replaced.
+   If this batch is 26, print the final completion report per
+   SAAS_PRODUCTIZATION_PLAN.md section 9 (Definition of Done)
+   instead. If this batch STOPPED, print this prompt again for the
+   SAME batch, prefixed with a one-line note of what must be fixed
+   before the rerun.
 ```
 
-## After the Run
+## Continuation Prompts (Sessions 2-10)
+
+Each session prints the next session's prompt as its final output -
+the same text as the kick-off with the batch number advanced. Paste it
+into a fresh session as-is. If a session was interrupted before
+printing its handoff, check
+`docs/reports/validation/BATCH_VALIDATION_REPORT_LATEST.md` and
+`git log --oneline` on `main`: rerun the first batch in the sequence
+that has no squash commit, by regenerating its prompt from the
+kick-off block.
+
+## After the Final Session
 
 - Verify `docs/reports/validation/BATCH_VALIDATION_REPORT_LATEST.md`
   shows all 27 batches passing.
-- Review `docs/DECISIONS.md` for judgment calls made during the run.
+- Verify the Batch 26 session printed the Definition of Done
+  completion report and `docs/product/GA_READINESS_REVIEW.md` is
+  signed.
+- Review `docs/DECISIONS.md` for judgment calls made across the runs.
 - `main` is intentionally unpushed; review and push it (or open PRs
   from the feature branches) on your own schedule.
+- Production-cluster validation remains deliberately open: when you
+  choose, provision a short-lived production-grade cluster, install
+  with the `prod` overlay, run the readiness and
+  reference-architecture conformance checks, capture evidence, and
+  tear it down.
