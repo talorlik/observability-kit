@@ -31,8 +31,9 @@ A service is an onboardable candidate if and only if:
 
 The rule is intentionally structural and deterministic: it depends
 only on snapshot content, so identical inputs always yield identical
-candidacy flags (TR-18 determinism). Every collection in the report
-is emitted in stable sorted order for the same reason.
+candidacy flags (TR-18 determinism). Collection ordering is stable
+because every ClusterReader accessor returns stably sorted tuples;
+this module preserves reader order.
 """
 
 from __future__ import annotations
