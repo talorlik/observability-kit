@@ -1,6 +1,7 @@
 """obskit command-line interface.
 
-Subcommands: preflight, discover, evaluate. The optional in-cluster
+Subcommands: preflight, discover, evaluate, install. The optional
+in-cluster
 Job mode runs this same CLI in a container - one code path, so CLI and
 Job reports are interchangeable (TR-18).
 
@@ -137,6 +138,76 @@ def build_parser() -> argparse.ArgumentParser:
         "(default: auto)",
     )
 
+    install = subparsers.add_parser(
+        "install",
+        help="run the guided install flow: preflight, grading, mode "
+        "recommendation, contract capture, render, Argo CD bootstrap "
+        "manifests, and post-install readiness (TR-19)",
+    )
+    _add_reader_flags(install)
+    install.add_argument(
+        "--answers",
+        help="answers JSON file validated against "
+        "contracts/install/INSTALL_CONTRACT_SCHEMA.json; omit to "
+        "capture answers interactively (identical flow either way)",
+    )
+    install.add_argument(
+        "--output-dir",
+        required=True,
+        help="directory receiving reports, the captured install "
+        "contract, rendered manifests, and the install_state.json "
+        "journal",
+    )
+    install.add_argument(
+        "--contracts-dir",
+        default="contracts",
+        help="repository contracts directory holding the install "
+        "flow contract, the install contract schema, and the "
+        "compatibility contract files (default: ./contracts)",
+    )
+    install.add_argument(
+        "--profiles",
+        help="optional JSON file supplying profiles discovery cannot "
+        "observe (object_storage, identity); discovered profiles "
+        "default from the capability matrix",
+    )
+    install.add_argument(
+        "--repo-root",
+        default=".",
+        help="repository root used by the post-install readiness "
+        "step (default: .)",
+    )
+    # Mode inputs, mirroring `obskit evaluate` flag-for-flag so both
+    # commands resolve the mode recommendation identically.
+    install.add_argument(
+        "--evaluation-only",
+        action="store_true",
+        help="mode input: this run evaluates the product rather than "
+        "installing it",
+    )
+    install.add_argument(
+        "--allow-new-backend-components",
+        choices=["true", "false"],
+        default="true",
+        help="mode input: new backend components may be deployed "
+        "(default: true)",
+    )
+    install.add_argument(
+        "--require-in-cluster-collectors",
+        choices=["true", "false"],
+        default="true",
+        help="mode input: collectors must run in-cluster "
+        "(default: true)",
+    )
+    install.add_argument(
+        "--has-compatible-existing-services",
+        choices=["auto", "true", "false"],
+        default="auto",
+        help="mode input: compatible existing services are present; "
+        "'auto' derives it from the discovery probes report "
+        "(default: auto)",
+    )
+
     return parser
 
 
@@ -168,6 +239,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             from obskit.evaluate import run as run_evaluate
 
             return run_evaluate(args)
+        if args.command == "install":
+            from obskit.install.flow import run as run_install
+
+            return run_install(args)
     except _OPERATOR_ERRORS as exc:
         sys.stderr.write(
             f"obskit {args.command}: error: {_describe_error(exc)}\n"

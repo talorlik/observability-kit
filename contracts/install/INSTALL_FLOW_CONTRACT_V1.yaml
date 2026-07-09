@@ -133,7 +133,10 @@ invariants:
   idempotent_and_resumable: >-
     Re-running a completed install changes nothing and exits zero; a
     failed run resumes from the first incomplete step, keyed by the
-    install_state.json journal and input digests.
+    install_state.json journal and input digests. Digests key on
+    recorded snapshot inputs: in live mode the cluster-reading steps
+    (preflight, grading, mode recommendation, readiness) always
+    re-execute, because live cluster state has no stable digest.
   gitops_only_render: >-
     The render and bootstrap steps emit overlay and bootstrap
     manifests for the GitOps controller and perform no direct mutable
