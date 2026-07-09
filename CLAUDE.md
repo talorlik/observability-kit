@@ -15,14 +15,14 @@ Hard constraints:
 
 - OpenTelemetry is the sole collector for logs, metrics, and traces
 - OpenSearch is the single telemetry and vector store (any conformant,
-  Kubernetes-resident OpenSearch deployment — provider-managed or self-managed)
+  Kubernetes-resident OpenSearch deployment - provider-managed or self-managed)
 - Managed ingest is OpenTelemetry-native; on AWS the default ingest path is
   Amazon OpenSearch Ingestion (OSI) but the architecture does not require it
 - Neo4j is a derived graph tier, not a raw telemetry store
 - Delivery is Terraform + Helm + ArgoCD Applications
 - No provider-specific service is mandatory in the core architecture;
   provider integrations live under `adapters/providers/`
-- Cloud-agnostic by design — see `OBSERVABILITY_PLATFORM_V2.plan.md`
+- Cloud-agnostic by design - see `OBSERVABILITY_PLATFORM_V2.plan.md`
   (the v1 plan in `OBSERVABILITY_PLATFORM.plan.md` is AWS-specific and
   retained for historical reference only)
 
@@ -34,8 +34,32 @@ Primary languages: Bash, Python, Terraform, Helm/YAML.
 
 ```bash
 bash scripts/ci/setup_python_env.sh
-# creates .venv with CI dependencies
+# creates .venv (VENV_DIR overridable) from requirements-ci.txt.
+# requirements-ci.txt is intentionally tiny: yamllint + pymarkdownlnt only.
 ```
+
+Only ~20 of the `validate_*.sh` scripts need the venv - those whose Python
+heredoc does `import yaml` or shells out to `yamllint`/`pymarkdownlnt`. They
+`source scripts/ci/setup_python_env.sh` themselves (it is the one shared
+helper; there is no `lib/` or `common.sh`). Pure-stdlib JSON validators do
+not source it. `scripts/ci/teardown_python_env.sh` removes the venv.
+
+Untracked `setup_python_env.sh.sandbox_bak.*` files are disposable leftovers
+from interrupted `sandbox_validate.sh` runs (see below), not real variants.
+
+### Offline / firewalled validation
+
+`scripts/dev/sandbox_validate.sh` wraps any `scripts/ci/validate_*.sh` so it
+runs in a sandbox with no PyPI access and no `helm`/`kubectl`:
+
+```bash
+bash scripts/dev/sandbox_validate.sh scripts/ci/validate_all_batches_with_report.sh
+```
+
+It temporarily stubs `setup_python_env.sh` to a no-op, installs throwaway
+`helm`/`kubectl` shims on `PATH` (forcing validators into their offline
+structural-fallback path), runs the target, then restores everything on exit.
+Use it only when firewalled; real CI has working pip and Helm.
 
 ### Linting
 
@@ -78,7 +102,7 @@ bash scripts/ci/validate_batch14_smoke.sh              # Batch 14 (AI/MCP)
 
 Each batch also has a smoke wrapper: `scripts/ci/validate_batch<N>_smoke.sh`.
 
-### Batch 14 — AI/MCP layer
+### Batch 14 - AI/MCP layer
 
 Batch 14 is the AI/MCP runtime tier. Its smoke wrapper aggregates the AI
 agent boundary, governance, state, MCP catalog, and scaffolding/release
@@ -154,6 +178,16 @@ Every major capability has a JSON schema and sample artifacts:
 - `contracts/mcp/` - MCP catalog, tool response schema, and gateway
   discovery contract (with heartbeat, timeout, and failover policy)
 
+Naming is a hard convention (see `contracts/CONTRACTS_NAMING_CONVENTION.md`):
+files directly under `contracts/*/` use loud `UPPERCASE_SNAKE_CASE` with an
+explicit version suffix (`*_SCHEMA_V<N>.json`, `*_V<N>.yaml`,
+`*_VALIDATION.json`), while `contracts/install/profiles/` uses lowercase
+dotted `<title>.schema.json` to match JSON-Schema `$id` tooling. When both
+forms are needed for one schema (only in `contracts/install/`), the canonical
+file is `UPPERCASE` and a thin `<title>.schema.json` alias `$ref`s it. Never
+rename an existing schema - validators, CI, and runbooks reference paths by
+name, so renames are breaking.
+
 ### Adapters Framework
 
 `adapters/` provides profile-scoped, additive, reversible extensions:
@@ -175,12 +209,12 @@ Each adapter directory contains a `*_COMPATIBILITY_V1.yaml`, a
 The AI/MCP layer (Batch 14) is implemented across these top-level
 directories, all cloud-agnostic and Kubernetes-resident:
 
-- `agents/` — agent catalog, role definitions, prompt fragments, and policy
+- `agents/` - agent catalog, role definitions, prompt fragments, and policy
   bindings consumed by the multi-agent scaffolding validator
-- `pipelines/` — risk scoring and vector retrieval pipeline definitions
-- `services/mcp/` — MCP service contracts (`SERVICE_CONTRACT_V1.yaml`) and
+- `pipelines/` - risk scoring and vector retrieval pipeline definitions
+- `services/mcp/` - MCP service contracts (`SERVICE_CONTRACT_V1.yaml`) and
   per-service action journals
-- `triggers/` — KHook trigger scaffolding, dedupe/burst control, and
+- `triggers/` - KHook trigger scaffolding, dedupe/burst control, and
   read-only dispatch policies
 
 These are validated by the AI/MCP scripts above and exercised by tests under
@@ -207,6 +241,37 @@ These are validated by the AI/MCP scripts above and exercised by tests under
   the actual saved-object dashboards and alert rules under
   `gitops/platform/search/dashboards/`
 
+### Tests
+
+`tests/` holds plain `python3` scripts with `test_*` functions and bare
+`assert` statements - pytest-style names but **not run under pytest**. There
+is no test runner. Each test is invoked directly by the `scripts/ci/`
+validator that owns it (e.g. `validate_preflight_and_discovery.sh` runs
+`python3 tests/discovery/test_preflight_checks.py`; adapter validators run
+`python3 tests/integration/adapters/...`). The `.json` files under `tests/`
+are fixtures those tests load. To run a test, run its validator - not the
+file alone.
+
+Because several adapter validators (`validate_*_backend_adapters.sh`,
+`validate_network_ingress_adapters.sh`, `validate_provider_event_source_adapters.sh`)
+are not gated in CI, the tests they own only execute when you run them
+locally or via the Batch 13 parent / the all-batches report.
+
+### Script directories
+
+There are four `scripts/` subdirectories, each with a distinct scope:
+
+- `scripts/ci/` - repository-only validators; PRs gate on these. See
+  `scripts/ci/README.md` for the "add a validator" workflow.
+- `scripts/validate/` - live-runtime probes needing a cluster or GUI
+  (`admin_gui_smoke.sh`, `post_install_readiness.sh`); never run in CI
+  because the runner has no deployed instance.
+- `scripts/ops/` - operational drills (`run_uninstall_validation.sh`,
+  `run_rollback_drill.sh`, `run_restore_drill.sh`), mode-parameterized
+  (`dry-run` default). The restore drill hard-refuses when
+  `ENVIRONMENT=production`.
+- `scripts/dev/` - developer tooling; currently just `sandbox_validate.sh`.
+
 ### Validation Scripts Pattern
 
 All CI scripts in `scripts/ci/` follow this structure:
@@ -214,13 +279,27 @@ All CI scripts in `scripts/ci/` follow this structure:
 - Inline Python (heredoc `<<'PY'`) for schema/JSON validation
 - Exit 0 on pass, non-zero on failure
 - No external test framework (pytest etc.) - all validation is bespoke
+- The only shared dependency is `setup_python_env.sh`, `source`d by the
+  ~20 scripts whose heredoc needs PyYAML or the linters
 
 ### CI Pipeline
 
-`.github/workflows/ci.yaml` runs the per-batch validators (1-13) and the
-individual AI/MCP scripts on PRs and pushes to main, plus Gitleaks secret
-scanning. The Batch 14 smoke wrapper aggregates the same AI/MCP scripts for
-local development and the unified report.
+`.github/workflows/ci.yaml` has two jobs: `lint-and-validate` and
+`secret-scan` (Gitleaks via Docker), on PRs and pushes to `main`. CI invokes
+the underlying validator scripts **directly, not the batch smoke wrappers**.
+`lint-and-validate` runs, in addition to the per-batch validators (1-13) and
+the individual AI/MCP scripts: `check_script_permissions.sh`,
+`validate_markdown.sh`, `validate_yaml.sh`, `validate_stub_renders.sh`,
+`validate_seeded_rejection_checks.sh`, inline `helm lint` + `helm template`,
+`validate_gitops_structure.sh`, `check_no_hardcoded_env_values.sh`, and
+`validate_runbook_links.sh`.
+
+Not everything is CI-gated. `validate_gitops_neutrality.sh`, the adapter
+sub-validators (`validate_*_backend_adapters.sh` etc.), and
+`validate_cicd_adapter_templates.sh` run only manually or via their Batch 13
+parent / the all-batches report - so a green PR does not by itself prove the
+adapter and neutrality contracts pass. Run them (or the all-batches report)
+before trusting adapter/neutrality changes.
 
 `scripts/ci/validate_all_batches_with_report.sh` runs every batch smoke
 wrapper (1, 2, 3, 4, 5, 6, 7, 8, 9, 9A, 10, 11, 12, 13, 14) and writes a

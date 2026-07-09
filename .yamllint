@@ -2,6 +2,11 @@ extends: default
 
 rules:
   document-start: disable
+  # Long values in these files are paths, regexes, and DSL expressions that
+  # cannot be wrapped without changing meaning. Keep the signal as a warning
+  # rather than failing CI on lines that are legitimately long.
+  line-length:
+    level: warning
   truthy:
     allowed-values:
       - "true"
@@ -9,5 +14,10 @@ rules:
       - "on"
       - "off"
 
+# Helm templates embed `{{ ... }}` actions that yamllint misparses as flow
+# mappings (spurious braces / syntax errors). Chart templates were already
+# excluded; library-chart templates live under a different path and need the
+# same exclusion.
 ignore: |
   gitops/charts/**/templates/*.yaml
+  gitops/libraries/**/templates/*.yaml
