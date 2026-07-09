@@ -91,6 +91,9 @@ jobs:
       - name: Discovery executor checks
         run: bash scripts/ci/validate_discovery_executor.sh
 
+      - name: Guided installer checks
+        run: bash scripts/ci/validate_guided_installer.sh
+
       - name: Preflight and discovery checks
         run: bash scripts/ci/validate_preflight_and_discovery.sh
 

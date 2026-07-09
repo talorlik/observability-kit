@@ -31,6 +31,7 @@ declare -a BATCH_IDS=(
   "15"
   "16"
   "17"
+  "18"
 )
 
 declare -a BATCH_NAMES=(
@@ -52,6 +53,7 @@ declare -a BATCH_NAMES=(
   "SaaS Multi-Tenancy and Customer Isolation"
   "Unified Configuration and Management Plane"
   "Discovery and Preflight Execution Engine (Runtime)"
+  "Guided Installation Experience"
 )
 
 declare -a VALIDATION_CRITERIA=(
