@@ -258,15 +258,21 @@ def resolve_blocked_codes(
             grading_rules, "blocked_conditions", "grading_rules"
         )
     }
-    values: dict[str, str] = {}
-    for binding in fields(BlockedCodeBindings):
-        if binding.name not in declared:
-            raise EvaluationError(
-                "grading_rules: blocked_conditions no longer declares "
-                f"code {binding.name!r}"
-            )
-        values[binding.name] = binding.name
-    return BlockedCodeBindings(**values)
+    bound = {binding.name for binding in fields(BlockedCodeBindings)}
+    missing = sorted(bound - declared)
+    if missing:
+        raise EvaluationError(
+            "grading_rules: blocked_conditions no longer declares "
+            f"codes {missing!r}"
+        )
+    unbound = sorted(declared - bound)
+    if unbound:
+        raise EvaluationError(
+            "grading_rules: blocked_conditions declares codes with no "
+            f"executor binding: {unbound!r}; extend BlockedCodeBindings "
+            "before shipping the contract change"
+        )
+    return BlockedCodeBindings(**{name: name for name in sorted(bound)})
 
 
 def _normalize_version(value: str, context: str) -> str:
