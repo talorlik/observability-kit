@@ -1,0 +1,109 @@
+{
+  "schema_version": "v1",
+  "description": "Seeded invalid unified configuration documents for Batch 16 Task 2 rejection fixtures. Each case wraps one document with a single intended violation and an expected_rejection_reason, mirroring contracts/management/samples/INVALID_REGISTRY_SAMPLES.json and contracts/tenancy/samples/INVALID_TENANT_SAMPLES.json. validate_management_plane_contracts.sh must reject every case for exactly the seeded reason: the first three documents are schema-valid and violate one validator-enforced cross-file rule each; the last violates the schema itself (unknown top-level property) while satisfying all cross-file rules.",
+  "invalid_documents": {
+    "unbound_config_key": {
+      "expected_rejection_reason": "bindings.config-key-unbound",
+      "document": {
+        "schema_version": "v1",
+        "config": {
+          "tracing": {
+            "sampling_ratio": 0.1
+          },
+          "tls": {
+            "enforce_secure_cookies": true
+          }
+        },
+        "bindings": [
+          {
+            "unified_key": "tracing.sampling_ratio",
+            "system": "opentelemetry-collector",
+            "native_path": {
+              "repo_path": "gitops/platform/observability/values/traces-pipeline.yaml",
+              "locator": "tracesPipeline.sampling.default.ratio"
+            },
+            "render_target": "gitops/platform/observability/values/traces-pipeline.yaml"
+          }
+        ]
+      }
+    },
+    "unregistered_system_target": {
+      "expected_rejection_reason": "bindings.system.unregistered-target",
+      "document": {
+        "schema_version": "v1",
+        "config": {
+          "tracing": {
+            "sampling_ratio": 0.05
+          }
+        },
+        "bindings": [
+          {
+            "unified_key": "tracing.sampling_ratio",
+            "system": "prometheus",
+            "native_path": {
+              "repo_path": "gitops/platform/observability/values/traces-pipeline.yaml",
+              "locator": "tracesPipeline.sampling.default.ratio"
+            },
+            "render_target": "gitops/platform/observability/values/traces-pipeline.yaml"
+          }
+        ]
+      }
+    },
+    "unknown_unified_key": {
+      "expected_rejection_reason": "bindings.unified_key.unknown-config-key",
+      "document": {
+        "schema_version": "v1",
+        "config": {
+          "graph": {
+            "enabled": false
+          }
+        },
+        "bindings": [
+          {
+            "unified_key": "graph.enabled",
+            "system": "neo4j",
+            "native_path": {
+              "repo_path": "gitops/platform/graph/neo4j/neo4j_module.yaml",
+              "locator": "graph module manifest (rendered only when enabled)"
+            },
+            "render_target": "gitops/platform/graph/neo4j/neo4j_module.yaml"
+          },
+          {
+            "unified_key": "graph.bloom_enabled",
+            "system": "neo4j",
+            "native_path": {
+              "repo_path": "gitops/platform/graph/neo4j/browser-access.yaml",
+              "locator": "Browser exposure manifest"
+            },
+            "render_target": "gitops/platform/graph/neo4j/browser-access.yaml"
+          }
+        ]
+      }
+    },
+    "unknown_top_level_property": {
+      "expected_rejection_reason": "document.additional-property-forbidden",
+      "document": {
+        "schema_version": "v1",
+        "config": {
+          "tls": {
+            "enforce_secure_cookies": true
+          }
+        },
+        "bindings": [
+          {
+            "unified_key": "tls.enforce_secure_cookies",
+            "system": "grafana",
+            "native_path": {
+              "repo_path": "gitops/platform/observability/grafana/values/grafana-values.yaml",
+              "locator": "grafana.ini.security.cookie_secure"
+            },
+            "render_target": "gitops/platform/observability/grafana/values/grafana-values.yaml"
+          }
+        ],
+        "live_overrides": {
+          "grafana_admin_api": true
+        }
+      }
+    }
+  }
+}

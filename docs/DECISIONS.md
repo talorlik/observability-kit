@@ -13,6 +13,26 @@ first. Entry format:
 - Follow-up: <action for a future batch, or "none">
 ```
 
+## 2026-07-09 - Batch 16 - Management Plane Semantics
+
+- Decision: three load-bearing choices made during Batch 16. (1) The
+  wrap-method enum defines `kubernetes-crd` broadly as GitOps-reconciled
+  Kubernetes resources running the unmodified upstream image, which
+  covers the platform-owned Neo4j module until it moves to the upstream
+  chart. (2) OpenSearch, Dashboards, and Argo CD version pins are
+  recorded as `to-be-pinned` with a fail-if rule requiring concrete
+  pins in production profiles; Grafana (10.5.15), the collector
+  (0.101.0), and Neo4j (5.26) pins were taken from actual repo
+  artifacts. (3) Drift self-heal defaults to alert-only rather than
+  automated revert because auto-revert can fight break-glass
+  intervention.
+- Why: keeps the registry truthful about what the repo actually
+  deploys today while making the gaps machine-visible; upstream chart
+  sources were verified live against each Helm repository index.
+- Follow-up: pin OpenSearch, Dashboards, and Argo CD versions before
+  any production profile ships; move the Neo4j module to the upstream
+  chart when feasible.
+
 ## 2026-07-09 - Batch 15 - Tenancy Contract Semantics
 
 - Decision: four load-bearing choices made during Batch 15. (1) Vector

@@ -1,0 +1,151 @@
+# Valid unified configuration document (Batch 16 Task 2, TR-17).
+#
+# Validates against contracts/management/UNIFIED_CONFIG_SCHEMA_V1.json
+# and satisfies all three validator-enforced cross-file rules:
+#   - every config leaf key below has at least one binding
+#   - every binding targets a system id registered in
+#     contracts/management/WRAPPED_SYSTEM_REGISTRY_V1.yaml
+#   - every binding's native_path.repo_path falls under that system's
+#     registered config_surface paths
+#
+# Values here are policy only (days, ratios, toggles, channel
+# identities). Endpoints, hosts, and credentials are forbidden in this
+# document and live in per-environment overlays or the secrets adapter.
+
+schema_version: v1
+
+config:
+  retention:
+    logs_days: 30
+    metrics_days: 30
+    traces_days: 14
+  tracing:
+    sampling_ratio: 0.1
+  tls:
+    enforce_secure_cookies: true
+  alerting:
+    notification_channels:
+      - name: platform-ops
+        kind: slack
+      - name: oncall-escalation
+        kind: pagerduty
+  dashboards:
+    provisioning_enabled: true
+  graph:
+    enabled: false
+    browser_access_enabled: false
+  tenancy:
+    default_isolation_class: dedicated-indices
+  delivery:
+    auto_sync_enabled: true
+
+bindings:
+  # --- retention: per-signal ILM policies (OpenSearch) ---------------
+  - unified_key: retention.logs_days
+    system: opensearch
+    native_path:
+      repo_path: gitops/platform/search/opensearch/ilm/logs-ilm-policy.json
+      locator: policy.states[0].transitions[0].conditions.min_index_age
+    render_target: gitops/platform/search/opensearch/ilm/logs-ilm-policy.json
+
+  - unified_key: retention.metrics_days
+    system: opensearch
+    native_path:
+      repo_path: gitops/platform/search/opensearch/ilm/metrics-ilm-policy.json
+      locator: policy.states[0].transitions[0].conditions.min_index_age
+    render_target: gitops/platform/search/opensearch/ilm/metrics-ilm-policy.json
+
+  - unified_key: retention.traces_days
+    system: opensearch
+    native_path:
+      repo_path: gitops/platform/search/opensearch/ilm/traces-ilm-policy.json
+      locator: policy.states[0].transitions[0].conditions.min_index_age
+    render_target: gitops/platform/search/opensearch/ilm/traces-ilm-policy.json
+
+  # --- tracing: collector traces pipeline values ---------------------
+  - unified_key: tracing.sampling_ratio
+    system: opentelemetry-collector
+    native_path:
+      repo_path: gitops/platform/observability/values/traces-pipeline.yaml
+      locator: tracesPipeline.sampling.default.ratio
+    render_target: gitops/platform/observability/values/traces-pipeline.yaml
+
+  # --- tls: UI session posture (Grafana Helm values) ------------------
+  - unified_key: tls.enforce_secure_cookies
+    system: grafana
+    native_path:
+      repo_path: >-
+        gitops/platform/observability/grafana/values/grafana-values.yaml
+      locator: grafana.ini.security.cookie_secure
+    render_target: >-
+      gitops/platform/observability/grafana/values/grafana-values.yaml
+
+  # --- alerting: rendered alert-rule bundles (Dashboards) -------------
+  - unified_key: alerting.notification_channels
+    system: opensearch-dashboards
+    native_path:
+      repo_path: gitops/platform/search/dashboards/alerts/
+      locator: monitor trigger action notification destinations per rule bundle
+    render_target: gitops/platform/search/dashboards/alerts/
+
+  # --- dashboards: provisioning toggle fans out to two systems --------
+  - unified_key: dashboards.provisioning_enabled
+    system: grafana
+    native_path:
+      repo_path: >-
+        gitops/platform/observability/grafana/values/grafana-values.yaml
+      locator: sidecar.dashboards.enabled
+    render_target: >-
+      gitops/platform/observability/grafana/values/grafana-values.yaml
+
+  - unified_key: dashboards.provisioning_enabled
+    system: opensearch-dashboards
+    native_path:
+      repo_path: gitops/platform/search/dashboards/saved-objects/
+      locator: saved-object dashboard bundles (provisioned when enabled)
+    render_target: gitops/platform/search/dashboards/saved-objects/
+
+  # --- graph: enablement fans out to module and pipeline --------------
+  - unified_key: graph.enabled
+    system: neo4j
+    native_path:
+      repo_path: gitops/platform/graph/neo4j/neo4j_module.yaml
+      locator: graph module manifest (rendered only when enabled)
+    render_target: gitops/platform/graph/neo4j/neo4j_module.yaml
+
+  - unified_key: graph.enabled
+    system: opentelemetry-collector
+    native_path:
+      repo_path: gitops/platform/observability/values/graph-pipeline.yaml
+      locator: graph.enabled
+    render_target: gitops/platform/observability/values/graph-pipeline.yaml
+
+  - unified_key: graph.browser_access_enabled
+    system: neo4j
+    native_path:
+      repo_path: gitops/platform/graph/neo4j/browser-access.yaml
+      locator: Browser exposure manifest (rendered only when enabled)
+    render_target: gitops/platform/graph/neo4j/browser-access.yaml
+
+  # --- tenancy: isolation default fans out to roles and spaces --------
+  - unified_key: tenancy.default_isolation_class
+    system: opensearch
+    native_path:
+      repo_path: gitops/platform/search/opensearch/security/
+      locator: per-tenant roles and role mappings rendered from the class
+    render_target: gitops/platform/search/opensearch/security/
+
+  - unified_key: tenancy.default_isolation_class
+    system: opensearch-dashboards
+    native_path:
+      repo_path: gitops/platform/search/dashboards/spaces/team_env_spaces.yaml
+      locator: spaces (per-tenant space rendering)
+    render_target: gitops/platform/search/dashboards/spaces/team_env_spaces.yaml
+
+  # --- delivery: Argo CD Application sync policy -----------------------
+  - unified_key: delivery.auto_sync_enabled
+    system: argocd
+    native_path:
+      repo_path: gitops/apps/
+      locator: spec.syncPolicy.automated per Application
+    render_target: gitops/apps/

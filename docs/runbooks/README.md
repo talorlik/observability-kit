@@ -44,6 +44,7 @@ the install entrypoint below.
 | 14    | `CASEFILE_REVIEW_RUNBOOK.md`                             | Case-file lifecycle review and replay                              |
 | 14    | `KHOOK_TROUBLESHOOTING_RUNBOOK.md`                       | KHook trigger dedupe / burst-control diagnosis                     |
 | 15    | `SAAS_TENANCY_RUNBOOK.md`                                | Tenant onboarding, isolation verification, lifecycle, purge drill  |
+| 16    | `UNIFIED_CONFIGURATION_RUNBOOK.md`                       | Unified config change flow, drift response, per-system upgrades    |
 
 ## Conventions
 

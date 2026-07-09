@@ -29,6 +29,7 @@ declare -a BATCH_IDS=(
   "13"
   "14"
   "15"
+  "16"
 )
 
 declare -a BATCH_NAMES=(
@@ -48,6 +49,7 @@ declare -a BATCH_NAMES=(
   "Core Adapter Integrations"
   "AI/MCP Runtime Validation and Productization"
   "SaaS Multi-Tenancy and Customer Isolation"
+  "Unified Configuration and Management Plane"
 )
 
 declare -a VALIDATION_CRITERIA=(
@@ -67,6 +69,7 @@ declare -a VALIDATION_CRITERIA=(
   "Validate adapter contract schema coverage, profile-driven activation safety, identity and secrets and network stub metadata, CI contract gating, CI/CD neutrality checks, and adapter operations guide completeness."
   "Validate AI agent boundary, governance, and state contracts; MCP catalog and tool response contracts; AI runtime base, MCP read-path, multi-agent, KHook trigger, and action-gate scaffolding; and KAgent/KHook release readiness."
   "Validate tenant schema with seeded invalid rejection, per-tenant isolation matrix coverage, cross-tenant denial fixtures, lifecycle transitions with purge evidence, and per-tenant overlay generation safety."
+  "Validate wrapped-system registry coverage with fork rejection, unified configuration binding completeness, GitOps-only propagation with drift detection, and single-pane UI catalog auth mapping."
 )
 
 declare -a SCRIPT_PATHS=(
@@ -86,6 +89,7 @@ declare -a SCRIPT_PATHS=(
   "scripts/ci/validate_batch13_smoke.sh"
   "scripts/ci/validate_batch14_smoke.sh"
   "scripts/ci/validate_batch15_smoke.sh"
+  "scripts/ci/validate_batch16_smoke.sh"
 )
 
 declare -a STATUSES=()
