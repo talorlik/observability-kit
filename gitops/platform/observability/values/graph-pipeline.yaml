@@ -8,9 +8,11 @@ graph:
     image:
       repository: neo4j
       tag: "5.26"
-    auth:
-      username: neo4j
-      password: replace-me
+    # Credentials come from the graph-neo4j-auth Secret (NEO4J_AUTH key),
+    # provisioned by the secrets backend adapter - no literals here.
+    authSecretRef:
+      name: graph-neo4j-auth
+      key: NEO4J_AUTH
     resources:
       requests:
         cpu: 200m

@@ -51,7 +51,7 @@
         "namespace": { "type": "string" },
         "neo4j": {
           "type": "object",
-          "required": ["image", "auth"],
+          "required": ["image", "authSecretRef"],
           "properties": {
             "image": {
               "type": "object",
@@ -61,12 +61,12 @@
                 "tag": { "type": "string" }
               }
             },
-            "auth": {
+            "authSecretRef": {
               "type": "object",
-              "required": ["username", "password"],
+              "required": ["name", "key"],
               "properties": {
-                "username": { "type": "string" },
-                "password": { "type": "string" }
+                "name": { "type": "string", "minLength": 1 },
+                "key": { "type": "string", "minLength": 1 }
               }
             },
             "resources": { "type": "object" }
