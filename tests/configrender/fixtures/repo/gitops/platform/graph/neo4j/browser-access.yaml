@@ -1,0 +1,97 @@
+# Neo4j Browser exposure behind the admin access plane (Batch 9A x 11).
+#
+# Applies only in graph-enabled mode: this directory is synced by the
+# graph-stack ArgoCD Application, and graph activation is explicit
+# through graph profile selection (install/profiles/graph,
+# profile_id graph-enabled). With graph-disabled this manifest is
+# never deployed.
+#
+# Exposure contract:
+# - Only the Neo4j Browser HTTP port (7474) is published. The bolt
+#   port (7687) stays cluster-internal for sync jobs and is never
+#   routed through the admin access plane.
+# - TLS terminates at the admin access plane. The certificate secret
+#   is provisioned per the admin access profile tls.source value
+#   (cert-manager or external-secret); see
+#   install/profiles/admin-access/PROFILE.schema.json.
+# - Authn is layered: the admin access plane provider (oidc or
+#   saml-adapter) gates who reaches the endpoint, and Neo4j login
+#   backed by the graph-neo4j-auth Secret gates the database session.
+#   No anonymous access path exists and no credential is committed.
+# - Role plan and break-glass policy are documented in
+#   docs/runbooks/GRAPH_FOUNDATION_OPERATOR_GUIDE.md under
+#   "Neo4j Browser Access and RBAC".
+apiVersion: v1
+kind: Service
+metadata:
+  name: neo4j-browser
+  namespace: observability-graph
+  labels:
+    app.kubernetes.io/name: neo4j
+    app.kubernetes.io/component: browser-access
+    app.kubernetes.io/part-of: observability-kit
+    observability-kit.io/profile: graph-enabled
+spec:
+  selector:
+    app.kubernetes.io/name: neo4j
+  ports:
+    - name: http
+      port: 7474
+      targetPort: 7474
+---
+# Ingress mode. Apply when the admin access profile mode is "ingress".
+# Mirrors gitops/platform/access/admin-ingress/admin_ingress.yaml.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: neo4j-browser-ingress
+  namespace: observability-graph
+  labels:
+    app.kubernetes.io/name: neo4j
+    app.kubernetes.io/component: browser-access
+    app.kubernetes.io/part-of: observability-kit
+    observability-kit.io/profile: graph-enabled
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  tls:
+    - hosts:
+        - neo4j.admin.example.internal
+      secretName: graph-admin-ui-tls
+  rules:
+    - host: neo4j.admin.example.internal
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: neo4j-browser
+                port:
+                  number: 7474
+---
+# Gateway mode. Apply when the admin access profile mode is "gateway".
+# Attaches to the shared admin-ui-gateway defined in
+# gitops/platform/access/admin-gateway/admin_gateway.yaml. The gateway
+# HTTPS listener must allow routes from the observability-graph
+# namespace for this route to bind.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: neo4j-browser-admin-route
+  namespace: observability-graph
+  labels:
+    app.kubernetes.io/name: neo4j
+    app.kubernetes.io/component: browser-access
+    app.kubernetes.io/part-of: observability-kit
+    observability-kit.io/profile: graph-enabled
+spec:
+  parentRefs:
+    - name: admin-ui-gateway
+      namespace: observability
+  hostnames:
+    - neo4j.admin.example.internal
+  rules:
+    - backendRefs:
+        - name: neo4j-browser
+          port: 7474

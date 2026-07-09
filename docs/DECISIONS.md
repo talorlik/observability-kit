@@ -13,6 +13,60 @@ first. Entry format:
 - Follow-up: <action for a future batch, or "none">
 ```
 
+## 2026-07-10 - Batch 19 - Config Renderer Semantics and Gotchas
+
+- Decision: `docs/adr/ADR_0003_CONFIG_RENDERER_ARCHITECTURE.md` fixes
+  the renderer as the `obskit.configrender` subpackage (`obskit
+  render|drift|rollback`), with target-preserving patching instead of
+  whole-file templating: stdlib JSON parse/re-emit for JSON targets,
+  a bounded line-based patcher for YAML targets (plain scalars only;
+  block/folded/flow/anchored/quoted-with-`#` values are rejected
+  loudly, as are duplicate keys and CRLF files), renderer-owned
+  artifacts for directory targets, and presence-gated graph
+  manifests. Strategy per binding pair is machine-readable in
+  `contracts/management/RENDERER_ARCHITECTURE_CONTRACT_V1.yaml` and
+  loaded at runtime; an uncataloged binding fails the render.
+- Why: whole-file templates would dual-maintain native files owned by
+  earlier batches (silent-fork risk); PyYAML would break the
+  zero-dependency contract and destroy comments. Line-based patching
+  preserves bytes, keeps first-adoption diffs minimal, and fails
+  loudly outside its bounded subset (code-review finding: the first
+  cut silently corrupted block scalars/anchors - now rejected and
+  regression-locked in `tests/configrender/test_render_core.py`).
+- Non-obvious calls: (1) the document is consumed as JSON (ADR-0002
+  precedent); `contracts/management/samples/VALID_UNIFIED_CONFIG.json`
+  is the committed JSON twin, semantic equality with the YAML sample
+  enforced by `validate_config_renderer.sh` via the CI venv's PyYAML
+  (the runtime itself never imports yaml). (2) `render_target`
+  containment is enforced twice: cross-file rule 4 applies the
+  registered-config-surface check to BOTH `native_path.repo_path` and
+  `render_target`, rejecting `.`/`..` segments, plus resolve-time
+  `is_relative_to` defense on every write including manifest,
+  drift-report, rollback-report, and commit-message paths. (3) The
+  repo's own `gitops/` tree is NOT adopted by Batch 19 - rendering is
+  proven on fixtures; adoption happens when the first canonical
+  per-instance unified document is committed (installer/portal flow,
+  Batch 21+), so hand-authored native files keep their content until
+  then. (4) The render manifest
+  (`gitops/UNIFIED_CONFIG_RENDER_MANIFEST.json`) is the sibling
+  marker carrier for comment-incapable formats AND the drift input
+  surface; drift attributes hand-edits of marker-carrying files as
+  `render-idempotency-violation` and everything else as
+  `config-drift-detected-per-system`. (5) Rollback is plan_render
+  plus execute_plan of the prior document with an
+  `--expected-manifest` digest-equality proof asserted before any
+  write in both modes; `scripts/ops/run_config_rollback_drill.sh`
+  (dry-run default) rehearses it in a scratch tree and refuses real
+  mode in production. (6) `execute_plan` writes sequentially
+  (non-atomic) - acceptable in the Git working-tree flow and
+  documented in the runbook's troubleshooting section.
+- Follow-up: Batch 20 reuses the renderer as a library
+  (`plan_render`/`execute_plan`/`changed_paths` in
+  `obskit.configrender.render`) for tenant overlay generation - do
+  not re-implement rendering. The install-contract gap from Batch 18
+  stands: no `gitops_revision` field yet (Application targetRevision
+  hardcoded `main`).
+
 ## 2026-07-09 - Batch 18 - Guided Installer Semantics and Gotchas
 
 - Decision: `docs/adr/ADR_0002_GUIDED_INSTALL_FLOW.md` fixes the

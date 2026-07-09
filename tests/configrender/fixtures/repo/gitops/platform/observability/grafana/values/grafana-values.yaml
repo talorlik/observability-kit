@@ -1,0 +1,88 @@
+# Values for the upstream Grafana Helm chart
+# (https://grafana.github.io/helm-charts, chart: grafana), consumed by
+# gitops/apps/grafana-application.yaml via the $values multi-source ref.
+#
+# This file holds only cloud-agnostic baseline values. Environment-specific
+# settings (storage class, ingress host, TLS) belong in per-environment
+# overlays or the access-layer, never here.
+
+replicas: 1
+
+# Admin credentials come from a pre-provisioned Kubernetes Secret managed by
+# the secrets adapter (adapters/secrets/). Never place a literal password in
+# this file.
+admin:
+  existingSecret: grafana-admin-credentials
+  userKey: admin-user
+  passwordKey: admin-password
+
+persistence:
+  enabled: true
+  type: pvc
+  size: 10Gi
+  # storageClassName is intentionally unset so the cluster default
+  # StorageClass is used. Environments that need a specific class override
+  # this in their overlay values, keeping the baseline cloud-agnostic.
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# OpenSearch is the single telemetry store, so the OpenSearch datasource
+# plugin is part of the baseline image at startup.
+plugins:
+  - grafana-opensearch-datasource
+
+# Sidecar-based provisioning: datasources and dashboards are delivered as
+# labeled ConfigMaps generated from
+# gitops/platform/observability/grafana/provisioning/ and
+# gitops/platform/observability/grafana/dashboards/ respectively. The
+# sidecars watch for those labels and hot-load the content, so provisioning
+# stays declarative in Git without forking the chart.
+sidecar:
+  dashboards:
+    enabled: true
+    label: grafana_dashboard
+    labelValue: "1"
+    searchNamespace: observability
+    folderAnnotation: grafana_folder
+    provider:
+      foldersFromFilesStructure: true
+  datasources:
+    enabled: true
+    label: grafana_datasource
+    labelValue: "1"
+    searchNamespace: observability
+
+# Ingress and TLS are owned by the access-layer Application
+# (gitops/apps/access-layer-application.yaml), not by this chart.
+ingress:
+  enabled: false
+
+service:
+  type: ClusterIP
+  port: 80
+
+# OpenTelemetry is the sole collector: Grafana's own metrics endpoint is
+# scraped by the collector, so the Prometheus-operator ServiceMonitor stays
+# off.
+serviceMonitor:
+  enabled: false
+
+testFramework:
+  enabled: false
+
+grafana.ini:
+  analytics:
+    reporting_enabled: false
+    check_for_updates: false
+  auth.anonymous:
+    enabled: false
+  security:
+    cookie_secure: true
+  users:
+    allow_sign_up: false

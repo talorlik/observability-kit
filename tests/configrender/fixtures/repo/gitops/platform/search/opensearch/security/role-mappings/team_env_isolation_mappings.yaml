@@ -1,0 +1,10 @@
+role_mappings:
+  team_a_dev_reader:
+    backend_roles:
+      - team-a-dev-readers
+  team_b_dev_reader:
+    backend_roles:
+      - team-b-dev-readers
+  platform_admin:
+    backend_roles:
+      - platform-admins
