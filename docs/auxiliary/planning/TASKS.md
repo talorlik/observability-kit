@@ -32,6 +32,8 @@ Use these markers to trace each batch to `TECHNICAL.md`.
 | Batch 12 | `TR-08`, `TR-09`, `TR-13` |
 | Batch 13 | `TR-03`, `TR-09`, `TR-10` |
 | Batch 14 | `TR-03`, `TR-08`, `TR-09`, `TR-13`, `TR-15` |
+| Batch 15 | `TR-03`, `TR-07`, `TR-09`, `TR-16` |
+| Batch 16 | `TR-03`, `TR-09`, `TR-10`, `TR-17` |
 
 ## Agent Cross-Reference Index
 
@@ -55,6 +57,8 @@ Use this index first when actioning tasks so the correct section in
 | `TB-12` | Batch 12 - Risk Scoring and Assisted RCA Readiness | `TR-08`, `TR-09`, `TR-13` |
 | `TB-13` | Batch 13 - Core Adapter Integrations | `TR-03`, `TR-09`, `TR-10` |
 | `TB-14` | Batch 14 - AI/MCP Runtime Validation and Productization | `TR-03`, `TR-08`, `TR-09`, `TR-13`, `TR-15` |
+| `TB-15` | Batch 15 - SaaS Multi-Tenancy and Customer Isolation | `TR-03`, `TR-07`, `TR-09`, `TR-16` |
+| `TB-16` | Batch 16 - Unified Configuration and Management Plane | `TR-03`, `TR-09`, `TR-10`, `TR-17` |
 
 ## Batch 1 - Delivery Foundation [TB-01 | TR-10, TR-14]
 
@@ -455,6 +459,88 @@ The AI/MCP sub-plan and detailed tasks live in
       `KHOOK_TROUBLESHOOTING_RUNBOOK.md`,
       `MCP_GATEWAY_OPERATIONS_RUNBOOK.md`, and `CASEFILE_REVIEW_RUNBOOK.md`
       are linked from `README.md` and `docs/auxiliary/planning/AI_MCP_MARKER_COVERAGE.md`.
+
+## Batch 15 - SaaS Multi-Tenancy and Customer Isolation [TB-15 | TR-03, TR-07, TR-09, TR-16]
+
+Goal: serve multiple customers from one platform with zero cross-tenant
+leakage. Customer-level isolation is stricter than the team-level
+isolation delivered in Batch 8 and must never weaken it.
+
+1. Define tenant contract schema, isolation classes, and sample
+   descriptors.
+   - Dependencies: Batch 8 Task 1, Batch 13 Task 2.
+   - Completion check: schema validates valid tenant samples and rejects
+     seeded invalid samples.
+2. Define per-tenant data isolation matrix for indices, roles, dashboard
+   spaces, vector indices, and graph databases.
+   - Dependencies: Task 1.
+   - Completion check: matrix covers logs, metrics, traces, vectors, and
+     graph stores with deny-by-default cross-tenant rules.
+3. Define tenant lifecycle contract: provision, suspend, offboard, and
+   purge with evidence.
+   - Dependencies: Task 1.
+   - Completion check: lifecycle transitions are idempotent and purge
+     defines evidence capture and retention rules.
+4. Define per-tenant GitOps overlay generation and control-plane versus
+   data-plane separation contract.
+   - Dependencies: Task 1.
+   - Completion check: overlay generation renders per-tenant values
+     without modifying core charts; control-plane data never mixes with
+     tenant telemetry.
+5. Add tenancy validators, seeded cross-tenant rejection fixtures, smoke
+   wrapper, and CI wiring.
+   - Dependencies: Tasks 1-4.
+   - Completion check: `validate_tenancy_contracts.sh` and
+     `validate_batch15_smoke.sh` pass; seeded cross-tenant fixture is
+     rejected; batch is registered in
+     `validate_all_batches_with_report.sh`.
+6. Publish SaaS tenancy operator runbook.
+   - Dependencies: Tasks 1-5.
+   - Completion check: `docs/runbooks/SAAS_TENANCY_RUNBOOK.md` covers
+     onboarding, isolation verification, and purge drill and is linked
+     from `README.md` and the runbook index.
+
+## Batch 16 - Unified Configuration and Management Plane [TB-16 | TR-03, TR-09, TR-10, TR-17]
+
+Goal: wrap every bundled open-source system behind one configuration and
+management plane without forking any of them.
+
+1. Define wrapped-system registry contract with upgrade mechanism and
+   wrap method per system.
+   - Dependencies: Batch 9A Task 3.
+   - Completion check: registry lists every bundled system with upstream
+     source, version, upgrade mechanism, config surface, and an allowed
+     wrap method; `fork` is rejected.
+2. Define unified configuration schema with per-system propagation
+   bindings.
+   - Dependencies: Task 1.
+   - Completion check: every unified key maps to at least one binding
+     that targets a registered system; unbound keys and unregistered
+     targets are rejected.
+3. Define propagation and reconciliation contract covering render,
+   commit, reconcile, drift detection, and rollback.
+   - Dependencies: Task 2.
+   - Completion check: propagation is GitOps-only with drift detection
+     and a rollback path; direct mutable API writes for persistent
+     configuration are forbidden.
+4. Define single-pane access contract: UI catalog, SSO role mapping, and
+   tenant scoping.
+   - Dependencies: Task 1.
+   - Completion check: UI catalog covers every wrapped UI with auth
+     mapping consistent with the admin access plane contract.
+5. Add management-plane validators, seeded rejection fixtures, smoke
+   wrapper, and CI wiring.
+   - Dependencies: Tasks 1-4.
+   - Completion check: `validate_management_plane_contracts.sh` and
+     `validate_batch16_smoke.sh` pass; seeded fork-method and
+     unbound-key fixtures are rejected; batch is registered in
+     `validate_all_batches_with_report.sh`.
+6. Publish unified configuration operator runbook.
+   - Dependencies: Tasks 1-5.
+   - Completion check: `docs/runbooks/UNIFIED_CONFIGURATION_RUNBOOK.md`
+     covers the config change flow, drift response, and per-system
+     upstream upgrade procedure and is linked from `README.md` and the
+     runbook index.
 
 ## Batch Completion Gate
 

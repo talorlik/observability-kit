@@ -22,6 +22,8 @@ implementation requirements in this document.
 | `TR-13` | Implementation Phase Gates |
 | `TR-14` | Required Technical Artifacts |
 | `TR-15` | AI/MCP Runtime Layer Requirements |
+| `TR-16` | SaaS Multi-Tenancy and Customer Isolation Requirements |
+| `TR-17` | Unified Configuration and Management Plane Requirements |
 
 ## 0.1 Task Batch Reverse Lookup
 
@@ -45,6 +47,8 @@ corresponding execution batches in `TASKS.md`.
 | `TR-13` | `TB-12`, `TB-14` |
 | `TR-14` | `TB-01`, `TB-02` |
 | `TR-15` | `TB-14` |
+| `TR-16` | `TB-15` |
+| `TR-17` | `TB-16` |
 
 ## 1. Purpose [TR-01]
 
@@ -593,3 +597,66 @@ fully operational with the AI/MCP layer disabled.
   alerts (`approval_flow_rules`, `mcp_health_rules`) are required.
 - Operator runbooks for AI/MCP (approval flow, KHook troubleshooting,
   MCP gateway operations, casefile review) must accompany delivery.
+
+## 16. SaaS Multi-Tenancy and Customer Isolation Requirements [TR-16]
+
+The platform serves multiple customers (tenants) from one deployment.
+Customer isolation is stricter than the team and environment isolation in
+section 3.3: cross-tenant access or leakage is a hard failure, not a
+policy preference.
+
+- The tenant contract under `contracts/tenancy/` is authoritative for
+  tenant identity: tenant id, tier, isolation class
+  (`shared-partition`, `dedicated-indices`, or `dedicated-stack`),
+  residency constraints, and lifecycle state.
+- Every telemetry store partitions per tenant: OpenSearch index naming
+  `tenant-<id>-<signal>-*` with per-tenant roles, role mappings, and
+  dashboard spaces; one Neo4j database per tenant in graph-enabled mode;
+  per-tenant vector indices with mandatory retrieval filters.
+- Cross-tenant access is deny-by-default and must be proven by seeded
+  denial fixtures in CI. The AI/MCP layer applies tenancy redaction
+  profiles per `TR-15` to every tool response.
+- Control plane and data plane are separated: tenant management data
+  lives in the control plane; tenant telemetry never leaves the tenant's
+  data-plane partition, and control-plane records never embed tenant
+  telemetry payloads.
+- Per-tenant delivery uses generated GitOps overlays (ApplicationSet
+  style, tool-neutral per `TR-10`) rendered from the tenant contract;
+  core charts are never modified per tenant.
+- Onboarding and offboarding are idempotent; purge produces evidence and
+  honors retention rules. Audit records (`TR-09`) carry the tenant id.
+- Isolation is achieved only through native mechanisms of the wrapped
+  systems (OpenSearch security roles, Neo4j multi-database, dashboard
+  spaces); forking a wrapped system to achieve isolation is forbidden.
+
+## 17. Unified Configuration and Management Plane Requirements [TR-17]
+
+The platform wraps its bundled open-source systems so operators manage,
+configure, and view everything from one place while every wrapped system
+remains upgradable through its own upstream mechanism.
+
+- The wrapped-system registry under `contracts/management/` enumerates
+  every bundled system (OpenTelemetry Collector, OpenSearch, OpenSearch
+  Dashboards, Grafana, Neo4j, Argo CD, and enabled adapters) with its
+  upstream source, pinned version, upgrade mechanism, config surface,
+  and wrap method.
+- Allowed wrap methods are `helm-values`, `kubernetes-crd`,
+  `provisioning-api`, and `sidecar`; `fork` is forbidden and must be
+  rejected by validation.
+- A single schema-validated unified configuration document is the one
+  place operators change platform configuration. Every unified key maps
+  to one or more propagation bindings (unified key to native config
+  path); keys without bindings and bindings to unregistered systems are
+  rejected.
+- Propagation is GitOps-only: the unified document renders per-system
+  native configs (Helm values, provisioning files, saved objects) that
+  are committed and reconciled by the GitOps controller. Direct mutable
+  API writes for persistent configuration are forbidden.
+- Rendered configuration is the source of truth. Drift between rendered
+  and live state must surface through the meta-monitoring alerts
+  required by `TR-12`.
+- Single-pane access: a UI catalog defines stable URLs, SSO and role
+  mapping consistent with the admin access plane (`TR-03`), and tenant
+  scoping consistent with `TR-16` for every wrapped UI.
+- The unified configuration schema is versioned; breaking binding
+  changes require documented migration notes before release.
