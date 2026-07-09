@@ -49,9 +49,13 @@ graph:
     image:
       repository: neo4j
       tag: "5.26"
-    auth:
-      username: neo4j
-      password: replace-me
+    # Neo4j credentials are never set in values. The referenced Secret is
+    # provisioned by the selected secrets backend adapter and must exist in
+    # graph.namespace; its NEO4J_AUTH key holds "<username>/<password>".
+    # Same pattern as gitops/platform/graph/neo4j/neo4j_module.yaml.
+    authSecretRef:
+      name: graph-neo4j-auth
+      key: NEO4J_AUTH
     resources:
       requests:
         cpu: 200m
