@@ -1,0 +1,12 @@
+# Conformance baseline: a StorageClass named for the compatibility
+# matrix profile id `standard-rwo`, backed by kind's built-in
+# local-path provisioner. Discovery matches storage class names
+# against the profile catalog, so the harness cluster must expose a
+# class carrying a catalog id (ADR-0007).
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: standard-rwo
+provisioner: rancher.io/local-path
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Delete

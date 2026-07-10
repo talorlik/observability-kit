@@ -21,3 +21,4 @@ rules:
 ignore: |
   gitops/charts/**/templates/*.yaml
   gitops/libraries/**/templates/*.yaml
+  .live-harness/**

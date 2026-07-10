@@ -101,6 +101,13 @@
         "Implement Flux equivalent reconciliation controls for app sets.",
         "Prove rollback behavior parity with the reference Argo CD flow."
       ]
+    },
+    "disposable_evidence_harness_only": {
+      "severity": "conditional",
+      "actions": [
+        "Use kind only for disposable evidence-harness runs per contracts/evidence/DISPOSABLE_CLUSTER_HARNESS_CONTRACT_V1.yaml.",
+        "For production, install on a supported or conditional distribution from the compatibility matrix."
+      ]
     }
   }
 }

@@ -1,0 +1,23 @@
+{
+  "artifact_kind": "live_install_evidence_manifest",
+  "artifacts": [
+    "argocd_application_state.json",
+    "capability_matrix.json",
+    "compatibility_result.json",
+    "install_contract.json",
+    "install_summary.json",
+    "mode_recommendation.json",
+    "preflight_report.json",
+    "readiness_report.json",
+    "remediation_list.json"
+  ],
+  "batch": 23,
+  "captured_at": "2026-07-10T10:18:16.854680+00:00",
+  "check_command": "obskit install --live (guided flow)",
+  "harness": {
+    "kubectl_context": "kind-obskit-evidence",
+    "node_image": "kindest/node:v1.29.14",
+    "stack_profile": "evidence-disposable"
+  },
+  "status": "pass"
+}

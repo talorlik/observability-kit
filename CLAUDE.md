@@ -85,7 +85,7 @@ bash scripts/ci/check_no_hardcoded_env_values.sh
 bash scripts/ci/validate_all_batches_with_report.sh
 # Reports written to docs/reports/validation/
 # Covers every batch registered in its BATCH_IDS array (currently
-# 1-9A, 10-22; new batches register themselves when implemented).
+# 1-9A, 10-23; new batches register themselves when implemented).
 ```
 
 ### Running a Single Batch
@@ -116,6 +116,7 @@ bash scripts/ci/validate_config_renderer.sh            # Batch 19
 bash scripts/ci/validate_tenant_control_plane.sh      # Batch 20
 bash scripts/ci/validate_portal_contracts.sh          # Batch 21
 bash scripts/ci/validate_commercial_contracts.sh      # Batch 22
+bash scripts/ci/validate_live_evidence.sh             # Batch 23
 ```
 
 Batch 17 delivers the `obskit` executor runtime under `tools/obskit/`
@@ -184,8 +185,23 @@ contract and schema); the billing adapter boundary is
 live in `tests/commercial/`; the runbook is
 `docs/runbooks/COMMERCIAL_OPERATIONS_RUNBOOK.md`.
 
-Batches 23-26 (SaaS productization:
-live-cluster validation, AI activation, release
+Batch 23 adds live-cluster validation and evidence (ADR-0007): the
+disposable kind harness (`scripts/dev/live_cluster_harness.sh`,
+contract `contracts/evidence/DISPOSABLE_CLUSTER_HARNESS_CONTRACT_V1.yaml`,
+two stack profiles: `evidence-disposable` kind cluster per run,
+`dev-persistent` OrbStack built-in - never an evidence source),
+isolated kubeconfig with foreign-context refusal, the full guided
+install executed live (`kind` is now a `conditional` compatibility
+matrix distribution, condition `disposable_evidence_harness_only`),
+live drills, GUI smoke, and the SDN-B15 denial scenarios captured as
+committed evidence under `artifacts/evidence/batch23/`.
+`validate_live_evidence.sh` checks the evidence structurally without a
+cluster; `.github/workflows/e2e-nightly.yaml` ships disabled by
+default and never PR-gates. The runbook is
+`docs/runbooks/LIVE_VALIDATION_RUNBOOK.md`.
+
+Batches 24-26 (SaaS productization:
+AI activation, release
 engineering, product docs) are authored in `TASKS.md` but not yet
 implemented. Their plan is
 `docs/auxiliary/planning/SAAS_PRODUCTIZATION_PLAN.md`; execute them via

@@ -1,0 +1,19 @@
+{
+  "decision": {
+    "rationale": "Keep in-cluster collectors while reusing shared services.",
+    "recommended_mode": "hybrid",
+    "rule_id": "hybrid-shared-backend"
+  },
+  "inputs": {
+    "allow_new_backend_components": true,
+    "evaluation_only": false,
+    "has_compatible_existing_services": true,
+    "has_compatible_existing_services_source": "derived",
+    "require_in_cluster_collectors": true
+  },
+  "metadata": {
+    "cluster_name": "obskit-evidence",
+    "generated_by": "obskit",
+    "version": "v1"
+  }
+}

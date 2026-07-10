@@ -1,0 +1,87 @@
+# In-cluster git server serving the disposable GitOps clone to
+# Argo CD over HTTPS (ADR-0007). The install contract schema requires
+# an https:// (or git@) gitops_repo_url, so the harness serves the
+# bare repository over TLS with a per-run self-signed certificate
+# (Secret git-server-tls, created by the harness) and registers a
+# declarative Argo CD repository secret with insecure: "true".
+#
+# The server speaks the git SMART HTTP protocol (Argo CD lists refs
+# with go-git, which cannot use the dumb protocol): a Python stdlib
+# CGI bridge to `git http-backend`, mounted from the
+# git-server-script ConfigMap (scripts/dev/harness_assets/
+# git_smart_http.py). Read-only, anonymous, disposable - exactly the
+# lifetime of the evidence cluster. The git package is installed at
+# pod start (apk); the harness is a networked test rig by contract.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: git-server
+  namespace: evidence-gitops
+  labels:
+    app: git-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: git-server
+  template:
+    metadata:
+      labels:
+        app: git-server
+    spec:
+      containers:
+        - name: git-https
+          image: python:3.12-alpine
+          command:
+            - sh
+            - -c
+            - >-
+              apk add --no-cache git git-daemon >/dev/null &&
+              mkdir -p /repos &&
+              exec python3 /scripts/git_smart_http.py
+          ports:
+            - containerPort: 8443
+              name: https
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          readinessProbe:
+            tcpSocket:
+              port: 8443
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          volumeMounts:
+            - name: repos
+              mountPath: /repos
+            - name: tls
+              mountPath: /certs
+              readOnly: true
+            - name: script
+              mountPath: /scripts
+              readOnly: true
+      volumes:
+        - name: repos
+          emptyDir: {}
+        - name: tls
+          secret:
+            secretName: git-server-tls
+        - name: script
+          configMap:
+            name: git-server-script
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: git-server
+  namespace: evidence-gitops
+spec:
+  selector:
+    app: git-server
+  ports:
+    - name: https
+      port: 8443
+      targetPort: 8443

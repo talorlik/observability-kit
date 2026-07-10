@@ -1,0 +1,4 @@
+{
+  "identity": "static-users",
+  "object_storage": "s3-compatible"
+}

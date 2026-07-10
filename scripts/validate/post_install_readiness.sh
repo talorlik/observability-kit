@@ -1,16 +1,29 @@
 #!/usr/bin/env bash
+#
+# Validate a post-install readiness report against
+# contracts/install/POST_INSTALL_READINESS.schema.json.
+#
+# Default report: the declared scaffold
+# contracts/discovery/READINESS_REPORT_SCAFFOLD.json (dry-run-install).
+# Batch 23: set READINESS_REPORT_PATH to validate a live readiness
+# report captured from the evidence harness (live-install).
 
 set -euo pipefail
 
-echo "Validating post-install readiness report..."
+READINESS_REPORT_PATH="${READINESS_REPORT_PATH:-contracts/discovery/READINESS_REPORT_SCAFFOLD.json}"
+export READINESS_REPORT_PATH
+
+echo "Validating post-install readiness report" \
+  "(${READINESS_REPORT_PATH})..."
 
 python3 - <<'PY'
 import json
+import os
 from pathlib import Path
 import sys
 
 schema = json.loads(Path("contracts/install/POST_INSTALL_READINESS.schema.json").read_text())
-report = json.loads(Path("contracts/discovery/READINESS_REPORT_SCAFFOLD.json").read_text())
+report = json.loads(Path(os.environ["READINESS_REPORT_PATH"]).read_text())
 
 required_top = set(schema.get("required", []))
 missing_top = sorted(required_top - set(report.keys()))
@@ -24,8 +37,14 @@ if missing_meta:
     print(f"ERROR: readiness report metadata missing keys: {missing_meta}")
     sys.exit(1)
 
-if report["metadata"].get("emitted_after") != "dry-run-install":
-    print("ERROR: readiness report emitted_after must be dry-run-install")
+allowed_emitted = set(
+    schema["properties"]["metadata"]["properties"]["emitted_after"]["enum"]
+)
+if report["metadata"].get("emitted_after") not in allowed_emitted:
+    print(
+        "ERROR: readiness report emitted_after must be one of "
+        f"{sorted(allowed_emitted)}"
+    )
     sys.exit(1)
 
 sections = report.get("readiness_sections", [])

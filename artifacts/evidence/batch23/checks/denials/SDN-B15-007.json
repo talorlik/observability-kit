@@ -1,0 +1,34 @@
+{
+  "artifact_kind": "live_cross_tenant_denial",
+  "attempted_access": {
+    "action": "graph-session-against-foreign-or-system-database",
+    "actor_tenant": "tenant-a",
+    "store": "graph",
+    "target_tenant": "tenant-b"
+  },
+  "batch": 23,
+  "captured_at": "2026-07-10T10:31:44.113554+00:00",
+  "decision": "deny",
+  "enforcement_point": "runtime",
+  "expected_decision": "deny",
+  "harness": {
+    "kubectl_context": "kind-obskit-evidence",
+    "node_image": "kindest/node:v1.29.14",
+    "stack_profile": "evidence-disposable"
+  },
+  "matches_expected": true,
+  "matrix": "contracts/tenancy/TENANT_ISOLATION_MATRIX_V1.yaml",
+  "observed": {
+    "foreign_database_attempt": {
+      "database": "tenant-b",
+      "exit_code": 1,
+      "output": "ACCESS on database 'tenant-b' is not allowed for user 'tenant_a_reader' with roles [PUBLIC, tenant_a_role].\ncommand terminated with exit code 1"
+    },
+    "system_database_attempt": {
+      "database": "system",
+      "exit_code": 1,
+      "output": "Permission has not been granted for SHOW USER. Try executing SHOW USER PRIVILEGES to determine the missing or denied privileges. In case of missing privileges, they need to be granted (See GRANT). In case of denied privileges, they need to be revoked (See REVOKE) and granted.\ncommand terminated with exit code 1"
+    }
+  },
+  "scenario_id": "SDN-B15-007"
+}

@@ -25,7 +25,10 @@
         },
         "emitted_after": {
           "type": "string",
-          "const": "dry-run-install"
+          "enum": [
+            "dry-run-install",
+            "live-install"
+          ]
         }
       },
       "additionalProperties": true

@@ -1,0 +1,74 @@
+# Nightly live e2e workflow stub (Batch 23 Task 5, TR-24).
+#
+# DISABLED BY DEFAULT and orchestrator-owned: the schedule trigger is
+# commented out and the workflow_dispatch entry point is guarded by an
+# explicit confirmation input. This workflow is NEVER wired into pull
+# request gating - live evidence runs are manual or nightly by
+# contract (contracts/evidence/DISPOSABLE_CLUSTER_HARNESS_CONTRACT_V1.yaml),
+# and repository CI validates captured evidence structurally via
+# scripts/ci/validate_live_evidence.sh instead.
+#
+# Enabling the nightly schedule is an orchestrator decision: uncomment
+# the schedule block AND provide a runner with Docker and kind (the
+# GitHub-hosted ubuntu runner qualifies; the run stays inside the
+# runner's local Docker engine and creates no external resources).
+
+name: e2e-nightly
+
+permissions:
+  contents: read
+
+on:
+  # Disabled by default. Orchestrator: uncomment to enable the
+  # nightly run.
+  # schedule:
+  #   - cron: "17 3 * * *"
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: >-
+          Type RUN-LIVE-E2E to confirm a live disposable-harness run.
+        required: true
+        default: ""
+
+jobs:
+  live-evidence:
+    name: Disposable-harness live e2e
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'schedule' ||
+      github.event.inputs.confirm == 'RUN-LIVE-E2E'
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup kind
+        uses: helm/kind-action@v1
+        with:
+          install_only: true
+
+      - name: Create disposable harness cluster
+        run: bash scripts/dev/live_cluster_harness.sh create
+
+      - name: Run live evidence checks
+        run: bash scripts/dev/live_cluster_harness.sh run
+
+      - name: Teardown (always)
+        if: always()
+        run: bash scripts/dev/live_cluster_harness.sh teardown
+
+      - name: Validate captured evidence structurally
+        run: bash scripts/ci/validate_live_evidence.sh
+
+      - name: Upload evidence artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-evidence
+          path: artifacts/evidence/batch23/

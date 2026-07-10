@@ -1,0 +1,24 @@
+{
+  "artifact_kind": "live_gui_smoke",
+  "batch": 23,
+  "captured_at": "2026-07-10T10:19:27.040664+00:00",
+  "check_command": "scripts/validate/admin_gui_smoke.sh (PORTAL_BASE_URL set)",
+  "harness": {
+    "kubectl_context": "kind-obskit-evidence",
+    "node_image": "kindest/node:v1.29.14",
+    "stack_profile": "evidence-disposable"
+  },
+  "payload": {
+    "healthz_response": {
+      "status": "ok"
+    },
+    "smoke_output": [
+      "Running admin GUI smoke checks...",
+      "Probing portal liveness at PORTAL_BASE_URL/healthz...",
+      "Portal /healthz responded with a status payload.",
+      "Admin GUI smoke checks passed."
+    ],
+    "tls": "self-signed harness certificate, verification disabled via PORTAL_TLS_INSECURE=1"
+  },
+  "status": "pass"
+}

@@ -1,0 +1,13 @@
+{
+  "artifact_kind": "harness_teardown_verification",
+  "batch": 23,
+  "captured_at": "2026-07-10T10:33:07.535264+00:00",
+  "cluster_existed_before_teardown": true,
+  "docker_reports_no_labeled_containers": true,
+  "harness": {
+    "kubectl_context": "kind-obskit-evidence",
+    "node_image": "kindest/node:v1.29.14",
+    "stack_profile": "evidence-disposable"
+  },
+  "kind_reports_cluster_absent": true
+}

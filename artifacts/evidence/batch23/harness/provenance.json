@@ -1,0 +1,25 @@
+{
+  "artifact_kind": "harness_provenance",
+  "batch": 23,
+  "captured_at": "2026-07-10T09:41:33.173246+00:00",
+  "cluster_name": "obskit-evidence",
+  "harness": {
+    "kubectl_context": "kind-obskit-evidence",
+    "node_image": "kindest/node:v1.29.14",
+    "stack_profile": "evidence-disposable"
+  },
+  "kind_node_container": "1fa21ea2795e",
+  "kubectl_context": "kind-obskit-evidence",
+  "node_image": "kindest/node:v1.29.14",
+  "server_version": {
+    "buildDate": "2025-02-15T00:49:45Z",
+    "compiler": "gc",
+    "gitCommit": "4f359b2e16764ab5e175195ee6992dfb53b36acf",
+    "gitTreeState": "clean",
+    "gitVersion": "v1.29.14",
+    "goVersion": "go1.22.12",
+    "major": "1",
+    "minor": "29",
+    "platform": "linux/arm64"
+  }
+}

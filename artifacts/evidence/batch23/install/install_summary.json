@@ -1,0 +1,37 @@
+{
+  "metadata": {
+    "cluster_name": "obskit-evidence",
+    "environment": "dev",
+    "generated_by": "obskit",
+    "version": "v1"
+  },
+  "next_steps": [
+    "Commit the contents of the rendered/ directory into 'gitops/' of https://git-server.evidence-gitops.svc.cluster.local:8443/gitops.git and let the Argo CD controller reconcile it.",
+    "Verify application health in the Argo CD UI and the platform dashboards for the 'dev' environment.",
+    "Onboard workloads per docs/runbooks/ONBOARDING_SUBSCRIPTION_OPERATOR_GUIDE.md.",
+    "For day-2 operations see docs/runbooks/GUIDED_INSTALLATION_GUIDE.md."
+  ],
+  "readiness": {
+    "exit_code": 0,
+    "passed": true,
+    "script": "scripts/validate/post_install_readiness.sh",
+    "sections": [
+      {
+        "description": "Core platform component health and reconciliation status.",
+        "id": "platform_components",
+        "status": "pending"
+      },
+      {
+        "description": "Smoke checks for logs, metrics, and traces pipelines.",
+        "id": "telemetry_paths",
+        "status": "pending"
+      },
+      {
+        "description": "Identity, secret, and policy control validation summary.",
+        "id": "policy_and_access",
+        "status": "pending"
+      }
+    ]
+  },
+  "rendered_output_dir": "rendered"
+}

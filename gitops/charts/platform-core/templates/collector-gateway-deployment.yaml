@@ -14,11 +14,23 @@ spec:
       labels:
         app: otel-gateway
     spec:
+      serviceAccountName: otel-collector
       containers:
         - name: otel-gateway
           image: "{{ .Values.collector.image.repository }}:{{ .Values.collector.image.tag }}"
           args:
             - "--config=/conf/collector-gateway.yaml"
+          ports:
+            - containerPort: 4317
+              name: otlp-grpc
+            - containerPort: 4318
+              name: otlp-http
+          resources:
+{{ toYaml .Values.collector.gateway.resources | indent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /conf
+              readOnly: true
           readinessProbe:
             httpGet:
               path: /
@@ -31,6 +43,10 @@ spec:
               port: 13133
             initialDelaySeconds: 10
             periodSeconds: 15
+      volumes:
+        - name: config
+          configMap:
+            name: otel-gateway-config
 ---
 apiVersion: v1
 kind: Service

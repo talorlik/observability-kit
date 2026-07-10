@@ -1,0 +1,46 @@
+{
+  "artifact_kind": "live_cross_tenant_denial",
+  "attempted_access": {
+    "action": "apply-shared-partition-read-role-without-dls-filter",
+    "actor_tenant": "tenant-a",
+    "store": "logs",
+    "target_tenant": "all-tenants"
+  },
+  "batch": 23,
+  "captured_at": "2026-07-10T10:31:44.144769+00:00",
+  "decision": "reject",
+  "enforcement_point": "config-validation",
+  "expected_decision": "reject",
+  "harness": {
+    "kubectl_context": "kind-obskit-evidence",
+    "node_image": "kindest/node:v1.29.14",
+    "stack_profile": "evidence-disposable"
+  },
+  "matches_expected": true,
+  "matrix": "contracts/tenancy/TENANT_ISOLATION_MATRIX_V1.yaml",
+  "observed": {
+    "config_validation_violations": [
+      "role tenant-a-shared-reader: shared-partition patterns ['vectors-shared-*'] carry no DLS tenant filter (CTR-02)"
+    ],
+    "live_security_config_audit": {
+      "tenant_roles_audited": [
+        "tenant-a-signals-reader",
+        "tenant-b-signals-reader"
+      ],
+      "violations": []
+    },
+    "seeded_role": {
+      "index_permissions": [
+        {
+          "allowed_actions": [
+            "read"
+          ],
+          "index_patterns": [
+            "vectors-shared-*"
+          ]
+        }
+      ]
+    }
+  },
+  "scenario_id": "SDN-B15-008"
+}

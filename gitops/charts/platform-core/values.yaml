@@ -6,7 +6,12 @@ namespace: observability
 collector:
   enabled: true
   image:
-    repository: otel/opentelemetry-collector
+    # The k8s distribution: carries the contracted processor set
+    # (k8sattributes, resource) that the core distribution lacks;
+    # the wrapped-system registry names this image for collectors
+    # (otel/opentelemetry-collector-k8s). Surfaced by the Batch 23
+    # live install (ADR-0007 evidence run).
+    repository: otel/opentelemetry-collector-k8s
     tag: "0.101.0"
   agent:
     enabled: true

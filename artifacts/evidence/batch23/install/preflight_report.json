@@ -1,0 +1,53 @@
+{
+  "checks": [
+    {
+      "description": "Cluster API reachable with provided credentials.",
+      "id": "cluster_connectivity",
+      "status": "pass"
+    },
+    {
+      "description": "Preflight service account can read required resources.",
+      "id": "required_permissions",
+      "status": "pass"
+    },
+    {
+      "description": "Required APIs and APIService endpoints are available.",
+      "id": "required_api_readiness",
+      "status": "pass"
+    },
+    {
+      "description": "Gateway API CRDs are installed when gateway profile is set.",
+      "id": "required_crd_readiness",
+      "reason_code": "gateway_api_not_in_use",
+      "status": "skip"
+    },
+    {
+      "description": "Detected storage profile is compatible with selected mode.",
+      "id": "storage_compatibility",
+      "status": "pass"
+    },
+    {
+      "description": "A supported GitOps controller and CRDs are present.",
+      "id": "gitops_prerequisites",
+      "status": "pass"
+    }
+  ],
+  "cluster": {
+    "distribution": "kind",
+    "kubernetes_version": "1.29",
+    "name": "obskit-evidence"
+  },
+  "metadata": {
+    "owner": "platform-observability",
+    "source_marker": "TR-18",
+    "version": "v1"
+  },
+  "summary": {
+    "fail": 0,
+    "outcome": "pass",
+    "pass": 5,
+    "skip": 1,
+    "total_checks": 6,
+    "warn": 0
+  }
+}

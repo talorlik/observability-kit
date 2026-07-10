@@ -13,6 +13,85 @@ first. Entry format:
 - Follow-up: <action for a future batch, or "none">
 ```
 
+## 2026-07-10 - Batch 23 - Live-Cluster Validation Gotchas and Product Fixes
+
+- Decision: `docs/adr/ADR_0007_DISPOSABLE_CLUSTER_HARNESS.md` fixes the
+  evidence harness: disposable kind clusters only (k3d not installed;
+  contract leaves room), node image pinned to `kindest/node:v1.29.14`
+  because the compatibility matrix tops out at 1.30 and the harness
+  follows the product's support claim rather than widening it,
+  isolated kubeconfig with `kind-obskit-evidence` context refusal, a
+  conformance baseline (ingress-nginx v1.12.1 kind manifest,
+  external-secrets v0.14.4, Argo CD v3.1.0, a `standard-rwo`
+  StorageClass because discovery matches storage-class NAMES against
+  profile catalog ids), and an attach-mode backend (OpenSearch and
+  Dashboards 2.19.1, Neo4j 5.26.0-enterprise under eval acceptance -
+  the isolation matrix graph floor is native multi-database, community
+  cannot express it). Harness pins are evidence-scoped and do NOT
+  resolve the registry's three to-be-pinned entries (Batch 25).
+- Decision: `kind` became a `conditional` distribution
+  (contract-first): `COMPATIBILITY_MATRIX.json` +
+  `REMEDIATION_CATALOG.json` (grading hard-fails on a reason without
+  a remediation entry) + a `GRADING_RULES.json` sample executed by the
+  Batch 2 validator. Two executor/installer tests that asserted "kind
+  grades blocked" were updated to the new contract truth.
+- Decision: the live install surfaced a real blueprint gap - the
+  platform-core chart mounted collector configs NO artifact delivers,
+  and pinned the CORE collector distribution which lacks the
+  contracted k8sattributes/resource processors. Fixed product-side:
+  image is now `otel/opentelemetry-collector-k8s:0.101.0` (the
+  distribution the wrapped-system registry itself names), the chart
+  owns agent/gateway ConfigMaps, ServiceAccount, and read-only RBAC.
+  Gateway export: `otlp/backend` when
+  `attachedServices.otlpEndpoint` is supplied, `debug` fallback
+  otherwise so the platform is runnable while the OTLP ingest attach
+  point is provisioned.
+- Why: TR-24 exists to force exactly this class of gap out of the
+  declared blueprint; a chart that cannot start as shipped would have
+  reached Batch 25 release engineering unnoticed.
+- Decision: GitOps serving on the harness is an in-cluster smart-HTTP
+  git server (python:3.12-alpine + alpine `git-daemon` package for
+  `git http-backend`, stdlib TLS CGI shim, per-run self-signed cert,
+  declarative Argo CD repository secret with insecure:"true").
+  Chain of forced moves: the install contract schema requires an
+  `https://` (or `git@`) gitops_repo_url, and Argo CD lists refs with
+  go-git which speaks ONLY the smart protocol (dumb HTTP fails with
+  "unexpected EOF"). `git http-backend` is NOT in Alpine's `git`
+  package; busybox wget resolves localhost to ::1 first (probe
+  127.0.0.1 explicitly).
+- Gotchas captured for future live work: multi-source Argo CD
+  Applications leave `.status.sync.revision` EMPTY - read
+  `.status.sync.revisions[0]`; Neo4j on k8s needs
+  `enableServiceLinks: false` (a Service named neo4j injects
+  NEO4J_PORT_* env vars the entrypoint misparses as config) and
+  principal names forbid hyphens (databases allow them); OpenSearch
+  DLS `term` filters must target `.keyword` on dynamically mapped
+  text fields or they match nothing; the ingress-nginx kind manifest
+  requires the `ingress-ready=true` node label (kind cluster config);
+  the external-secrets release manifest hardcodes namespace
+  `default`.
+- Decision: `POST_INSTALL_READINESS.schema.json` `emitted_after`
+  widened additively (`const dry-run-install` -> enum with
+  `live-install`); `post_install_readiness.sh` gained a
+  `READINESS_REPORT_PATH` override with unchanged default;
+  `run_restore_drill.sh` / `run_rollback_drill.sh` real modes are now
+  REAL (OpenSearch snapshot/restore cycle; GitOps forward-commit +
+  revert with Argo CD convergence), env-driven, refusing non-kind
+  contexts, dry-run defaults unchanged.
+- Deviation: `.github/workflows/ci.yaml` deliberately NOT extended -
+  batches 14+ are not individually PR-gated by convention, and TR-24
+  forbids PR-gating the live path anyway;
+  `scripts/ci/validate_live_evidence.sh` covers the evidence
+  structurally via the aggregator. yamllint now ignores
+  `.live-harness/**` (scratch clone contains Helm templates outside
+  the chart-template exclusion path).
+- Follow-up: Batch 24 reuses the harness for AI runtime activation
+  (`run --only <check>` composes; DENIAL_SCENARIO narrows denials);
+  Batch 25 must resolve the three registry pins and revisit the
+  gateway `debug` fallback once a contracted OTLP ingest attach path
+  (e.g. OSI or Data Prepper) lands; the tenantctl audit-actor binding
+  gap from Batch 21 remains open.
+
 ## 2026-07-10 - Batch 22 - Commercial Layer Semantics and Gotchas
 
 - Decision: `docs/adr/ADR_0006_METERING_ARCHITECTURE.md` fixes

@@ -13,11 +13,29 @@ spec:
       labels:
         app: otel-agent
     spec:
+      serviceAccountName: otel-collector
       containers:
         - name: otel-agent
           image: "{{ .Values.collector.image.repository }}:{{ .Values.collector.image.tag }}"
           args:
             - "--config=/conf/collector-agent.yaml"
+          env:
+            # k8sattributes filters its watch to this node.
+            - name: KUBE_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          ports:
+            - containerPort: 4317
+              name: otlp-grpc
+            - containerPort: 4318
+              name: otlp-http
+          resources:
+{{ toYaml .Values.collector.agent.resources | indent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /conf
+              readOnly: true
           readinessProbe:
             httpGet:
               path: /
@@ -30,4 +48,8 @@ spec:
               port: 13133
             initialDelaySeconds: 10
             periodSeconds: 15
+      volumes:
+        - name: config
+          configMap:
+            name: otel-agent-config
 {{- end }}
