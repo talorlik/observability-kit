@@ -22,5 +22,15 @@
   "validation_result": {
     "status": "pass",
     "evidence": "Restore drill completed successfully in non-production."
+  },
+  "captured_evidence": {
+    "batch": 23,
+    "stack_profile": "evidence-disposable",
+    "harness_contract": "contracts/evidence/DISPOSABLE_CLUSTER_HARNESS_CONTRACT_V1.yaml",
+    "captured_by": "scripts/dev/live_cluster_harness.sh",
+    "artifacts": [
+      "artifacts/evidence/batch23/checks/restore_drill.json"
+    ],
+    "note": "Live OpenSearch snapshot/restore cycle executed on the disposable evidence harness (Batch 23 Task 3); the declared blocks below record the original Batch 8 tabletop posture and stay unchanged."
   }
 }

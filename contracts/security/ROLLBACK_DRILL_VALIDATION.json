@@ -23,5 +23,16 @@
   "validation_result": {
     "status": "pass",
     "evidence": "Rollback drills completed within defined recovery objectives."
+  },
+  "captured_evidence": {
+    "batch": 23,
+    "stack_profile": "evidence-disposable",
+    "harness_contract": "contracts/evidence/DISPOSABLE_CLUSTER_HARNESS_CONTRACT_V1.yaml",
+    "captured_by": "scripts/dev/live_cluster_harness.sh",
+    "artifacts": [
+      "artifacts/evidence/batch23/checks/rollback_drill.json",
+      "artifacts/evidence/batch23/checks/config_rollback_drill.json"
+    ],
+    "note": "Live GitOps revision rollback (Argo CD convergence forward and back) plus the renderer config-rollback drill in real mode, executed on the disposable evidence harness (Batch 23 Task 3)."
   }
 }

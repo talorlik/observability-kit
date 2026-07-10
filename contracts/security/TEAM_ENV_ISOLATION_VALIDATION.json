@@ -42,5 +42,23 @@
   "validation_result": {
     "status": "pass",
     "evidence": "Cross-team and cross-environment access attempts were denied."
+  },
+  "captured_evidence": {
+    "batch": 23,
+    "stack_profile": "evidence-disposable",
+    "harness_contract": "contracts/evidence/DISPOSABLE_CLUSTER_HARNESS_CONTRACT_V1.yaml",
+    "captured_by": "scripts/dev/live_cluster_harness.sh",
+    "artifacts": [
+      "artifacts/evidence/batch23/checks/denials/SDN-B15-001.json",
+      "artifacts/evidence/batch23/checks/denials/SDN-B15-002.json",
+      "artifacts/evidence/batch23/checks/denials/SDN-B15-003.json",
+      "artifacts/evidence/batch23/checks/denials/SDN-B15-004.json",
+      "artifacts/evidence/batch23/checks/denials/SDN-B15-005.json",
+      "artifacts/evidence/batch23/checks/denials/SDN-B15-006.json",
+      "artifacts/evidence/batch23/checks/denials/SDN-B15-007.json",
+      "artifacts/evidence/batch23/checks/denials/SDN-B15-008.json",
+      "artifacts/evidence/batch23/checks/denials/SDN-B15-009.json"
+    ],
+    "note": "Live cross-tenant denial scenarios SDN-B15-001..009 exercising the same deny-by-default role, DLS, and database isolation mechanics on the disposable evidence harness (Batch 23 Task 3); tenant isolation is the superset surface of the Batch 8 team/env isolation model per contracts/tenancy/TENANT_ISOLATION_MATRIX_V1.yaml."
   }
 }

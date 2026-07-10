@@ -19,5 +19,15 @@
       "tls_valid": true,
       "login_smoke": "pass"
     }
-  ]
+  ],
+  "captured_evidence": {
+    "batch": 23,
+    "stack_profile": "evidence-disposable",
+    "harness_contract": "contracts/evidence/DISPOSABLE_CLUSTER_HARNESS_CONTRACT_V1.yaml",
+    "captured_by": "scripts/dev/live_cluster_harness.sh",
+    "artifacts": [
+      "artifacts/evidence/batch23/checks/gui_smoke.json"
+    ],
+    "note": "Portal endpoint served live over TLS and probed through scripts/validate/admin_gui_smoke.sh with PORTAL_BASE_URL set (Batch 23 Task 3)."
+  }
 }
