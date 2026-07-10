@@ -342,17 +342,26 @@ def ensure_invoice_consistent(document: Mapping[str, Any]) -> None:
         raise InvoiceExportError("line_items must be a non-empty list")
     if not isinstance(totals, Mapping):
         raise InvoiceExportError("totals must be an object")
-    overage = _round_units(
-        sum(item["overage_units"] for item in line_items)
-    )
-    if _round_units(totals["overage_units"]) != overage:
+    # Malformed dicts (missing keys, non-numeric values) must surface
+    # as InvoiceExportError, not KeyError/TypeError - this function's
+    # whole purpose is validating untrusted plain-dict documents.
+    try:
+        overage = _round_units(
+            sum(float(item["overage_units"]) for item in line_items)
+        )
+        totals_overage = _round_units(float(totals["overage_units"]))
+        base_units = float(totals["base_monthly_units"])
+        total_units = _round_units(float(totals["total_units"]))
+    except (KeyError, TypeError, ValueError) as exc:
+        raise InvoiceExportError(
+            f"malformed export document: {exc!r}"
+        ) from exc
+    if totals_overage != overage:
         raise InvoiceExportError(
             "totals.overage_units is inconsistent with line_items"
         )
-    expected_total = _round_units(
-        totals["base_monthly_units"] + overage
-    )
-    if _round_units(totals["total_units"]) != expected_total:
+    expected_total = _round_units(base_units + overage)
+    if total_units != expected_total:
         raise InvoiceExportError(
             "totals.total_units must equal base_monthly_units plus "
             "overage_units"
