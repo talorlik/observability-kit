@@ -103,6 +103,9 @@ jobs:
       - name: Management portal checks
         run: bash scripts/ci/validate_portal_contracts.sh
 
+      - name: Commercial operations checks
+        run: bash scripts/ci/validate_commercial_contracts.sh
+
       - name: Preflight and discovery checks
         run: bash scripts/ci/validate_preflight_and_discovery.sh
 
