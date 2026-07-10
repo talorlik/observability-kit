@@ -1,0 +1,60 @@
+# CustomResourceDefinition for the MCPServer registration surface
+# (Batch 24 activation). The Batch 14 scaffolding shipped the sample
+# MCPServer instance (mcpserver-sample.yaml) without its CRD, so no
+# cluster could ever admit the base kustomization. The schema mirrors
+# exactly the fields validate_ai_runtime_base_scaffolding.sh asserts
+# on the sample; the API group is the runtime's registration surface
+# per contracts/mcp/GATEWAY_DISCOVERY_CONTRACT_V1.yaml (explicit
+# registration, no direct backend discovery).
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: mcpservers.mcp.kagent.dev
+  labels:
+    app.kubernetes.io/name: kmcp
+spec:
+  group: mcp.kagent.dev
+  scope: Namespaced
+  names:
+    kind: MCPServer
+    listKind: MCPServerList
+    plural: mcpservers
+    singular: mcpserver
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                discovery:
+                  type: object
+                  properties:
+                    enabled:
+                      type: boolean
+                endpoint:
+                  type: object
+                  properties:
+                    mode:
+                      type: string
+                      enum:
+                        - gateway
+                    remoteMCPServerRef:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        namespace:
+                          type: string
+                healthCheck:
+                  type: object
+                  properties:
+                    path:
+                      type: string
+                    intervalSeconds:
+                      type: integer
+                      minimum: 1

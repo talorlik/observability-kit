@@ -241,3 +241,57 @@ gating:
   note: >-
     Repository CI validates captured evidence structurally
     (scripts/ci/validate_live_evidence.sh); it never creates clusters.
+
+# Batch 24 addition (TB-24, TR-24, ADR-0009): AI/MCP runtime
+# activation evidence. Additive only - nothing above this line
+# changed. validate_ai_activation.sh owns the structural checks for
+# this section; validate_live_evidence.sh ignores it by design.
+ai_activation:
+  batch: 24
+  decided_by:
+    - docs/adr/ADR_0008_MODEL_PROVIDER_ADAPTER.md
+    - docs/adr/ADR_0009_AI_RUNTIME_ACTIVATION_STRATEGY.md
+  validated_by: scripts/ci/validate_ai_activation.sh
+  checks:
+    # Composed onto a completed install check of the same harness
+    # run, in this order; never part of the default batch 23 run.
+    - ai-deploy
+    - ai-rehearsal
+    - ai-signoff
+  runtime_image:
+    name: obskit-ai-runtime
+    tag: 0.1.0
+    build_context: services/ai
+    load_method: kind-load-docker-image
+    registry_publication: deferred-to-batch-25
+  gitops_source:
+    application: ai-runtime
+    path: gitops/platform/ai/overlays/dev
+  evidence:
+    output_dir: artifacts/evidence/batch24
+    committed: true
+    required_artifacts:
+      deploy:
+        - deploy/application_state.json
+        - deploy/pod_inventory.json
+        - deploy/gateway_catalog.json
+        - deploy/contract_fingerprints.json
+        - deploy/evidence_manifest.json
+      rehearsal:
+        - rehearsal/trigger_flow.json
+        - rehearsal/rejection_flow.json
+        - rehearsal/timeout_drill.json
+        - rehearsal/dedupe_burst.json
+        - rehearsal/decision_corpus.json
+        - rehearsal/store_restore_drill.json
+        - rehearsal/audit_trail.json
+      signoff:
+        - signoff/signoff_record.json
+    envelope_batch: 24
+  signoff:
+    workflow: docs/operations/PRODUCTION_ACTIVATION_SIGNOFF_WORKFLOW.md
+    unmeasurable_threshold_is_failed_gate: true
+    decision_values:
+      - approved
+      - hold
+      - rejected

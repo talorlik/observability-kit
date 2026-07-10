@@ -1,0 +1,136 @@
+{
+  "artifact_kind": "live_ai_rehearsal_decision_corpus",
+  "batch": 24,
+  "captured_at": "2026-07-10T13:27:52.179252+00:00",
+  "check_command": "harness_assets/run_ai_rehearsal.py (decision_corpus)",
+  "harness": {
+    "kubectl_context": "kind-obskit-evidence",
+    "node_image": "kindest/node:v1.29.14",
+    "stack_profile": "evidence-disposable"
+  },
+  "payload": {
+    "approved": 28,
+    "decisions": [
+      {
+        "case_id": "c6d2e5e8-8ebd-4569-9ee8-c6b52c74ffc7",
+        "decision": "approved"
+      },
+      {
+        "case_id": "07996952-4461-4026-a4a3-73ff8c9e0adc",
+        "decision": "approved"
+      },
+      {
+        "case_id": "f1fcb44b-69d0-4a3a-8afe-e210f2983715",
+        "decision": "approved"
+      },
+      {
+        "case_id": "05bcfc68-3735-45a3-a593-dcee620bd018",
+        "decision": "approved"
+      },
+      {
+        "case_id": "4c47e277-4667-421e-b666-4fe515c71485",
+        "decision": "approved"
+      },
+      {
+        "case_id": "3159d339-bd06-4128-954e-7f5ad8f40aae",
+        "decision": "approved"
+      },
+      {
+        "case_id": "733ec352-a3c3-4860-b4db-9b859a7f7519",
+        "decision": "approved"
+      },
+      {
+        "case_id": "af0b6679-6c3f-44dc-9176-e9e5384ef153",
+        "decision": "approved"
+      },
+      {
+        "case_id": "4de01e87-8827-47cc-806e-dc08bc78c52b",
+        "decision": "approved"
+      },
+      {
+        "case_id": "d43143b6-6f13-46ff-a165-90ab84e1e540",
+        "decision": "approved"
+      },
+      {
+        "case_id": "6f77cbe8-85f3-47ef-9c12-660656c9d094",
+        "decision": "approved"
+      },
+      {
+        "case_id": "182988a5-745b-4d2c-816d-852dbb89b354",
+        "decision": "approved"
+      },
+      {
+        "case_id": "b056848e-3699-4da6-8aad-7bb841d84315",
+        "decision": "approved"
+      },
+      {
+        "case_id": "d1741c28-ac12-4c17-9e18-4bfd9905618e",
+        "decision": "approved"
+      },
+      {
+        "case_id": "914a2e78-9ed0-4479-965b-3ef9f939dbd0",
+        "decision": "approved"
+      },
+      {
+        "case_id": "98aebbe8-929d-47e2-91e1-48d34d200800",
+        "decision": "approved"
+      },
+      {
+        "case_id": "0048ee1e-2fe1-4ef7-9bf7-75634f084326",
+        "decision": "approved"
+      },
+      {
+        "case_id": "f8c5bf66-dd44-4d8e-96e5-927ef5104eb7",
+        "decision": "approved"
+      },
+      {
+        "case_id": "afdfa357-7caa-4071-b958-75bd46b53a3d",
+        "decision": "approved"
+      },
+      {
+        "case_id": "61e58982-1889-4f35-a3f8-d726ad269f56",
+        "decision": "approved"
+      },
+      {
+        "case_id": "1f1c6953-aef6-4fca-9853-57214f9af05a",
+        "decision": "approved"
+      },
+      {
+        "case_id": "fcbd022b-f95d-4ff3-86a9-f960456ed88d",
+        "decision": "approved"
+      },
+      {
+        "case_id": "f6e439f4-6d6c-4cda-8b29-18cc31d99f5c",
+        "decision": "approved"
+      },
+      {
+        "case_id": "baf9e3f0-743a-491e-b7a7-7d07c37b2c03",
+        "decision": "approved"
+      },
+      {
+        "case_id": "7f78f3b9-c4f0-4d70-8e61-009de487b28a",
+        "decision": "approved"
+      },
+      {
+        "case_id": "98f9581a-38fc-46fe-9fac-7ad51cd25ae2",
+        "decision": "approved"
+      },
+      {
+        "case_id": "af96d8ed-dbaf-4f56-86c8-a796ecd4418e",
+        "decision": "approved"
+      },
+      {
+        "case_id": "926f8f38-968a-4c36-a093-17003f6e5b5c",
+        "decision": "approved"
+      },
+      {
+        "case_id": "f436422d-3cee-4f32-b4f1-0a9355e2b730",
+        "decision": "rejected"
+      }
+    ],
+    "flows": 29,
+    "rejected": 1,
+    "scenario": "signoff-decision-window"
+  },
+  "status": "pass"
+}

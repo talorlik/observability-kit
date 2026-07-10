@@ -1,14 +1,14 @@
 {
   "artifact_kind": "harness_provenance",
   "batch": 23,
-  "captured_at": "2026-07-10T09:41:33.173246+00:00",
+  "captured_at": "2026-07-10T13:15:58.820012+00:00",
   "cluster_name": "obskit-evidence",
   "harness": {
     "kubectl_context": "kind-obskit-evidence",
     "node_image": "kindest/node:v1.29.14",
     "stack_profile": "evidence-disposable"
   },
-  "kind_node_container": "1fa21ea2795e",
+  "kind_node_container": "6e9ec928d1f2",
   "kubectl_context": "kind-obskit-evidence",
   "node_image": "kindest/node:v1.29.14",
   "server_version": {

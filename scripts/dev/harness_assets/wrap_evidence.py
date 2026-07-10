@@ -34,6 +34,13 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--status", required=True,
                         choices=("pass", "fail"))
+    parser.add_argument(
+        "--batch",
+        type=int,
+        default=23,
+        help="evidence batch number (default 23; Batch 24 AI "
+        "activation checks pass 24)",
+    )
     parser.add_argument("--check-command", required=True)
     parser.add_argument("--stack-profile", required=True)
     parser.add_argument("--context", required=True)
@@ -45,7 +52,7 @@ def main() -> int:
     args = _parse_args()
     envelope: dict[str, Any] = {
         "artifact_kind": args.artifact_kind,
-        "batch": 23,
+        "batch": args.batch,
         "captured_at": datetime.now(timezone.utc).isoformat(),
         "harness": {
             "stack_profile": args.stack_profile,

@@ -72,9 +72,73 @@ Before operating on the AI / MCP layer, confirm:
   bundles under `gitops/platform/search/dashboards/alerts/` are loaded and
   not firing.
 
+## Live Activation
+
+Batch 24 (`TB-24`, ADR-0009) activates the runtime live. The runtime
+is the product-owned `obskit-ai-runtime` image (built from
+`services/ai/`, four entrypoints: kagent, khook, gateway, mcpserver)
+deployed GitOps-only from `gitops/platform/ai/` with the MCP catalog
+and governance contracts enforced unmodified.
+
+On the disposable evidence harness (the only sanctioned live
+environment before production activation):
+
+```bash
+bash scripts/dev/live_cluster_harness.sh create
+bash scripts/dev/live_cluster_harness.sh run --only install
+bash scripts/dev/live_cluster_harness.sh run --only ai-deploy
+bash scripts/dev/live_cluster_harness.sh run --only ai-rehearsal
+bash scripts/dev/live_cluster_harness.sh run --only ai-signoff
+bash scripts/dev/live_cluster_harness.sh teardown
+```
+
+`ai-deploy` builds and side-loads the runtime image, materializes the
+`kagent-postgres-credentials` secret (per
+`contracts/ai/KAGENT_PERSISTENCE_CONTRACT_V1.yaml`; production
+resolves it through the secrets backend adapter), applies the
+`ai-runtime` Argo CD Application at
+`gitops/platform/ai/overlays/dev`, and captures deployment evidence
+under `artifacts/evidence/batch24/deploy/`. The model provider is
+`local-stub` (ADR-0008); production profiles select
+`anthropic-reference` with keys via `secretref:` only.
+
+`ai-rehearsal` runs the live trigger-to-approval rehearsal (see
+`AI_APPROVAL_FLOW_RUNBOOK.md`), and `ai-signoff` executes
+`docs/operations/PRODUCTION_ACTIVATION_SIGNOFF_WORKFLOW.md` with
+every quantitative threshold measured; an unmeasurable threshold is
+a failed gate and forces `hold`.
+
+Structural verification without a cluster:
+
+```bash
+bash scripts/ci/validate_ai_activation.sh
+```
+
+## Rollback to Scaffolding
+
+Live activation is fully reversible to the validated pre-activation
+state; nothing below touches contracts or evidence already captured.
+
+1. Delete the `ai-runtime` Argo CD Application (with cascade) or set
+   its `targetRevision` to the last pre-activation revision; Argo CD
+   prunes the runtime workloads. Namespaces and contracts stay.
+2. Delete the `kagent-postgres-credentials` secret (harness) or the
+   secrets backend entry (production). The casefile store PVC is
+   removed with the StatefulSet's claim per your storage policy;
+   export `kagent_audit` first if the audit retention window
+   (730 days, write-once) has not elapsed.
+3. The repository state remains the Batch 14 validated scaffolding
+   plus the Batch 24 contracts; all ten AI/MCP validators and
+   `validate_ai_activation.sh`'s offline sections keep passing.
+4. Re-activation is a fresh `ai-deploy` run; a harness cluster is
+   never reused (ADR-0007).
+
 ## Cross-references
 
 - Marker map: `docs/auxiliary/planning/AI_MCP_MARKER_COVERAGE.md`
 - Plan: `docs/auxiliary/planning/kagent_khook/`
 - Implementation tasks: `docs/auxiliary/planning/IMPLEMENTATION_TASKS.md`
   Batch 14 (`TB-14`)
+- Activation decisions: `docs/adr/ADR_0008_MODEL_PROVIDER_ADAPTER.md`,
+  `docs/adr/ADR_0009_AI_RUNTIME_ACTIVATION_STRATEGY.md`
+- Live validation harness: `docs/runbooks/LIVE_VALIDATION_RUNBOOK.md`

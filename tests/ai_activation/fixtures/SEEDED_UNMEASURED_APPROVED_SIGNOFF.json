@@ -1,0 +1,25 @@
+{
+  "description": "Seeded rejection fixture: a signoff record that marks an unmeasurable threshold as pass and still records decision approved. TR-24 fixes that an unmeasurable threshold is a failed gate, so this record must be rejected.",
+  "expected_rejection_rule": "fail_if_unmeasured_gate_approved",
+  "signoff_record": {
+    "schema": "activation-signoff-record-v1",
+    "workflow": "docs/operations/PRODUCTION_ACTIVATION_SIGNOFF_WORKFLOW.md",
+    "release_version": "seeded",
+    "approver": "release-approver-surrogate",
+    "signed_at": "2026-07-10T00:00:00+00:00",
+    "gates": [
+      {
+        "gate": "mcp_tool_latency_p95",
+        "source": "live measurement",
+        "threshold": "<= 750 ms",
+        "measured": null,
+        "status": "pass",
+        "measurable": false,
+        "notes": "dashboard data unavailable"
+      }
+    ],
+    "decision": "approved",
+    "evidence_links": [],
+    "residual_risk": []
+  }
+}

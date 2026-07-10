@@ -1,0 +1,31 @@
+{
+  "artifact_kind": "live_ai_rehearsal_dedupe_burst",
+  "batch": 24,
+  "captured_at": "2026-07-10T13:27:52.140566+00:00",
+  "check_command": "harness_assets/run_ai_rehearsal.py (dedupe_burst)",
+  "harness": {
+    "kubectl_context": "kind-obskit-evidence",
+    "node_image": "kindest/node:v1.29.14",
+    "stack_profile": "evidence-disposable"
+  },
+  "payload": {
+    "khook_state": {
+      "component": "khook",
+      "counters": {
+        "burst_summaries": 0,
+        "burst_suppressed": 0,
+        "deduped": 1,
+        "dispatch_failures": 5,
+        "dispatched": 8,
+        "duplicate_uid": 6659,
+        "ignored": 313,
+        "matched": 9,
+        "polled": 6981
+      }
+    },
+    "new_casefiles_after_duplicate": [],
+    "scenario": "duplicate-event-suppression",
+    "window_seconds": 300
+  },
+  "status": "pass"
+}

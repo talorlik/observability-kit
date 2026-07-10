@@ -18,12 +18,32 @@ spec:
         instrumentation.opentelemetry.io/inject-sdk: "true"
     spec:
       serviceAccountName: sa-ai-gateway
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: ai-gateway
-          image: ghcr.io/kagent-dev/agentgateway:v0.1.0
+          # Product-owned AI runtime image (ADR-0009); the gateway
+          # enforces the MCP catalog, identity access matrix, tool
+          # risk classification, response envelope, tenancy
+          # redaction, and the deny-on-failover discovery contract.
+          image: ghcr.io/obskit/ai-runtime:0.1.0
+          args:
+            - gateway
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           ports:
             - name: http
               containerPort: 8082
+          env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
           resources:
             requests:
               cpu: 100m

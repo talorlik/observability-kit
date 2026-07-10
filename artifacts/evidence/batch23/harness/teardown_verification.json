@@ -1,7 +1,7 @@
 {
   "artifact_kind": "harness_teardown_verification",
   "batch": 23,
-  "captured_at": "2026-07-10T10:33:07.535264+00:00",
+  "captured_at": "2026-07-10T13:27:58.868976+00:00",
   "cluster_existed_before_teardown": true,
   "docker_reports_no_labeled_containers": true,
   "harness": {

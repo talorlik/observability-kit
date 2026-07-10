@@ -13,6 +13,80 @@ first. Entry format:
 - Follow-up: <action for a future batch, or "none">
 ```
 
+## 2026-07-10 - Batch 24 - AI Runtime Activation Strategy and Live Gotchas
+
+- Decision: `docs/adr/ADR_0009_AI_RUNTIME_ACTIVATION_STRATEGY.md` - the
+  AI runtime activates as an in-house contract-executing runtime
+  (`services/ai/`, package `airuntime`, one image, four entrypoints),
+  NOT as pinned upstream kagent-dev images. Forced by facts: the Batch
+  14 placeholder tags (`ghcr.io/kagent-dev/*:v0.1.0`) do not exist in
+  any registry, KHook has NO published upstream image at all, the
+  wrapped-system registry deliberately excludes the AI tier, and the
+  kagent_khook sub-plan scopes KAgent/KHook as the product's own
+  control plane behind the replaceability matrix. Upstream adoption
+  stays open behind the same contracts.
+- Decision: `docs/adr/ADR_0008_MODEL_PROVIDER_ADAPTER.md` - LLM
+  provider pluggable under `adapters/providers/model/` (house
+  pattern); Anthropic Messages API is the reference adapter
+  (declarative stub, reference default model `claude-sonnet-5`);
+  a deterministic `local-stub` provider is contract-legal ONLY in
+  quickstart/dev so the harness rehearses with zero external calls
+  and zero spend; `fail_if_stub_in_production` is a seeded rejection.
+- Decision: the rehearsal's timeout drill evaluates the REAL
+  APPROVAL_FLOW_V1 rules against a real pending approval with a
+  supplied as-of clock (61 minutes past request) via
+  `/approvals/<id>/evaluate-timeout` - waiting out the 60-minute
+  deadline on a disposable cluster is not viable, and the rule logic
+  exercised is the production logic. Escalation chain semantics:
+  `escalate_at(role_i) = requested_at + pending_timeout +
+  sum(sla of prior roles)`.
+- Decision: signoff decision-rate gates are measured over ALL
+  decisions of the activation run (window 31, recorded in the gate
+  notes) reading "over the last 100 decisions" as "up to the last
+  100"; adversarial drill decisions (timeout deny) carry no human
+  decision and are excluded by construction. Acceptance 93.5 percent,
+  rejection 6.5 percent, decision `approved` with residual risk
+  recorded in the signoff record.
+- Gotchas burned during live activation (all fixed in-batch): the
+  Batch 14 scaffolding referenced ServiceAccounts it never created
+  and an MCPServer CR without its CRD, so `gitops/platform/ai/base`
+  had never been admissible; kindnetd (v20250214) ENFORCES
+  NetworkPolicies on kind - an egress-restricted pod needs an
+  explicit DNS egress rule; NetworkPolicy ports match the pod
+  containerPort (post-DNAT), not the Service port; `kubectl rollout
+  restart` fights Argo CD selfHeal (restartedAt is template drift
+  that selfHeal reverts, recycling pods minutes later mid-check) -
+  recycle pods by deletion instead; PostgreSQL bakes POSTGRES_PASSWORD
+  in at initdb, so per-run secret regeneration strands the store
+  (secret creation is now create-once-per-cluster); `psql -c` with
+  two statements runs in an implicit transaction where DROP DATABASE
+  is forbidden; piping into `python3 - <<EOF` loses the pipe (heredoc
+  owns stdin).
+- Decision: pre-merge review caught that the gateway did not enforce
+  the agent tool bindings (`agents/policies/TOOL_BINDINGS_V1.yaml`,
+  default deny) and that kagent executed the approved write action
+  under the CEO identity the bindings deny. Fixed before merge:
+  bindings embedded and enforced on every gateway invocation, the
+  approved `runbook-plan.v1` dispatch runs as `runbook-planner`
+  (the only agent bound to it), and the live evidence was recaptured
+  on a fresh cluster with enforcement active. Single-pod logical
+  agents and component authentication are recorded in ADR-0009 as
+  production-activation scope.
+- Deviation: ADR-0009 was added beyond the literal TASKS.md list (the
+  runtime image strategy is a technology choice; the session contract
+  requires an ADR before any technology choice). The kagent
+  deployment's secret reference was corrected from the scaffolding's
+  `ai-runtime-postgres` to the persistence contract's
+  `kagent-postgres-credentials` (contract wins over scaffolding).
+- Follow-up: Batch 25 inherits the `obskit-ai-runtime` image as a
+  release artifact (registry publication, signing); production HA
+  PostgreSQL for the kagent store per the reference architecture;
+  the read-path MCP tools serve deterministic sample-journal data
+  (marked in structured_data.source) until the platform query-service
+  attach path lands; batch23 install evidence was refreshed by this
+  run (same structure, newer capture) because activation composes on
+  a full live install.
+
 ## 2026-07-10 - Batch 23 - Live-Cluster Validation Gotchas and Product Fixes
 
 - Decision: `docs/adr/ADR_0007_DISPOSABLE_CLUSTER_HARNESS.md` fixes the

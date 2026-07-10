@@ -1,0 +1,124 @@
+{
+  "pods": [
+    {
+      "images": [
+        "obskit-ai-runtime:0.1.0"
+      ],
+      "name": "ai-gateway-7868d6b9f4-nbcqd",
+      "namespace": "ai-gateway",
+      "phase": "Running",
+      "ready": true,
+      "service_account": "sa-ai-gateway"
+    },
+    {
+      "images": [
+        "obskit-ai-runtime:0.1.0"
+      ],
+      "name": "kagent-controller-7d8dfcfcf7-t5j7d",
+      "namespace": "ai-runtime",
+      "phase": "Running",
+      "ready": true,
+      "service_account": "sa-agent-ceo"
+    },
+    {
+      "images": [
+        "postgres:16.9-alpine"
+      ],
+      "name": "kagent-postgres-0",
+      "namespace": "ai-runtime",
+      "phase": "Running",
+      "ready": true,
+      "service_account": "default"
+    },
+    {
+      "images": [
+        "obskit-ai-runtime:0.1.0"
+      ],
+      "name": "khook-controller-565ff86db-mllwk",
+      "namespace": "ai-triggers",
+      "phase": "Running",
+      "ready": true,
+      "service_account": "sa-khook-controller"
+    },
+    {
+      "images": [
+        "obskit-ai-runtime:0.1.0"
+      ],
+      "name": "change-intelligence-mcp-79879c7d6d-g8s4x",
+      "namespace": "mcp-services",
+      "phase": "Running",
+      "ready": true,
+      "service_account": "sa-mcp-change-intelligence"
+    },
+    {
+      "images": [
+        "obskit-ai-runtime:0.1.0"
+      ],
+      "name": "graph-analysis-mcp-7f594d94b5-ctcd4",
+      "namespace": "mcp-services",
+      "phase": "Running",
+      "ready": true,
+      "service_account": "sa-mcp-graph-analysis"
+    },
+    {
+      "images": [
+        "obskit-ai-runtime:0.1.0"
+      ],
+      "name": "incident-casefile-mcp-686756b465-pm6k6",
+      "namespace": "mcp-services",
+      "phase": "Running",
+      "ready": true,
+      "service_account": "sa-mcp-incident-casefile"
+    },
+    {
+      "images": [
+        "obskit-ai-runtime:0.1.0"
+      ],
+      "name": "incident-search-mcp-5c67c5f4d7-7vb6c",
+      "namespace": "mcp-services",
+      "phase": "Running",
+      "ready": true,
+      "service_account": "sa-mcp-incident-search"
+    },
+    {
+      "images": [
+        "obskit-ai-runtime:0.1.0"
+      ],
+      "name": "metrics-correlation-mcp-84b69b67f6-979kr",
+      "namespace": "mcp-services",
+      "phase": "Running",
+      "ready": true,
+      "service_account": "sa-mcp-metrics-correlation"
+    },
+    {
+      "images": [
+        "obskit-ai-runtime:0.1.0"
+      ],
+      "name": "runbook-execution-mcp-bfbbcd7c-h6kqp",
+      "namespace": "mcp-services",
+      "phase": "Running",
+      "ready": true,
+      "service_account": "sa-mcp-runbook-execution"
+    },
+    {
+      "images": [
+        "obskit-ai-runtime:0.1.0"
+      ],
+      "name": "trace-investigation-mcp-78565d99c8-mm89v",
+      "namespace": "mcp-services",
+      "phase": "Running",
+      "ready": true,
+      "service_account": "sa-mcp-trace-investigation"
+    },
+    {
+      "images": [
+        "obskit-ai-runtime:0.1.0"
+      ],
+      "name": "kmcp-controller-76888d59bc-km69w",
+      "namespace": "mcp-system",
+      "phase": "Running",
+      "ready": true,
+      "service_account": "sa-kmcp-controller"
+    }
+  ]
+}

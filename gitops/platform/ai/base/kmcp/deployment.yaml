@@ -18,12 +18,36 @@ spec:
         instrumentation.opentelemetry.io/inject-sdk: "true"
     spec:
       serviceAccountName: sa-kmcp-controller
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: kmcp-controller
-          image: ghcr.io/kagent-dev/kmcp:v0.1.0
+          # Product-owned AI runtime image (ADR-0009); the kmcp host
+          # serves the MCPServer sample's tool surface in mcp-system.
+          # The routable per-service tool hosts live in mcp-services
+          # (mcpservices/deployments.yaml).
+          image: ghcr.io/obskit/ai-runtime:0.1.0
+          args:
+            - mcpserver
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           ports:
             - name: http
               containerPort: 8081
+          env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            - name: TOOL
+              value: incident-search
+            - name: MCP_PORT
+              value: "8081"
           resources:
             requests:
               cpu: 100m

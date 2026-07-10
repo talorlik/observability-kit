@@ -30,5 +30,15 @@
   },
   "validation_result": {
     "status": "pass"
+  },
+  "captured_evidence": {
+    "batch": 24,
+    "stack_profile": "evidence-disposable",
+    "harness_contract": "contracts/evidence/DISPOSABLE_CLUSTER_HARNESS_CONTRACT_V1.yaml",
+    "captured_by": "scripts/dev/live_cluster_harness.sh",
+    "artifacts": [
+      "artifacts/evidence/batch24/signoff/signoff_record.json"
+    ],
+    "note": "Executed production activation go/no-go signoff with every quantitative threshold measured (Batch 24 Task 4)."
   }
 }

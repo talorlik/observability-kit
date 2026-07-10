@@ -18,9 +18,27 @@ spec:
         instrumentation.opentelemetry.io/inject-sdk: "true"
     spec:
       serviceAccountName: sa-agent-ceo
+      # The ai-runtime namespace enforces the restricted pod security
+      # standard; the runtime image runs as nobody (ADR-0009).
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: kagent-controller
-          image: ghcr.io/kagent-dev/kagent:v0.1.0
+          # Product-owned AI runtime image (ADR-0009). Registry
+          # publication is Batch 25 scope; the dev overlay pins the
+          # locally built harness image.
+          image: ghcr.io/obskit/ai-runtime:0.1.0
+          args:
+            - kagent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           ports:
             - name: http
               containerPort: 8080
@@ -32,31 +50,52 @@ spec:
               cpu: 500m
               memory: 512Mi
           env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            - name: KAGENT_STORE
+              value: postgres
+            - name: GATEWAY_URL
+              value: http://ai-gateway.ai-gateway.svc.cluster.local:8082
+            - name: MODEL_PROVIDER
+              # Profile-resolved per the model provider adapter
+              # contract; local-stub is the dev/quickstart default
+              # (ADR-0008). Production overlays select
+              # anthropic-reference with keys via the secrets backend.
+              value: local-stub
+            # Connection secret fixed by
+            # contracts/ai/KAGENT_PERSISTENCE_CONTRACT_V1.yaml
+            # (kagent-postgres-credentials); the secret itself is
+            # materialized by the secrets backend, never by Git.
             - name: KAGENT_POSTGRES_HOST
               valueFrom:
                 secretKeyRef:
-                  name: ai-runtime-postgres
+                  name: kagent-postgres-credentials
                   key: host
             - name: KAGENT_POSTGRES_PORT
               valueFrom:
                 secretKeyRef:
-                  name: ai-runtime-postgres
+                  name: kagent-postgres-credentials
                   key: port
             - name: KAGENT_POSTGRES_DB
               valueFrom:
                 secretKeyRef:
-                  name: ai-runtime-postgres
+                  name: kagent-postgres-credentials
                   key: database
             - name: KAGENT_POSTGRES_USER
               valueFrom:
                 secretKeyRef:
-                  name: ai-runtime-postgres
+                  name: kagent-postgres-credentials
                   key: username
             - name: KAGENT_POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: ai-runtime-postgres
+                  name: kagent-postgres-credentials
                   key: password
+            - name: KAGENT_POSTGRES_SSLMODE
+              valueFrom:
+                secretKeyRef:
+                  name: kagent-postgres-credentials
+                  key: sslmode
           readinessProbe:
             httpGet:
               path: /readyz

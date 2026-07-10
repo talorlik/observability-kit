@@ -2,6 +2,14 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../../base
+images:
+  # Dev profile pins the AI runtime image to the locally built
+  # harness image (ADR-0009): `docker build services/ai` followed by
+  # `kind load docker-image obskit-ai-runtime:0.1.0`. Registry
+  # publication of ghcr.io/obskit/ai-runtime is Batch 25 scope.
+  - name: ghcr.io/obskit/ai-runtime
+    newName: obskit-ai-runtime
+    newTag: 0.1.0
 patches:
   - target:
       kind: Deployment

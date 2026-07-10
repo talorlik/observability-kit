@@ -1,0 +1,132 @@
+# Model provider adapter contract (Batch 24 Task 1, TB-24).
+# Fixes the provider-neutral interface between the AI runtime (KAgent)
+# and any large-language-model provider, and the rules a provider
+# adapter must satisfy before the runtime may load it. The decision
+# record is docs/adr/ADR_0008_MODEL_PROVIDER_ADAPTER.md.
+
+metadata:
+  contract: model-provider-adapter
+  version: v1
+  batch: TB-24
+  marker_coverage:
+    - TR-13
+    - TR-15
+    - TR-24
+  adr: docs/adr/ADR_0008_MODEL_PROVIDER_ADAPTER.md
+  description: >-
+    Provider-neutral LLM invocation envelope, provider catalog rules,
+    and key-resolution requirements for the AI/MCP runtime. The core
+    never imports a vendor SDK and never names a vendor outside
+    adapters/providers/model/.
+
+adapter_boundary:
+  adapter_domain: model-provider
+  adapter_root: adapters/providers/model
+  house_pattern_files:
+    - MODEL_PROVIDER_ADAPTER_COMPATIBILITY_V1.yaml
+    - STUB_METADATA.json
+    - ROLLBACK_UNINSTALL_NOTES.md
+    - README.md
+  core_contracts_unchanged: true
+  unchanged_core_contract_refs:
+    - contracts/ai/BOUNDARY_CONTRACT_V1.yaml
+    - contracts/mcp/MCP_CATALOG_V1.yaml
+    - contracts/policy/APPROVAL_FLOW_V1.yaml
+
+invocation_envelope:
+  # The only surface the runtime uses to reach a provider. Vendor
+  # request/response shapes exist solely inside adapter stub files.
+  request_required_fields:
+    - provider          # adapter name from the provider catalog
+    - model_ref         # profile-resolved model indirection, never a
+                        # hardcoded vendor model id in runtime code
+    - tenant_id         # tenancy attribution for audit and redaction
+    - redaction_profile # applied BEFORE the prompt leaves the runtime
+    - casefile_id       # investigation correlation (TR-15)
+    - max_output_tokens
+  response_required_fields:
+    - provider
+    - model_ref
+    - content
+    - usage.input_tokens
+    - usage.output_tokens
+    - stop_reason
+  audit:
+    # Every invocation writes a write-once audit record into the
+    # kagent_audit schema namespace (KAGENT_PERSISTENCE_CONTRACT_V1).
+    record_required_fields:
+      - casefile_id
+      - tenant_id
+      - provider
+      - model_ref
+      - redaction_profile
+      - usage.input_tokens
+      - usage.output_tokens
+      - requested_at
+    prompt_payload_stored: false
+
+key_resolution:
+  secrets_backend_only: true
+  resolver_contract: adapters/secrets/SECRETS_BACKEND_ADAPTER_COMPATIBILITY_V1.yaml
+  secret_ref_syntax: "secretref:<scope>/<adapter>/<key-name>"
+  kubernetes_materialization:
+    consumed_via: secretKeyRef
+    namespace: ai-runtime
+  forbidden_locations:
+    - runtime_configuration
+    - helm_values
+    - configmap
+    - git_tracked_file
+    - container_image
+
+provider_catalog_rules:
+  catalog_file: adapters/providers/model/MODEL_PROVIDER_ADAPTER_COMPATIBILITY_V1.yaml
+  entry_required_fields:
+    - name
+    - mode
+    - vendor_neutral
+    - supported_profiles
+    - required_fields
+  reference_adapter: anthropic-reference
+  rehearsal_adapter: local-stub
+  rehearsal_adapter_rules:
+    deterministic: true
+    performs_live_calls: false
+    requires_credentials: false
+    allowed_profiles:
+      - quickstart
+      - dev
+    forbidden_profiles:
+      - staging
+      - prod
+  production_rules:
+    # A production profile must use a credentialed, pinned provider.
+    require_api_key_ref: true
+    forbid_rehearsal_adapter: true
+
+constraints:
+  allowed_wrap_methods:
+    - provisioning-api
+  forbidden_wrap_methods:
+    - fork
+  core_stays_vendor_neutral: true
+  provider_is_reasoning_backend_only: true
+  datastore_access: forbidden
+  mcp_gateway_bypass: forbidden
+
+rejection_rules:
+  # Seeded rejection fixtures pin each rule by name (house pattern).
+  - rule: fail_if_inline_credential
+    condition: >-
+      any provider catalog entry carries a credential literal
+      (api_key, token, secret) instead of a secretref: reference
+  - rule: fail_if_git_tracked_credential
+    condition: >-
+      any Git-tracked artifact under adapters/providers/model/ or
+      gitops/ contains a value that resolves a provider credential
+  - rule: fail_if_stub_in_production
+    condition: >-
+      a staging or prod profile selects the local-stub provider
+  - rule: fail_if_fork_wrap
+    condition: >-
+      any provider adapter declares wrap method fork

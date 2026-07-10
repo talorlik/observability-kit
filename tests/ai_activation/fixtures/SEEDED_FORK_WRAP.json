@@ -1,0 +1,16 @@
+{
+  "description": "Seeded rejection fixture: a model provider adapter declaring the fork wrap method. Pinned to rejection rule fail_if_fork_wrap of contracts/ai/MODEL_PROVIDER_ADAPTER_CONTRACT_V1.yaml.",
+  "expected_rejection_rule": "fail_if_fork_wrap",
+  "constraints": {
+    "allowed_wrap_methods": ["provisioning-api", "fork"]
+  },
+  "model_providers": [
+    {
+      "name": "forked-provider",
+      "mode": "messages-api-push",
+      "vendor_neutral": false,
+      "supported_profiles": ["staging"],
+      "required_fields": ["provider", "model_ref", "api_key_ref"]
+    }
+  ]
+}

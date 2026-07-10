@@ -32,6 +32,10 @@
 #             --only <check-id> re-runs a single check:
 #             install | restore-drill | rollback-drill |
 #             config-rollback-drill | gui-smoke | denials
+#             Batch 24 AI activation checks (never in the default
+#             run; they compose on top of a completed install check,
+#             in order): ai-deploy | ai-rehearsal | ai-signoff.
+#             Evidence is written under artifacts/evidence/batch24/.
 #   teardown  Delete the kind cluster, verify deletion against kind
 #             and Docker, record the teardown evidence artifact, and
 #             remove the scratch kubeconfig.
@@ -59,7 +63,12 @@ GITOPS_CLONE="$SCRATCH_DIR/gitops-clone"
 INSTALL_OUTPUT="$SCRATCH_DIR/install-output"
 LOG_DIR="$SCRATCH_DIR/logs"
 EVIDENCE_DIR="$REPO_ROOT/artifacts/evidence/batch23"
+EVIDENCE_DIR_B24="$REPO_ROOT/artifacts/evidence/batch24"
 ASSETS_DIR="$REPO_ROOT/scripts/dev/harness_assets"
+
+AI_IMAGE="obskit-ai-runtime:0.1.0"
+KAGENT_LOCAL_PORT=18080
+GATEWAY_LOCAL_PORT=18082
 
 # evidence-disposable profile pins; keep in lockstep with
 # contracts/evidence/DISPOSABLE_CLUSTER_HARNESS_CONTRACT_V1.yaml
@@ -633,6 +642,365 @@ check_denials() {
   log "denial evidence captured under $EVIDENCE_DIR/checks/denials/"
 }
 
+# ---------------------------------------------------------------------
+# Batch 24 - AI/MCP runtime activation checks (TR-24, ADR-0009).
+# Never part of the default run; they compose on top of a completed
+# install check: run --only install, then ai-deploy, ai-rehearsal,
+# ai-signoff. Evidence envelopes carry batch: 24.
+# ---------------------------------------------------------------------
+
+wrap_evidence_b24() {
+  # $1 artifact kind, $2 output path, $3 payload file (JSON),
+  # $4 status (pass|fail), $5 check command string
+  "$VENV_DIR/bin/python3" "$ASSETS_DIR/wrap_evidence.py" \
+    --artifact-kind "$1" \
+    --output "$2" \
+    --payload "$3" \
+    --status "$4" \
+    --check-command "$5" \
+    --batch 24 \
+    --stack-profile "$STACK_PROFILE" \
+    --context "$CONTEXT" \
+    --node-image "$NODE_IMAGE"
+}
+
+check_ai_deploy() {
+  log "check: ai-deploy (AI runtime live from gitops/platform/ai/)"
+  ensure_venv
+  [[ -d "$GITOPS_CLONE/.git" ]] \
+    || die "no GitOps clone; run the install check first."
+  mkdir -p "$EVIDENCE_DIR_B24/deploy" "$LOG_DIR"
+
+  log "building the AI runtime image (ADR-0009)"
+  docker build -t "$AI_IMAGE" "$REPO_ROOT/services/ai" \
+    > "$LOG_DIR/ai_image_build.log" 2>&1
+  kind load docker-image "$AI_IMAGE" --name "$CLUSTER_NAME" \
+    >> "$LOG_DIR/ai_image_build.log" 2>&1
+
+  # Refresh the AI GitOps surface in the published clone so a
+  # re-run picks up manifest fixes without redoing the install
+  # check (the install commits on the clone's main are preserved).
+  log "refreshing gitops/platform/ai in the disposable GitOps clone"
+  rm -rf "$GITOPS_CLONE/gitops/platform/ai"
+  cp -R "$REPO_ROOT/gitops/platform/ai" \
+    "$GITOPS_CLONE/gitops/platform/ai"
+  cp "$REPO_ROOT/gitops/apps/ai-runtime-application.yaml" \
+    "$GITOPS_CLONE/gitops/apps/ai-runtime-application.yaml"
+  if ! git -C "$GITOPS_CLONE" diff --quiet \
+    || [[ -n "$(git -C "$GITOPS_CLONE" status --porcelain)" ]]; then
+    git -C "$GITOPS_CLONE" add gitops
+    git -C "$GITOPS_CLONE" \
+      -c user.name="obskit-harness" \
+      -c user.email="harness@observability-kit.local" \
+      commit --quiet -m "ai-deploy: refresh AI runtime manifests"
+    publish_gitops_clone
+  fi
+
+  log "pre-creating AI namespaces and the persistence secret"
+  kc apply -f gitops/platform/ai/base/namespaces/namespaces.yaml
+  # Connection secret per KAGENT_PERSISTENCE_CONTRACT_V1.yaml. On the
+  # harness it is materialized directly (per-run random credential);
+  # production resolves it through the secrets backend adapter.
+  # Created once per cluster: PostgreSQL bakes the password in at
+  # initdb, so regenerating the secret on a re-run would strand the
+  # store behind the old credential.
+  if ! kc -n ai-runtime get secret kagent-postgres-credentials \
+    >/dev/null 2>&1; then
+    local ai_pg_password
+    ai_pg_password="Ev1dence-$(openssl rand -hex 12)"
+    kc -n ai-runtime create secret generic \
+      kagent-postgres-credentials \
+      --from-literal=host=kagent-postgres.ai-runtime.svc.cluster.local \
+      --from-literal=port=5432 \
+      --from-literal=database=kagent \
+      --from-literal=username=kagent \
+      --from-literal=password="$ai_pg_password" \
+      --from-literal=sslmode=disable
+  fi
+
+  log "applying the ai-runtime Argo CD Application (dev overlay)"
+  kc -n argocd apply -f - <<EOF
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ai-runtime
+  namespace: argocd
+  labels:
+    app.kubernetes.io/component: ai-mcp
+    observability-kit.io/batch: "24"
+spec:
+  project: default
+  source:
+    repoURL: $GIT_REPO_URL
+    targetRevision: main
+    path: gitops/platform/ai/overlays/dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ai-runtime
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas
+    # StatefulSet volumeClaimTemplates gain server-side defaults
+    # (status, volumeMode, storage class) that produce a permanent
+    # spurious diff under ServerSideApply.
+    - group: apps
+      kind: StatefulSet
+      jsonPointers:
+        - /spec/volumeClaimTemplates
+EOF
+
+  # Force a repo refresh (Argo CD polls every 3 minutes otherwise)
+  # and recycle the runtime pods: a rebuilt image keeps the same tag,
+  # so only a pod replacement picks up the side-loaded content. Pods
+  # are DELETED rather than rollout-restarted - the restartedAt
+  # annotation is template drift that Argo CD selfHeal reverts,
+  # which would cycle the pods again minutes later, mid-check.
+  kc -n argocd annotate application ai-runtime \
+    argocd.argoproj.io/refresh=normal --overwrite >/dev/null
+  kc -n ai-runtime delete pods \
+    -l app.kubernetes.io/name=kagent \
+    --ignore-not-found >/dev/null 2>&1 || true
+  kc -n ai-triggers delete pods --all \
+    --ignore-not-found >/dev/null 2>&1 || true
+  kc -n mcp-system delete pods --all \
+    --ignore-not-found >/dev/null 2>&1 || true
+  kc -n ai-gateway delete pods --all \
+    --ignore-not-found >/dev/null 2>&1 || true
+  kc -n mcp-services delete pods --all \
+    --ignore-not-found >/dev/null 2>&1 || true
+
+  log "waiting for Argo CD to sync ai-runtime"
+  local attempt sync="" health=""
+  for attempt in $(seq 1 60); do
+    sync="$(kc -n argocd get application ai-runtime \
+      -o jsonpath='{.status.sync.status}' 2>/dev/null || true)"
+    health="$(kc -n argocd get application ai-runtime \
+      -o jsonpath='{.status.health.status}' 2>/dev/null || true)"
+    if [[ "$sync" == "Synced" && "$health" == "Healthy" ]]; then
+      break
+    fi
+    sleep 10
+  done
+  [[ "$sync" == "Synced" && "$health" == "Healthy" ]] \
+    || die "ai-runtime Application never reached Synced/Healthy" \
+      "(sync=$sync health=$health)."
+
+  log "waiting for AI runtime workloads"
+  wait_rollout ai-runtime statefulset/kagent-postgres 600s
+  wait_rollout ai-runtime deployment/kagent-controller 600s
+  wait_rollout ai-triggers deployment/khook-controller 300s
+  wait_rollout mcp-system deployment/kmcp-controller 300s
+  wait_rollout ai-gateway deployment/ai-gateway 300s
+  local svc
+  for svc in incident-search-mcp graph-analysis-mcp \
+    trace-investigation-mcp metrics-correlation-mcp \
+    change-intelligence-mcp incident-casefile-mcp \
+    runbook-execution-mcp; do
+    wait_rollout mcp-services "deployment/$svc" 300s
+  done
+
+  log "capturing deployment evidence"
+  kc -n argocd get application ai-runtime -o json \
+    > "$EVIDENCE_DIR_B24/deploy/application_state.json"
+  # Stage the pod listing in a file: a pipe cannot feed python's
+  # stdin when the script itself arrives via a stdin heredoc.
+  kc get pods -A -o json > "$LOG_DIR/pods_all.json"
+  "$VENV_DIR/bin/python3" - "$LOG_DIR/pods_all.json" <<'PY' \
+    > "$EVIDENCE_DIR_B24/deploy/pod_inventory.json"
+import json
+import sys
+
+AI_NAMESPACES = {
+    "ai-runtime", "ai-triggers", "mcp-system",
+    "mcp-services", "ai-gateway", "ai-policy",
+}
+with open(sys.argv[1]) as handle:
+    pods = json.load(handle)["items"]
+inventory = [
+    {
+        "namespace": pod["metadata"]["namespace"],
+        "name": pod["metadata"]["name"],
+        "service_account": pod["spec"].get("serviceAccountName"),
+        "images": [c["image"] for c in pod["spec"]["containers"]],
+        "phase": pod["status"].get("phase"),
+        "ready": all(
+            cs.get("ready", False)
+            for cs in pod["status"].get("containerStatuses", [])
+        ),
+    }
+    for pod in pods
+    if pod["metadata"]["namespace"] in AI_NAMESPACES
+]
+json.dump({"pods": inventory}, sys.stdout, indent=2, sort_keys=True)
+sys.stdout.write("\n")
+PY
+
+  kc -n ai-gateway port-forward svc/ai-gateway \
+    "$GATEWAY_LOCAL_PORT:8082" > "$LOG_DIR/gw-port-forward.log" 2>&1 &
+  GW_PF_PID=$!
+  trap 'kill "${GW_PF_PID:-}" 2>/dev/null || true' RETURN EXIT
+  local attempt2 ok=false
+  for attempt2 in $(seq 1 30); do
+    if curl -fs "http://127.0.0.1:$GATEWAY_LOCAL_PORT/catalog" \
+      > "$EVIDENCE_DIR_B24/deploy/gateway_catalog.json" 2>/dev/null
+    then
+      ok=true
+      break
+    fi
+    sleep 2
+  done
+  kill "${GW_PF_PID:-}" 2>/dev/null || true
+  [[ "$ok" == "true" ]] \
+    || die "gateway catalog unreachable through the port-forward."
+
+  # Governance-unmodified proof: content digests of every enforced
+  # contract surface, alongside the gateway's own constants
+  # fingerprint captured in gateway_catalog.json.
+  "$VENV_DIR/bin/python3" - "$REPO_ROOT" \
+    "$EVIDENCE_DIR_B24/deploy/contract_fingerprints.json" <<'PY'
+import hashlib
+import json
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+surfaces = ["contracts/mcp", "contracts/policy", "contracts/ai",
+            "agents", "triggers"]
+digests = {}
+for surface in surfaces:
+    for path in sorted((root / surface).rglob("*")):
+        if path.is_file():
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            digests[str(path.relative_to(root))] = digest
+with open(sys.argv[2], "w") as handle:
+    json.dump({"sha256": digests}, handle, indent=2, sort_keys=True)
+    handle.write("\n")
+PY
+
+  "$VENV_DIR/bin/python3" "$ASSETS_DIR/wrap_evidence.py" \
+    --artifact-kind live_ai_deploy_evidence_manifest \
+    --output "$EVIDENCE_DIR_B24/deploy/evidence_manifest.json" \
+    --payload-listing "$EVIDENCE_DIR_B24/deploy" \
+    --status pass \
+    --check-command "live_cluster_harness.sh run --only ai-deploy" \
+    --batch 24 \
+    --stack-profile "$STACK_PROFILE" \
+    --context "$CONTEXT" \
+    --node-image "$NODE_IMAGE"
+  log "ai-deploy evidence captured under $EVIDENCE_DIR_B24/deploy/"
+}
+
+check_ai_rehearsal() {
+  log "check: ai-rehearsal (trigger -> casefile -> approval, live)"
+  ensure_venv
+  mkdir -p "$EVIDENCE_DIR_B24/rehearsal" "$LOG_DIR"
+  kc -n ai-runtime port-forward svc/kagent-controller \
+    "$KAGENT_LOCAL_PORT:8080" > "$LOG_DIR/kagent-pf.log" 2>&1 &
+  KAGENT_PF_PID=$!
+  trap 'kill "${KAGENT_PF_PID:-}" 2>/dev/null || true' RETURN EXIT
+  local attempt ready=false
+  for attempt in $(seq 1 30); do
+    if curl -fs "http://127.0.0.1:$KAGENT_LOCAL_PORT/healthz" \
+      >/dev/null 2>&1; then
+      ready=true
+      break
+    fi
+    sleep 2
+  done
+  [[ "$ready" == "true" ]] \
+    || die "kagent unreachable through the port-forward."
+
+  local status=pass
+  "$VENV_DIR/bin/python3" "$ASSETS_DIR/run_ai_rehearsal.py" \
+    --kagent-url "http://127.0.0.1:$KAGENT_LOCAL_PORT" \
+    --kubeconfig "$KUBECONFIG_FILE" \
+    --context "$CONTEXT" \
+    --event-namespace "$PLATFORM_NS" \
+    --output-dir "$LOG_DIR/ai_rehearsal" \
+    2>&1 | tee "$LOG_DIR/ai_rehearsal.log" || status=fail
+  kill "${KAGENT_PF_PID:-}" 2>/dev/null || true
+
+  local payload artifact
+  for payload in trigger_flow rejection_flow timeout_drill \
+    dedupe_burst decision_corpus store_restore_drill audit_trail; do
+    artifact="$LOG_DIR/ai_rehearsal/$payload.json"
+    [[ -f "$artifact" ]] || { status=fail; continue; }
+    wrap_evidence_b24 "live_ai_rehearsal_$payload" \
+      "$EVIDENCE_DIR_B24/rehearsal/$payload.json" \
+      "$artifact" "$status" \
+      "harness_assets/run_ai_rehearsal.py ($payload)"
+  done
+  [[ "$status" == "pass" ]] \
+    || die "AI rehearsal failed; see $LOG_DIR/ai_rehearsal.log"
+  log "ai-rehearsal evidence captured under" \
+    "$EVIDENCE_DIR_B24/rehearsal/"
+}
+
+check_ai_signoff() {
+  log "check: ai-signoff (production activation go/no-go execution)"
+  ensure_venv
+  mkdir -p "$EVIDENCE_DIR_B24/signoff" "$LOG_DIR"
+  kc -n ai-runtime port-forward svc/kagent-controller \
+    "$KAGENT_LOCAL_PORT:8080" > "$LOG_DIR/kagent-pf2.log" 2>&1 &
+  KAGENT_PF_PID=$!
+  kc -n ai-gateway port-forward svc/ai-gateway \
+    "$GATEWAY_LOCAL_PORT:8082" > "$LOG_DIR/gw-pf2.log" 2>&1 &
+  GW_PF_PID=$!
+  trap 'kill "${KAGENT_PF_PID:-}" "${GW_PF_PID:-}" 2>/dev/null \
+    || true' RETURN EXIT
+  local attempt ready=false
+  for attempt in $(seq 1 30); do
+    if curl -fs "http://127.0.0.1:$KAGENT_LOCAL_PORT/healthz" \
+      >/dev/null 2>&1 \
+      && curl -fs "http://127.0.0.1:$GATEWAY_LOCAL_PORT/healthz" \
+      >/dev/null 2>&1; then
+      ready=true
+      break
+    fi
+    sleep 2
+  done
+  [[ "$ready" == "true" ]] \
+    || die "kagent/gateway unreachable through the port-forwards."
+
+  local status=pass
+  "$VENV_DIR/bin/python3" "$ASSETS_DIR/run_activation_signoff.py" \
+    --kagent-url "http://127.0.0.1:$KAGENT_LOCAL_PORT" \
+    --gateway-url "http://127.0.0.1:$GATEWAY_LOCAL_PORT" \
+    --repo-root "$REPO_ROOT" \
+    --output "$LOG_DIR/signoff_record.json" \
+    2>&1 | tee "$LOG_DIR/ai_signoff.log" || status=fail
+  kill "${KAGENT_PF_PID:-}" "${GW_PF_PID:-}" 2>/dev/null || true
+
+  [[ -f "$LOG_DIR/signoff_record.json" ]] \
+    || die "signoff driver produced no record; see" \
+      "$LOG_DIR/ai_signoff.log"
+  wrap_evidence_b24 live_ai_activation_signoff \
+    "$EVIDENCE_DIR_B24/signoff/signoff_record.json" \
+    "$LOG_DIR/signoff_record.json" "$status" \
+    "harness_assets/run_activation_signoff.py"
+  [[ "$status" == "pass" ]] \
+    || die "signoff execution failed; see $LOG_DIR/ai_signoff.log"
+  local decision
+  decision="$(python3 -c "
+import json
+record = json.load(open('$LOG_DIR/signoff_record.json'))
+print(record['decision'])
+")"
+  log "signoff decision: $decision"
+  [[ "$decision" == "approved" ]] \
+    || die "signoff decision is '$decision', not approved; a" \
+      "threshold gate failed - see the signoff record."
+}
+
 mode_run() {
   safety_gates
   require_provenance
@@ -662,10 +1030,13 @@ mode_run() {
     config-rollback-drill) check_config_rollback_drill ;;
     gui-smoke) check_gui_smoke ;;
     denials) check_denials ;;
+    ai-deploy) check_ai_deploy ;;
+    ai-rehearsal) check_ai_rehearsal ;;
+    ai-signoff) check_ai_signoff ;;
     *)
       die "unknown check id '$only'; valid: install," \
         "restore-drill, rollback-drill, config-rollback-drill," \
-        "gui-smoke, denials."
+        "gui-smoke, denials, ai-deploy, ai-rehearsal, ai-signoff."
       ;;
   esac
 }

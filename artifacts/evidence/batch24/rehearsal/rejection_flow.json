@@ -1,0 +1,101 @@
+{
+  "artifact_kind": "live_ai_rehearsal_rejection_flow",
+  "batch": 24,
+  "captured_at": "2026-07-10T13:27:52.062734+00:00",
+  "check_command": "harness_assets/run_ai_rehearsal.py (rejection_flow)",
+  "harness": {
+    "kubectl_context": "kind-obskit-evidence",
+    "node_image": "kindest/node:v1.29.14",
+    "stack_profile": "evidence-disposable"
+  },
+  "payload": {
+    "approver": "human-surrogate-oncall-sre",
+    "casefile": {
+      "action_journal": [
+        {
+          "action": "runbook-plan.v1",
+          "outcome": "blocked",
+          "recorded_at": "2026-07-10T13:24:56.919584+00:00"
+        }
+      ],
+      "agent_outputs": [
+        {
+          "agent": "ops-ceo-agent",
+          "output_ref": "43a3e8c4-46c6-48ff-ac38-0bc86cb0b4fb",
+          "recorded_at": "2026-07-10T13:24:56.641629+00:00"
+        },
+        {
+          "agent": "incident-investigator",
+          "output_ref": "aa294767-0c6d-489d-b7da-0abbdf26b2d8",
+          "recorded_at": "2026-07-10T13:24:56.654392+00:00"
+        },
+        {
+          "agent": "trace-analyst",
+          "output_ref": "f054710a-d914-49c7-bedc-efdba426d450",
+          "recorded_at": "2026-07-10T13:24:56.664089+00:00"
+        },
+        {
+          "agent": "metrics-correlator",
+          "output_ref": "adaf8368-bebe-449b-8983-eab04196b284",
+          "recorded_at": "2026-07-10T13:24:56.673702+00:00"
+        },
+        {
+          "agent": "graph-analyst",
+          "output_ref": "4fb332cd-cc90-42b0-9943-ff464e37213a",
+          "recorded_at": "2026-07-10T13:24:56.683795+00:00"
+        },
+        {
+          "agent": "change-correlator",
+          "output_ref": "b2b652d2-e301-479a-9343-f8bee15dcb72",
+          "recorded_at": "2026-07-10T13:24:56.768654+00:00"
+        },
+        {
+          "agent": "evidence-summarizer",
+          "output_ref": "335d1e03-93e7-4639-bfdf-4e3b99769ef1",
+          "recorded_at": "2026-07-10T13:24:56.778973+00:00"
+        }
+      ],
+      "approval_state": {
+        "approval_ref": "59799b4decdb4e79859662a4b733e82b",
+        "required": true,
+        "status": "rejected"
+      },
+      "case_id": "389388fc-1ebb-4986-82b7-13d5cb2418d4",
+      "casefile_id": "389388fc-1ebb-4986-82b7-13d5cb2418d4",
+      "created_at": "2026-07-10T13:24:56.629612+00:00",
+      "evidence_handles": [
+        "evidence://incident-search/684bec9113d0",
+        "evidence://trace-investigation/684bec9113d0",
+        "evidence://metrics-correlation/684bec9113d0",
+        "evidence://graph-analysis/684bec9113d0",
+        "evidence://change-intelligence/684bec9113d0"
+      ],
+      "incident_context": {
+        "namespace": "observability",
+        "object_name": "demo-workload-reject",
+        "reason": "OOMKilled",
+        "severity": "critical",
+        "summary": "OOMKilled: rehearsal synthetic event: container in demo-workload-reject was OOM killed",
+        "tenant": "tenant-demo"
+      },
+      "lineage": {
+        "correlation_id": "c2ad99b0020feb26a8c7d6774879f62adaa1851474b6da45e285e9c81776976a",
+        "workflow_id": "ab4c7cdb-1186-4c02-88fc-35f881f26cd8"
+      },
+      "schema_version": "v1",
+      "status": "rejected",
+      "tenant_id": "tenant-demo",
+      "updated_at": "2026-07-10T13:24:56.919595+00:00"
+    },
+    "conformance": {
+      "action_journal_outcomes": [
+        "blocked"
+      ],
+      "agent_outputs": 7,
+      "evidence_handles": 5,
+      "required_fields_present": true
+    },
+    "scenario": "reject"
+  },
+  "status": "pass"
+}

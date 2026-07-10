@@ -1,0 +1,1027 @@
+{
+    "apiVersion": "argoproj.io/v1alpha1",
+    "kind": "Application",
+    "metadata": {
+        "annotations": {
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"argoproj.io/v1alpha1\",\"kind\":\"Application\",\"metadata\":{\"annotations\":{},\"labels\":{\"app.kubernetes.io/component\":\"ai-mcp\",\"observability-kit.io/batch\":\"24\"},\"name\":\"ai-runtime\",\"namespace\":\"argocd\"},\"spec\":{\"destination\":{\"namespace\":\"ai-runtime\",\"server\":\"https://kubernetes.default.svc\"},\"ignoreDifferences\":[{\"group\":\"apps\",\"jsonPointers\":[\"/spec/replicas\"],\"kind\":\"Deployment\"},{\"group\":\"apps\",\"jsonPointers\":[\"/spec/volumeClaimTemplates\"],\"kind\":\"StatefulSet\"}],\"project\":\"default\",\"source\":{\"path\":\"gitops/platform/ai/overlays/dev\",\"repoURL\":\"https://git-server.evidence-gitops.svc.cluster.local:8443/gitops.git\",\"targetRevision\":\"main\"},\"syncPolicy\":{\"automated\":{\"prune\":true,\"selfHeal\":true},\"syncOptions\":[\"CreateNamespace=true\",\"ServerSideApply=true\"]}}}\n"
+        },
+        "creationTimestamp": "2026-07-10T13:23:33Z",
+        "generation": 13,
+        "labels": {
+            "app.kubernetes.io/component": "ai-mcp",
+            "observability-kit.io/batch": "24"
+        },
+        "name": "ai-runtime",
+        "namespace": "argocd",
+        "resourceVersion": "2460",
+        "uid": "31e6a4ef-3613-4392-a062-f05bea3e9965"
+    },
+    "spec": {
+        "destination": {
+            "namespace": "ai-runtime",
+            "server": "https://kubernetes.default.svc"
+        },
+        "ignoreDifferences": [
+            {
+                "group": "apps",
+                "jsonPointers": [
+                    "/spec/replicas"
+                ],
+                "kind": "Deployment"
+            },
+            {
+                "group": "apps",
+                "jsonPointers": [
+                    "/spec/volumeClaimTemplates"
+                ],
+                "kind": "StatefulSet"
+            }
+        ],
+        "project": "default",
+        "source": {
+            "path": "gitops/platform/ai/overlays/dev",
+            "repoURL": "https://git-server.evidence-gitops.svc.cluster.local:8443/gitops.git",
+            "targetRevision": "main"
+        },
+        "syncPolicy": {
+            "automated": {
+                "prune": true,
+                "selfHeal": true
+            },
+            "syncOptions": [
+                "CreateNamespace=true",
+                "ServerSideApply=true"
+            ]
+        }
+    },
+    "status": {
+        "controllerNamespace": "argocd",
+        "health": {
+            "lastTransitionTime": "2026-07-10T13:24:35Z",
+            "status": "Healthy"
+        },
+        "history": [
+            {
+                "deployStartedAt": "2026-07-10T13:23:33Z",
+                "deployedAt": "2026-07-10T13:23:35Z",
+                "id": 0,
+                "initiatedBy": {
+                    "automated": true
+                },
+                "revision": "c619bb1bcaa2c15206c514a810e518fddf2d20d6",
+                "source": {
+                    "path": "gitops/platform/ai/overlays/dev",
+                    "repoURL": "https://git-server.evidence-gitops.svc.cluster.local:8443/gitops.git",
+                    "targetRevision": "main"
+                }
+            }
+        ],
+        "operationState": {
+            "finishedAt": "2026-07-10T13:23:35Z",
+            "message": "successfully synced (all tasks run)",
+            "operation": {
+                "initiatedBy": {
+                    "automated": true
+                },
+                "retry": {
+                    "limit": 5
+                },
+                "sync": {
+                    "prune": true,
+                    "revision": "c619bb1bcaa2c15206c514a810e518fddf2d20d6",
+                    "syncOptions": [
+                        "CreateNamespace=true",
+                        "ServerSideApply=true"
+                    ]
+                }
+            },
+            "phase": "Succeeded",
+            "startedAt": "2026-07-10T13:23:33Z",
+            "syncResult": {
+                "resources": [
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "Namespace",
+                        "message": "namespace/ai-triggers serverside-applied",
+                        "name": "ai-triggers",
+                        "namespace": "ai-runtime",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "Namespace",
+                        "message": "namespace/ai-policy serverside-applied",
+                        "name": "ai-policy",
+                        "namespace": "ai-runtime",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "Namespace",
+                        "message": "namespace/ai-gateway serverside-applied",
+                        "name": "ai-gateway",
+                        "namespace": "ai-runtime",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "Namespace",
+                        "message": "namespace/mcp-system serverside-applied",
+                        "name": "mcp-system",
+                        "namespace": "ai-runtime",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "Namespace",
+                        "message": "namespace/ai-runtime serverside-applied",
+                        "name": "ai-runtime",
+                        "namespace": "ai-runtime",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "Namespace",
+                        "message": "namespace/mcp-services serverside-applied",
+                        "name": "mcp-services",
+                        "namespace": "ai-runtime",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "networking.k8s.io",
+                        "hookPhase": "Running",
+                        "kind": "NetworkPolicy",
+                        "message": "networkpolicy.networking.k8s.io/ai-gateway-policy serverside-applied",
+                        "name": "ai-gateway-policy",
+                        "namespace": "ai-gateway",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "ServiceAccount",
+                        "message": "serviceaccount/sa-agent-ceo serverside-applied",
+                        "name": "sa-agent-ceo",
+                        "namespace": "ai-runtime",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "ServiceAccount",
+                        "message": "serviceaccount/sa-ai-gateway serverside-applied",
+                        "name": "sa-ai-gateway",
+                        "namespace": "ai-gateway",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "ServiceAccount",
+                        "message": "serviceaccount/sa-khook-controller serverside-applied",
+                        "name": "sa-khook-controller",
+                        "namespace": "ai-triggers",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "ServiceAccount",
+                        "message": "serviceaccount/sa-mcp-trace-investigation serverside-applied",
+                        "name": "sa-mcp-trace-investigation",
+                        "namespace": "mcp-services",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "ServiceAccount",
+                        "message": "serviceaccount/sa-mcp-graph-analysis serverside-applied",
+                        "name": "sa-mcp-graph-analysis",
+                        "namespace": "mcp-services",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "ServiceAccount",
+                        "message": "serviceaccount/sa-mcp-metrics-correlation serverside-applied",
+                        "name": "sa-mcp-metrics-correlation",
+                        "namespace": "mcp-services",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "ServiceAccount",
+                        "message": "serviceaccount/sa-mcp-incident-casefile serverside-applied",
+                        "name": "sa-mcp-incident-casefile",
+                        "namespace": "mcp-services",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "ServiceAccount",
+                        "message": "serviceaccount/sa-mcp-change-intelligence serverside-applied",
+                        "name": "sa-mcp-change-intelligence",
+                        "namespace": "mcp-services",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "ServiceAccount",
+                        "message": "serviceaccount/sa-mcp-runbook-execution serverside-applied",
+                        "name": "sa-mcp-runbook-execution",
+                        "namespace": "mcp-services",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "ServiceAccount",
+                        "message": "serviceaccount/sa-mcp-incident-search serverside-applied",
+                        "name": "sa-mcp-incident-search",
+                        "namespace": "mcp-services",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "ServiceAccount",
+                        "message": "serviceaccount/sa-kmcp-controller serverside-applied",
+                        "name": "sa-kmcp-controller",
+                        "namespace": "mcp-system",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "apiextensions.k8s.io",
+                        "hookPhase": "Running",
+                        "kind": "CustomResourceDefinition",
+                        "message": "customresourcedefinition.apiextensions.k8s.io/mcpservers.mcp.kagent.dev serverside-applied",
+                        "name": "mcpservers.mcp.kagent.dev",
+                        "namespace": "ai-runtime",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "rbac.authorization.k8s.io",
+                        "hookPhase": "Running",
+                        "kind": "ClusterRole",
+                        "message": "clusterrole.rbac.authorization.k8s.io/khook-event-reader reconciled. reconciliation required create\n\tmissing rules added:\n\t\t{Verbs:[get list watch] APIGroups:[] Resources:[events] ResourceNames:[] NonResourceURLs:[]}\n\t\t{Verbs:[get list watch] APIGroups:[events.k8s.io] Resources:[events] ResourceNames:[] NonResourceURLs:[]}. clusterrole.rbac.authorization.k8s.io/khook-event-reader serverside-applied",
+                        "name": "khook-event-reader",
+                        "namespace": "ai-runtime",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "rbac.authorization.k8s.io",
+                        "hookPhase": "Running",
+                        "kind": "ClusterRoleBinding",
+                        "message": "clusterrolebinding.rbac.authorization.k8s.io/khook-event-reader reconciled. reconciliation required create\n\tmissing subjects added:\n\t\t{Kind:ServiceAccount APIGroup: Name:sa-khook-controller Namespace:ai-triggers}. clusterrolebinding.rbac.authorization.k8s.io/khook-event-reader serverside-applied",
+                        "name": "khook-event-reader",
+                        "namespace": "ai-runtime",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "Service",
+                        "message": "service/trace-investigation-mcp serverside-applied",
+                        "name": "trace-investigation-mcp",
+                        "namespace": "mcp-services",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "Service",
+                        "message": "service/kmcp-controller serverside-applied",
+                        "name": "kmcp-controller",
+                        "namespace": "mcp-system",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "Service",
+                        "message": "service/khook-controller serverside-applied",
+                        "name": "khook-controller",
+                        "namespace": "ai-triggers",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "Service",
+                        "message": "service/runbook-execution-mcp serverside-applied",
+                        "name": "runbook-execution-mcp",
+                        "namespace": "mcp-services",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "Service",
+                        "message": "service/ai-gateway serverside-applied",
+                        "name": "ai-gateway",
+                        "namespace": "ai-gateway",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "Service",
+                        "message": "service/change-intelligence-mcp serverside-applied",
+                        "name": "change-intelligence-mcp",
+                        "namespace": "mcp-services",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "Service",
+                        "message": "service/kagent-controller serverside-applied",
+                        "name": "kagent-controller",
+                        "namespace": "ai-runtime",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "Service",
+                        "message": "service/kagent-postgres serverside-applied",
+                        "name": "kagent-postgres",
+                        "namespace": "ai-runtime",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "Service",
+                        "message": "service/metrics-correlation-mcp serverside-applied",
+                        "name": "metrics-correlation-mcp",
+                        "namespace": "mcp-services",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "Service",
+                        "message": "service/incident-search-mcp serverside-applied",
+                        "name": "incident-search-mcp",
+                        "namespace": "mcp-services",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "Service",
+                        "message": "service/incident-casefile-mcp serverside-applied",
+                        "name": "incident-casefile-mcp",
+                        "namespace": "mcp-services",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "Service",
+                        "message": "service/graph-analysis-mcp serverside-applied",
+                        "name": "graph-analysis-mcp",
+                        "namespace": "mcp-services",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "apps",
+                        "hookPhase": "Running",
+                        "images": [
+                            "obskit-ai-runtime:0.1.0"
+                        ],
+                        "kind": "Deployment",
+                        "message": "deployment.apps/trace-investigation-mcp serverside-applied",
+                        "name": "trace-investigation-mcp",
+                        "namespace": "mcp-services",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "apps",
+                        "hookPhase": "Running",
+                        "images": [
+                            "obskit-ai-runtime:0.1.0"
+                        ],
+                        "kind": "Deployment",
+                        "message": "deployment.apps/graph-analysis-mcp serverside-applied",
+                        "name": "graph-analysis-mcp",
+                        "namespace": "mcp-services",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "apps",
+                        "hookPhase": "Running",
+                        "images": [
+                            "obskit-ai-runtime:0.1.0"
+                        ],
+                        "kind": "Deployment",
+                        "message": "deployment.apps/incident-casefile-mcp serverside-applied",
+                        "name": "incident-casefile-mcp",
+                        "namespace": "mcp-services",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "apps",
+                        "hookPhase": "Running",
+                        "images": [
+                            "obskit-ai-runtime:0.1.0"
+                        ],
+                        "kind": "Deployment",
+                        "message": "deployment.apps/khook-controller serverside-applied",
+                        "name": "khook-controller",
+                        "namespace": "ai-triggers",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "apps",
+                        "hookPhase": "Running",
+                        "images": [
+                            "obskit-ai-runtime:0.1.0"
+                        ],
+                        "kind": "Deployment",
+                        "message": "deployment.apps/metrics-correlation-mcp serverside-applied",
+                        "name": "metrics-correlation-mcp",
+                        "namespace": "mcp-services",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "apps",
+                        "hookPhase": "Running",
+                        "images": [
+                            "obskit-ai-runtime:0.1.0"
+                        ],
+                        "kind": "Deployment",
+                        "message": "deployment.apps/change-intelligence-mcp serverside-applied",
+                        "name": "change-intelligence-mcp",
+                        "namespace": "mcp-services",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "apps",
+                        "hookPhase": "Running",
+                        "images": [
+                            "obskit-ai-runtime:0.1.0"
+                        ],
+                        "kind": "Deployment",
+                        "message": "deployment.apps/runbook-execution-mcp serverside-applied",
+                        "name": "runbook-execution-mcp",
+                        "namespace": "mcp-services",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "apps",
+                        "hookPhase": "Running",
+                        "images": [
+                            "obskit-ai-runtime:0.1.0"
+                        ],
+                        "kind": "Deployment",
+                        "message": "deployment.apps/incident-search-mcp serverside-applied",
+                        "name": "incident-search-mcp",
+                        "namespace": "mcp-services",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "apps",
+                        "hookPhase": "Running",
+                        "images": [
+                            "obskit-ai-runtime:0.1.0"
+                        ],
+                        "kind": "Deployment",
+                        "message": "deployment.apps/kmcp-controller serverside-applied",
+                        "name": "kmcp-controller",
+                        "namespace": "mcp-system",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "apps",
+                        "hookPhase": "Running",
+                        "images": [
+                            "obskit-ai-runtime:0.1.0"
+                        ],
+                        "kind": "Deployment",
+                        "message": "deployment.apps/ai-gateway serverside-applied",
+                        "name": "ai-gateway",
+                        "namespace": "ai-gateway",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "apps",
+                        "hookPhase": "Running",
+                        "images": [
+                            "obskit-ai-runtime:0.1.0"
+                        ],
+                        "kind": "Deployment",
+                        "message": "deployment.apps/kagent-controller serverside-applied",
+                        "name": "kagent-controller",
+                        "namespace": "ai-runtime",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "apps",
+                        "hookPhase": "Running",
+                        "images": [
+                            "postgres:16.9-alpine"
+                        ],
+                        "kind": "StatefulSet",
+                        "message": "statefulset.apps/kagent-postgres serverside-applied",
+                        "name": "kagent-postgres",
+                        "namespace": "ai-runtime",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "mcp.kagent.dev",
+                        "hookPhase": "Running",
+                        "kind": "MCPServer",
+                        "message": "mcpserver.mcp.kagent.dev/incident-search-mcp serverside-applied",
+                        "name": "incident-search-mcp",
+                        "namespace": "mcp-services",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1alpha1"
+                    }
+                ],
+                "revision": "c619bb1bcaa2c15206c514a810e518fddf2d20d6",
+                "source": {
+                    "path": "gitops/platform/ai/overlays/dev",
+                    "repoURL": "https://git-server.evidence-gitops.svc.cluster.local:8443/gitops.git",
+                    "targetRevision": "main"
+                }
+            }
+        },
+        "reconciledAt": "2026-07-10T13:23:35Z",
+        "resourceHealthSource": "appTree",
+        "resources": [
+            {
+                "kind": "Namespace",
+                "name": "ai-gateway",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "Namespace",
+                "name": "ai-policy",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "Namespace",
+                "name": "ai-runtime",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "Namespace",
+                "name": "ai-triggers",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "Namespace",
+                "name": "mcp-services",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "Namespace",
+                "name": "mcp-system",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "Service",
+                "name": "ai-gateway",
+                "namespace": "ai-gateway",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "Service",
+                "name": "kagent-controller",
+                "namespace": "ai-runtime",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "Service",
+                "name": "kagent-postgres",
+                "namespace": "ai-runtime",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "Service",
+                "name": "khook-controller",
+                "namespace": "ai-triggers",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "Service",
+                "name": "change-intelligence-mcp",
+                "namespace": "mcp-services",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "Service",
+                "name": "graph-analysis-mcp",
+                "namespace": "mcp-services",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "Service",
+                "name": "incident-casefile-mcp",
+                "namespace": "mcp-services",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "Service",
+                "name": "incident-search-mcp",
+                "namespace": "mcp-services",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "Service",
+                "name": "metrics-correlation-mcp",
+                "namespace": "mcp-services",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "Service",
+                "name": "runbook-execution-mcp",
+                "namespace": "mcp-services",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "Service",
+                "name": "trace-investigation-mcp",
+                "namespace": "mcp-services",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "Service",
+                "name": "kmcp-controller",
+                "namespace": "mcp-system",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "ServiceAccount",
+                "name": "sa-ai-gateway",
+                "namespace": "ai-gateway",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "ServiceAccount",
+                "name": "sa-agent-ceo",
+                "namespace": "ai-runtime",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "ServiceAccount",
+                "name": "sa-khook-controller",
+                "namespace": "ai-triggers",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "ServiceAccount",
+                "name": "sa-mcp-change-intelligence",
+                "namespace": "mcp-services",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "ServiceAccount",
+                "name": "sa-mcp-graph-analysis",
+                "namespace": "mcp-services",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "ServiceAccount",
+                "name": "sa-mcp-incident-casefile",
+                "namespace": "mcp-services",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "ServiceAccount",
+                "name": "sa-mcp-incident-search",
+                "namespace": "mcp-services",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "ServiceAccount",
+                "name": "sa-mcp-metrics-correlation",
+                "namespace": "mcp-services",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "ServiceAccount",
+                "name": "sa-mcp-runbook-execution",
+                "namespace": "mcp-services",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "ServiceAccount",
+                "name": "sa-mcp-trace-investigation",
+                "namespace": "mcp-services",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "ServiceAccount",
+                "name": "sa-kmcp-controller",
+                "namespace": "mcp-system",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "group": "apiextensions.k8s.io",
+                "kind": "CustomResourceDefinition",
+                "name": "mcpservers.mcp.kagent.dev",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "group": "apps",
+                "kind": "Deployment",
+                "name": "ai-gateway",
+                "namespace": "ai-gateway",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "group": "apps",
+                "kind": "Deployment",
+                "name": "kagent-controller",
+                "namespace": "ai-runtime",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "group": "apps",
+                "kind": "Deployment",
+                "name": "khook-controller",
+                "namespace": "ai-triggers",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "group": "apps",
+                "kind": "Deployment",
+                "name": "change-intelligence-mcp",
+                "namespace": "mcp-services",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "group": "apps",
+                "kind": "Deployment",
+                "name": "graph-analysis-mcp",
+                "namespace": "mcp-services",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "group": "apps",
+                "kind": "Deployment",
+                "name": "incident-casefile-mcp",
+                "namespace": "mcp-services",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "group": "apps",
+                "kind": "Deployment",
+                "name": "incident-search-mcp",
+                "namespace": "mcp-services",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "group": "apps",
+                "kind": "Deployment",
+                "name": "metrics-correlation-mcp",
+                "namespace": "mcp-services",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "group": "apps",
+                "kind": "Deployment",
+                "name": "runbook-execution-mcp",
+                "namespace": "mcp-services",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "group": "apps",
+                "kind": "Deployment",
+                "name": "trace-investigation-mcp",
+                "namespace": "mcp-services",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "group": "apps",
+                "kind": "Deployment",
+                "name": "kmcp-controller",
+                "namespace": "mcp-system",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "group": "apps",
+                "kind": "StatefulSet",
+                "name": "kagent-postgres",
+                "namespace": "ai-runtime",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "group": "mcp.kagent.dev",
+                "kind": "MCPServer",
+                "name": "incident-search-mcp",
+                "namespace": "mcp-services",
+                "status": "Synced",
+                "version": "v1alpha1"
+            },
+            {
+                "group": "networking.k8s.io",
+                "kind": "NetworkPolicy",
+                "name": "ai-gateway-policy",
+                "namespace": "ai-gateway",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "group": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "khook-event-reader",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "group": "rbac.authorization.k8s.io",
+                "kind": "ClusterRoleBinding",
+                "name": "khook-event-reader",
+                "status": "Synced",
+                "version": "v1"
+            }
+        ],
+        "sourceHydrator": {},
+        "sourceType": "Kustomize",
+        "summary": {
+            "images": [
+                "obskit-ai-runtime:0.1.0",
+                "postgres:16.9-alpine"
+            ]
+        },
+        "sync": {
+            "comparedTo": {
+                "destination": {
+                    "namespace": "ai-runtime",
+                    "server": "https://kubernetes.default.svc"
+                },
+                "ignoreDifferences": [
+                    {
+                        "group": "apps",
+                        "jsonPointers": [
+                            "/spec/replicas"
+                        ],
+                        "kind": "Deployment"
+                    },
+                    {
+                        "group": "apps",
+                        "jsonPointers": [
+                            "/spec/volumeClaimTemplates"
+                        ],
+                        "kind": "StatefulSet"
+                    }
+                ],
+                "source": {
+                    "path": "gitops/platform/ai/overlays/dev",
+                    "repoURL": "https://git-server.evidence-gitops.svc.cluster.local:8443/gitops.git",
+                    "targetRevision": "main"
+                }
+            },
+            "revision": "c619bb1bcaa2c15206c514a810e518fddf2d20d6",
+            "status": "Synced"
+        }
+    }
+}

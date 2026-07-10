@@ -1,0 +1,18 @@
+{
+  "adapter_class": "model-provider",
+  "stub_name": "anthropic-reference-model-provider-stub",
+  "status": "ready_for_profile_wiring",
+  "prerequisites": [
+    "model_provider_adapter_contract_validated",
+    "ai_boundary_contract_validated",
+    "secrets_backend_configured"
+  ],
+  "generated_values": [
+    "aiRuntime.modelProvider.name",
+    "aiRuntime.modelProvider.mode"
+  ],
+  "fallback_behavior": {
+    "strategy": "disable_adapter_keep_core",
+    "notes": "Revert to the local-stub provider: the AI runtime keeps serving deterministic rehearsal completions with no vendor dependency, no credentials, and no core contract mutation. Production profiles reject local-stub, so fallback in production means the AI tier degrades to disabled while the core platform stays fully operational (TR-15)."
+  }
+}

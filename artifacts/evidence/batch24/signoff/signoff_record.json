@@ -1,0 +1,168 @@
+{
+  "artifact_kind": "live_ai_activation_signoff",
+  "batch": 24,
+  "captured_at": "2026-07-10T13:27:56.694071+00:00",
+  "check_command": "harness_assets/run_activation_signoff.py",
+  "harness": {
+    "kubectl_context": "kind-obskit-evidence",
+    "node_image": "kindest/node:v1.29.14",
+    "stack_profile": "evidence-disposable"
+  },
+  "payload": {
+    "approver": "release-approver-surrogate",
+    "decision": "approved",
+    "evidence_links": [
+      "artifacts/evidence/batch24/deploy/",
+      "artifacts/evidence/batch24/rehearsal/"
+    ],
+    "gates": [
+      {
+        "gate": "mcp_tool_latency_p95",
+        "measurable": true,
+        "measured": 2.97,
+        "notes": "60 ok, 0 failed",
+        "source": "live measurement (60 invocations); criteria: tests/perf/ai_runtime/PERF_UPGRADE_SUITE_V1.json",
+        "status": "pass",
+        "threshold": "<= 750 ms"
+      },
+      {
+        "gate": "mcp_tool_latency_p99",
+        "measurable": true,
+        "measured": 16.92,
+        "notes": "60 ok, 0 failed",
+        "source": "live measurement (60 invocations); criteria: tests/perf/ai_runtime/PERF_UPGRADE_SUITE_V1.json",
+        "status": "pass",
+        "threshold": "<= 1500 ms"
+      },
+      {
+        "gate": "approval_acceptance_rate",
+        "measurable": true,
+        "measured": 93.5,
+        "notes": "window=31 decisions (contract window is the last 100; every decision of this activation run is included)",
+        "source": "live decision trail (kagent audit store; the rca-approval-decision-trail panel source)",
+        "status": "pass",
+        "threshold": ">= 90 % over the last 100 decisions"
+      },
+      {
+        "gate": "approval_rejection_rate",
+        "measurable": true,
+        "measured": 6.5,
+        "notes": "window=31 decisions (contract window is the last 100; every decision of this activation run is included)",
+        "source": "live decision trail (kagent audit store; the rca-approval-decision-trail panel source)",
+        "status": "pass",
+        "threshold": "<= 25 % over the last 100 decisions"
+      },
+      {
+        "gate": "approval_p95_latency",
+        "measurable": true,
+        "measured": 0.047,
+        "notes": "31 write.high-risk decisions",
+        "source": "live decision trail (kagent audit store; the rca-approval-decision-trail panel source)",
+        "status": "pass",
+        "threshold": "<= 30 minutes for write.high-risk"
+      },
+      {
+        "gate": "backtesting_evidence_pass_rate",
+        "measurable": true,
+        "measured": 100.0,
+        "notes": "3/3 metrics at or above their minimum thresholds",
+        "source": "contracts/risk_rca/BACKTESTING_EVIDENCE_VALIDATION.json",
+        "status": "pass",
+        "threshold": ">= 95 %"
+      },
+      {
+        "gate": "action_gate_scenario_coverage",
+        "measurable": true,
+        "measured": {
+          "matched": 5,
+          "results": [
+            {
+              "expected": "executed",
+              "id": "approved-runbook-plan",
+              "matched": true,
+              "observed": "executed"
+            },
+            {
+              "expected": "blocked",
+              "id": "missing-approval-high-risk",
+              "matched": true,
+              "observed": "blocked"
+            },
+            {
+              "expected": "blocked",
+              "id": "critical-denied-by-policy",
+              "matched": true,
+              "observed": "blocked"
+            },
+            {
+              "expected": "blocked",
+              "id": "critical-requires-change-ticket",
+              "matched": true,
+              "observed": "blocked"
+            },
+            {
+              "expected": "rolled-back",
+              "id": "critical-rollback-deterministic",
+              "matched": true,
+              "observed": "rolled-back"
+            }
+          ],
+          "total": 5
+        },
+        "notes": "",
+        "source": "tests/safety/action_gates/ACTION_GATE_SCENARIOS_V1.json replayed against the live gateway",
+        "status": "pass",
+        "threshold": "all declared scenarios expected_outcome matched"
+      },
+      {
+        "gate": "staging_action_gate_pass_rate",
+        "measurable": true,
+        "measured": 100.0,
+        "notes": "5/5 pass",
+        "source": "tests/staging/action_gates/STAGING_ACTION_GATE_RESULTS_V1.json",
+        "status": "pass",
+        "threshold": "100 % (>= 5 results, all pass)"
+      },
+      {
+        "gate": "release_validation_suite_pass_rate",
+        "measurable": true,
+        "measured": 100.0,
+        "notes": "{\"validate_action_gate_scaffolding.sh\": 0, \"validate_ai_governance_contracts.sh\": 0, \"validate_ai_state_contracts.sh\": 0, \"validate_khook_trigger_scaffolding.sh\": 0, \"validate_multi_agent_scaffolding.sh\": 0}",
+        "source": "tests/safety/RELEASE_VALIDATION_SUITE_V1.json",
+        "status": "pass",
+        "threshold": "100 %"
+      },
+      {
+        "gate": "restore_drill_recency",
+        "measurable": true,
+        "measured": 0.0001,
+        "notes": "",
+        "source": "KAGENT_PERSISTENCE_CONTRACT_V1.yaml restore_drill_cadence_days vs the live drill of this activation run",
+        "status": "pass",
+        "threshold": "<= 90 days"
+      },
+      {
+        "gate": "approval_flow_contract_presence",
+        "measurable": true,
+        "measured": {
+          "escalation_rules": true,
+          "timeout_rules": true
+        },
+        "notes": "",
+        "source": "contracts/policy/APPROVAL_FLOW_V1.yaml",
+        "status": "pass",
+        "threshold": "timeout_rules and escalation_rules present"
+      }
+    ],
+    "release_version": "cd1f73d",
+    "residual_risk": [
+      "Decision window smaller than 100 (every decision of this activation run is included; the window grows with production operation).",
+      "Model provider is local-stub on the harness (ADR-0008); production activation swaps to a credentialed provider through the secrets backend.",
+      "KAgent PostgreSQL runs single-node on the harness; production HA arrives with the Batch 25 reference architecture."
+    ],
+    "schema": "activation-signoff-record-v1",
+    "signed_at": "2026-07-10T13:27:56.651655+00:00",
+    "workflow": "docs/operations/PRODUCTION_ACTIVATION_SIGNOFF_WORKFLOW.md"
+  },
+  "status": "pass"
+}

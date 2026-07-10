@@ -1,11 +1,17 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  # Namespaces must apply before namespaced resources can be admitted.
+  # Namespaces must apply before namespaced resources can be admitted;
+  # the MCPServer CRD must apply before its sample instance.
   - namespaces/namespaces.yaml
+  - serviceaccounts/serviceaccounts.yaml
+  - kmcp/mcpserver-crd.yaml
   - kagent/deployment.yaml
+  - kagent/postgres.yaml
   - khook/deployment.yaml
+  - khook/rbac.yaml
   - kmcp/deployment.yaml
   - kmcp/mcpserver-sample.yaml
+  - mcpservices/deployments.yaml
   - gateway/deployment.yaml
   - gateway/networkpolicy.yaml

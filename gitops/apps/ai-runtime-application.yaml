@@ -5,7 +5,7 @@ metadata:
   namespace: argocd
   labels:
     app.kubernetes.io/component: ai-mcp
-    observability-kit.io/batch: "14"
+    observability-kit.io/batch: "24"
 spec:
   project: default
   source:
@@ -27,3 +27,9 @@ spec:
       kind: Deployment
       jsonPointers:
         - /spec/replicas
+    # StatefulSet volumeClaimTemplates gain server-side defaults that
+    # produce a permanent spurious diff (Batch 24: kagent-postgres).
+    - group: apps
+      kind: StatefulSet
+      jsonPointers:
+        - /spec/volumeClaimTemplates

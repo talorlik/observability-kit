@@ -1,0 +1,112 @@
+# In-cluster PostgreSQL backing the KAgent control plane, as
+# contracts/ai/KAGENT_PERSISTENCE_CONTRACT_V1.yaml requires
+# (in_cluster_only: true, external managed services forbidden). A
+# StatefulSet (not a Deployment) so the per-environment replica
+# patches for stateless controllers never touch the single-writer
+# store; production high availability arrives with the Batch 25
+# production reference architecture (operator-managed PostgreSQL).
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kagent-postgres
+  namespace: ai-runtime
+  labels:
+    app.kubernetes.io/name: kagent-postgres
+spec:
+  serviceName: kagent-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kagent-postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kagent-postgres
+    spec:
+      securityContext:
+        # postgres uid/gid in the official alpine image; restricted
+        # pod security requires non-root and fsGroup makes the PVC
+        # writable without an init chown.
+        runAsNonRoot: true
+        runAsUser: 70
+        runAsGroup: 70
+        fsGroup: 70
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: postgres
+          image: postgres:16.9-alpine
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: kagent-postgres-credentials
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kagent-postgres-credentials
+                  key: password
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: kagent-postgres-credentials
+                  key: database
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kagent-postgres
+  namespace: ai-runtime
+spec:
+  selector:
+    app.kubernetes.io/name: kagent-postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres

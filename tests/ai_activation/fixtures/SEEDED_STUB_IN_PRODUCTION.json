@@ -1,0 +1,13 @@
+{
+  "description": "Seeded rejection fixture: a production profile selecting the rehearsal-only local-stub provider. Pinned to rejection rule fail_if_stub_in_production of contracts/ai/MODEL_PROVIDER_ADAPTER_CONTRACT_V1.yaml.",
+  "expected_rejection_rule": "fail_if_stub_in_production",
+  "model_providers": [
+    {
+      "name": "local-stub",
+      "mode": "deterministic-canned-completion",
+      "vendor_neutral": true,
+      "supported_profiles": ["quickstart", "dev", "prod"],
+      "required_fields": ["provider", "model_ref"]
+    }
+  ]
+}

@@ -24,5 +24,24 @@ spec:
             matchLabels:
               kubernetes.io/metadata.name: mcp-services
       ports:
+        # NetworkPolicy matches the pod's containerPort (post-DNAT),
+        # not the Service port: the MCP tool hosts serve 8443 behind
+        # Service port 443 because the restricted pod security
+        # standard forbids binding privileged ports.
         - protocol: TCP
-          port: 443
+          port: 8443
+    # Cluster DNS: without this rule an egress-restricted pod cannot
+    # resolve any service name (verified live on the harness - the
+    # scaffolding policy was never runnable).
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

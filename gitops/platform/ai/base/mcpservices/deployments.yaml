@@ -1,0 +1,559 @@
+# MCP read-path and action tool hosts (Batch 24, ADR-0009): one
+# Deployment per catalog service of contracts/mcp/MCP_CATALOG_V1.yaml,
+# each under its contracted service account from
+# contracts/policy/IDENTITY_ACCESS_MATRIX_V1.yaml. Pods serve 8443
+# behind Service port 443 (restricted pod security forbids binding
+# privileged ports); the gateway network policy matches 8443.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: incident-search-mcp
+  namespace: mcp-services
+  labels:
+    app.kubernetes.io/name: incident-search-mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: incident-search-mcp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: incident-search-mcp
+      annotations:
+        instrumentation.opentelemetry.io/inject-sdk: "true"
+    spec:
+      serviceAccountName: sa-mcp-incident-search
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: incident-search-mcp
+          image: ghcr.io/obskit/ai-runtime:0.1.0
+          args:
+            - mcpserver
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: http
+              containerPort: 8443
+          env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            - name: TOOL
+              value: incident-search
+            - name: MCP_PORT
+              value: "8443"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: incident-search-mcp
+  namespace: mcp-services
+spec:
+  selector:
+    app.kubernetes.io/name: incident-search-mcp
+  ports:
+    - name: http
+      port: 443
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: graph-analysis-mcp
+  namespace: mcp-services
+  labels:
+    app.kubernetes.io/name: graph-analysis-mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: graph-analysis-mcp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: graph-analysis-mcp
+      annotations:
+        instrumentation.opentelemetry.io/inject-sdk: "true"
+    spec:
+      serviceAccountName: sa-mcp-graph-analysis
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: graph-analysis-mcp
+          image: ghcr.io/obskit/ai-runtime:0.1.0
+          args:
+            - mcpserver
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: http
+              containerPort: 8443
+          env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            - name: TOOL
+              value: graph-analysis
+            - name: MCP_PORT
+              value: "8443"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: graph-analysis-mcp
+  namespace: mcp-services
+spec:
+  selector:
+    app.kubernetes.io/name: graph-analysis-mcp
+  ports:
+    - name: http
+      port: 443
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trace-investigation-mcp
+  namespace: mcp-services
+  labels:
+    app.kubernetes.io/name: trace-investigation-mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: trace-investigation-mcp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: trace-investigation-mcp
+      annotations:
+        instrumentation.opentelemetry.io/inject-sdk: "true"
+    spec:
+      serviceAccountName: sa-mcp-trace-investigation
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: trace-investigation-mcp
+          image: ghcr.io/obskit/ai-runtime:0.1.0
+          args:
+            - mcpserver
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: http
+              containerPort: 8443
+          env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            - name: TOOL
+              value: trace-investigation
+            - name: MCP_PORT
+              value: "8443"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: trace-investigation-mcp
+  namespace: mcp-services
+spec:
+  selector:
+    app.kubernetes.io/name: trace-investigation-mcp
+  ports:
+    - name: http
+      port: 443
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metrics-correlation-mcp
+  namespace: mcp-services
+  labels:
+    app.kubernetes.io/name: metrics-correlation-mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: metrics-correlation-mcp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: metrics-correlation-mcp
+      annotations:
+        instrumentation.opentelemetry.io/inject-sdk: "true"
+    spec:
+      serviceAccountName: sa-mcp-metrics-correlation
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: metrics-correlation-mcp
+          image: ghcr.io/obskit/ai-runtime:0.1.0
+          args:
+            - mcpserver
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: http
+              containerPort: 8443
+          env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            - name: TOOL
+              value: metrics-correlation
+            - name: MCP_PORT
+              value: "8443"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: metrics-correlation-mcp
+  namespace: mcp-services
+spec:
+  selector:
+    app.kubernetes.io/name: metrics-correlation-mcp
+  ports:
+    - name: http
+      port: 443
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: change-intelligence-mcp
+  namespace: mcp-services
+  labels:
+    app.kubernetes.io/name: change-intelligence-mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: change-intelligence-mcp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: change-intelligence-mcp
+      annotations:
+        instrumentation.opentelemetry.io/inject-sdk: "true"
+    spec:
+      serviceAccountName: sa-mcp-change-intelligence
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: change-intelligence-mcp
+          image: ghcr.io/obskit/ai-runtime:0.1.0
+          args:
+            - mcpserver
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: http
+              containerPort: 8443
+          env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            - name: TOOL
+              value: change-intelligence
+            - name: MCP_PORT
+              value: "8443"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: change-intelligence-mcp
+  namespace: mcp-services
+spec:
+  selector:
+    app.kubernetes.io/name: change-intelligence-mcp
+  ports:
+    - name: http
+      port: 443
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: incident-casefile-mcp
+  namespace: mcp-services
+  labels:
+    app.kubernetes.io/name: incident-casefile-mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: incident-casefile-mcp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: incident-casefile-mcp
+      annotations:
+        instrumentation.opentelemetry.io/inject-sdk: "true"
+    spec:
+      serviceAccountName: sa-mcp-incident-casefile
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: incident-casefile-mcp
+          image: ghcr.io/obskit/ai-runtime:0.1.0
+          args:
+            - mcpserver
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: http
+              containerPort: 8443
+          env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            - name: TOOL
+              value: incident-casefile
+            - name: MCP_PORT
+              value: "8443"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: incident-casefile-mcp
+  namespace: mcp-services
+spec:
+  selector:
+    app.kubernetes.io/name: incident-casefile-mcp
+  ports:
+    - name: http
+      port: 443
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: runbook-execution-mcp
+  namespace: mcp-services
+  labels:
+    app.kubernetes.io/name: runbook-execution-mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: runbook-execution-mcp
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: runbook-execution-mcp
+      annotations:
+        instrumentation.opentelemetry.io/inject-sdk: "true"
+    spec:
+      serviceAccountName: sa-mcp-runbook-execution
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: runbook-execution-mcp
+          image: ghcr.io/obskit/ai-runtime:0.1.0
+          args:
+            - mcpserver
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: http
+              containerPort: 8443
+          env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            - name: TOOL
+              value: runbook-execution
+            - name: MCP_PORT
+              value: "8443"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: runbook-execution-mcp
+  namespace: mcp-services
+spec:
+  selector:
+    app.kubernetes.io/name: runbook-execution-mcp
+  ports:
+    - name: http
+      port: 443
+      targetPort: http

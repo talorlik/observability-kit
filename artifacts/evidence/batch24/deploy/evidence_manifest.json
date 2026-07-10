@@ -1,0 +1,18 @@
+{
+  "artifact_kind": "live_ai_deploy_evidence_manifest",
+  "artifacts": [
+    "application_state.json",
+    "contract_fingerprints.json",
+    "gateway_catalog.json",
+    "pod_inventory.json"
+  ],
+  "batch": 24,
+  "captured_at": "2026-07-10T13:24:48.056156+00:00",
+  "check_command": "live_cluster_harness.sh run --only ai-deploy",
+  "harness": {
+    "kubectl_context": "kind-obskit-evidence",
+    "node_image": "kindest/node:v1.29.14",
+    "stack_profile": "evidence-disposable"
+  },
+  "status": "pass"
+}

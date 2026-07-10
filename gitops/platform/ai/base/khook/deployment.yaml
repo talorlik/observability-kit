@@ -18,12 +18,33 @@ spec:
         instrumentation.opentelemetry.io/inject-sdk: "true"
     spec:
       serviceAccountName: sa-khook-controller
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: khook-controller
-          image: ghcr.io/kagent-dev/khook:v0.1.0
+          # Product-owned AI runtime image (ADR-0009); khook is the
+          # read-only Kubernetes event trigger dispatcher executing
+          # triggers/khook/ (hook catalog, dedupe, burst control).
+          image: ghcr.io/obskit/ai-runtime:0.1.0
+          args:
+            - khook
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           ports:
             - name: http
               containerPort: 8090
+          env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            - name: KAGENT_URL
+              value: http://kagent-controller.ai-runtime.svc.cluster.local:8080
           resources:
             requests:
               cpu: 100m

@@ -1,0 +1,38 @@
+# Dependency manifest for the AI runtime (Batch 24, TR-15, TR-24,
+# ADR-0009). This package owns its dependencies; nothing here is ever
+# added to requirements-ci.txt, which stays lint-only - the same
+# posture ADR-0001 fixed for tools/obskit, ADR-0004 for
+# services/tenancy, and ADR-0005 for services/portal.
+#
+# The core layer (casefile orchestration, trigger dispatch, MCP
+# gateway, governance enforcement, audit) is standard-library-only.
+# Contract constants are embedded in airuntime.contracts in the exact
+# shape the YAML contracts fix; scripts/ci/validate_ai_activation.sh
+# cross-checks the embedded constants against the contracts (the same
+# no-YAML-import posture obskit.install.models uses for the install
+# flow contract).
+#
+# The [postgres] extra provides the KAGENT_PERSISTENCE_CONTRACT_V1
+# store driver (pure-Python pg8000; no C extension, so the container
+# build stays reproducible on any base image). Offline CI tests run
+# against the interface-identical SQLite store and never install it.
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "obskit-airuntime"
+version = "0.1.0"
+description = "Observability Kit AI/MCP runtime (KAgent, KHook, MCP gateway)"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+postgres = ["pg8000>=1.31"]
+
+[tool.setuptools.packages.find]
+include = ["airuntime*"]
+
+[tool.setuptools.package-data]
+airuntime = ["py.typed"]

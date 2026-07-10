@@ -1,0 +1,32 @@
+# KHook trigger dispatcher RBAC: read-only access to Kubernetes
+# events, nothing else. The read-only dispatch posture of
+# triggers/khook/dispatch/READ_ONLY_DISPATCH_POLICY_V1.yaml is
+# enforced here at the API level: no write verbs, no other resources.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: khook-event-reader
+  labels:
+    app.kubernetes.io/name: khook
+rules:
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["events.k8s.io"]
+    resources: ["events"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: khook-event-reader
+  labels:
+    app.kubernetes.io/name: khook
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: khook-event-reader
+subjects:
+  - kind: ServiceAccount
+    name: sa-khook-controller
+    namespace: ai-triggers

@@ -1,0 +1,55 @@
+# Anthropic reference model-provider adapter stub (Batch 24 Task 1,
+# TB-24). Declarative mapping stub only: no code, no live calls. It
+# documents how the provider-neutral invocation envelope of
+# contracts/ai/MODEL_PROVIDER_ADAPTER_CONTRACT_V1.yaml maps onto the
+# Anthropic Messages API, entirely adapter-side. The core never
+# imports a vendor SDK and never names a vendor outside this subtree.
+
+metadata:
+  stub: true
+  vendor: anthropic
+  name: anthropic-reference-model-provider-stub
+  version: v1
+  optional_batch: TB-24
+  contains_code: false
+  performs_live_calls: false
+  compatibility_entry: >-
+    adapters/providers/model/MODEL_PROVIDER_ADAPTER_COMPATIBILITY_V1.yaml
+
+# Neutral invocation envelope field -> Anthropic Messages API field.
+# The left-hand side is exactly the
+# MODEL_PROVIDER_ADAPTER_CONTRACT_V1.yaml envelope vocabulary; the
+# right-hand side exists only in this adapter-scoped file.
+field_mapping:
+  request:
+    model_ref: model
+    max_output_tokens: max_tokens
+    redacted_prompt: messages
+    tenant_id: metadata.user_id
+  response:
+    content: content
+    usage.input_tokens: usage.input_tokens
+    usage.output_tokens: usage.output_tokens
+    stop_reason: stop_reason
+
+model_reference:
+  # Profile-resolved indirection. The runtime resolves model_ref
+  # through profile values; this stub pins the reference default.
+  reference_default: claude-sonnet-5
+  override_surface: aiRuntime.modelProvider.modelRef
+
+auth:
+  # Secret REFERENCE resolved through the secrets backend adapters
+  # (adapters/secrets/); never a literal key, never a value in Git.
+  api_key_ref: secretref:ai/model-provider/anthropic-api-key
+  endpoint_ref: secretref:ai/model-provider/anthropic-endpoint
+
+non_goals:
+  # Stub scope: mapping declaration only.
+  - no streaming
+  - no tool-use passthrough (tools are MCP-gateway-only)
+  - no prompt caching policy
+
+compliance:
+  core_contracts_unchanged: true
+  wrap_method: provisioning-api

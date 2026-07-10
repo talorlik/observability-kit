@@ -48,5 +48,18 @@
   },
   "validation_result": {
     "status": "pass"
+  },
+  "captured_evidence": {
+    "batch": 24,
+    "stack_profile": "evidence-disposable",
+    "harness_contract": "contracts/evidence/DISPOSABLE_CLUSTER_HARNESS_CONTRACT_V1.yaml",
+    "captured_by": "scripts/dev/live_cluster_harness.sh",
+    "artifacts": [
+      "artifacts/evidence/batch24/rehearsal/trigger_flow.json",
+      "artifacts/evidence/batch24/rehearsal/rejection_flow.json",
+      "artifacts/evidence/batch24/rehearsal/timeout_drill.json",
+      "artifacts/evidence/batch24/rehearsal/audit_trail.json"
+    ],
+    "note": "Live trigger-to-approval rehearsal with a human-surrogate approver, rejection feedback, and timeout deny-and-escalate on the disposable evidence harness (Batch 24 Task 3)."
   }
 }

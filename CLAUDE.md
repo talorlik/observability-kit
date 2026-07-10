@@ -85,7 +85,7 @@ bash scripts/ci/check_no_hardcoded_env_values.sh
 bash scripts/ci/validate_all_batches_with_report.sh
 # Reports written to docs/reports/validation/
 # Covers every batch registered in its BATCH_IDS array (currently
-# 1-9A, 10-23; new batches register themselves when implemented).
+# 1-9A, 10-24; new batches register themselves when implemented).
 ```
 
 ### Running a Single Batch
@@ -117,6 +117,7 @@ bash scripts/ci/validate_tenant_control_plane.sh      # Batch 20
 bash scripts/ci/validate_portal_contracts.sh          # Batch 21
 bash scripts/ci/validate_commercial_contracts.sh      # Batch 22
 bash scripts/ci/validate_live_evidence.sh             # Batch 23
+bash scripts/ci/validate_ai_activation.sh             # Batch 24
 ```
 
 Batch 17 delivers the `obskit` executor runtime under `tools/obskit/`
@@ -200,8 +201,27 @@ cluster; `.github/workflows/e2e-nightly.yaml` ships disabled by
 default and never PR-gates. The runbook is
 `docs/runbooks/LIVE_VALIDATION_RUNBOOK.md`.
 
-Batches 24-26 (SaaS productization:
-AI activation, release
+Batch 24 activates the AI/MCP runtime live (ADR-0008, ADR-0009): the
+product-owned `obskit-ai-runtime` image (package `airuntime` under
+`services/ai/`, stdlib core, `[postgres]` extra for the
+KAGENT_PERSISTENCE store, own `pyproject.toml` - never added to
+`requirements-ci.txt`; four entrypoints kagent/khook/gateway/
+mcpserver) deploys from `gitops/platform/ai/` via the harness checks
+`ai-deploy`, `ai-rehearsal`, `ai-signoff` with the MCP catalog and
+governance contracts enforced unmodified. The LLM provider is
+pluggable behind `adapters/providers/model/`
+(`contracts/ai/MODEL_PROVIDER_ADAPTER_CONTRACT_V1.yaml`; Anthropic
+reference adapter, `local-stub` on the harness; keys via the secrets
+backend only, never in Git). Live evidence (deployment, rehearsal
+with human-surrogate approval honoring APPROVAL_FLOW_V1 timeout and
+escalation rules, executed go/no-go signoff with all thresholds
+measured) is committed under `artifacts/evidence/batch24/`;
+`validate_ai_activation.sh` checks it structurally without a cluster
+and cross-checks the runtime's embedded contract constants against
+the governing YAML contracts. Offline tests live in
+`tests/ai_activation/`.
+
+Batches 25-26 (SaaS productization: release
 engineering, product docs) are authored in `TASKS.md` but not yet
 implemented. Their plan is
 `docs/auxiliary/planning/SAAS_PRODUCTIZATION_PLAN.md`; execute them via
@@ -410,7 +430,7 @@ adapter and neutrality contracts pass. Run them (or the all-batches report)
 before trusting adapter/neutrality changes.
 
 `scripts/ci/validate_all_batches_with_report.sh` runs every batch smoke
-wrapper (currently 1-9, 9A, and 10-22) and writes a
+wrapper (currently 1-9, 9A, and 10-24) and writes a
 markdown + JSON report under `docs/reports/validation/`. It is intended for
 developer / QA use and is not part of the CI workflow itself.
 

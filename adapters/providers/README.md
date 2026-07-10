@@ -1,7 +1,17 @@
 # Provider Adapters
 
 Provider adapters extend integration points for external event sources without
-mutating core observability contracts. They are cloud-agnostic by construction:
+mutating core observability contracts.
+
+Two adapter domains live under this directory:
+
+- Event source adapters (this file and
+  `EVENT_SOURCE_ADAPTER_COMPATIBILITY_V1.yaml`): normalize
+  provider-native events into the platform hook event schema.
+- Model provider adapters ([model/README.md](model/README.md)): make
+  the AI runtime's LLM provider pluggable per
+  `contracts/ai/MODEL_PROVIDER_ADAPTER_CONTRACT_V1.yaml` (Batch 24,
+  ADR-0008). They are cloud-agnostic by construction:
 adapters normalize provider-native events into a single hook event schema that
 the platform consumes the same way regardless of where the events came from.
 

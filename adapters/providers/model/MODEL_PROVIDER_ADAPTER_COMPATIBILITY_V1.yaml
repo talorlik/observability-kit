@@ -1,0 +1,69 @@
+# Model provider adapter compatibility catalog (Batch 24 Task 1,
+# TB-24). Governed by
+# contracts/ai/MODEL_PROVIDER_ADAPTER_CONTRACT_V1.yaml and
+# docs/adr/ADR_0008_MODEL_PROVIDER_ADAPTER.md.
+
+metadata:
+  contract: model-provider-adapter-compatibility
+  version: v1
+  optional_batch: TB-24
+
+scope:
+  adapter_domain: model-provider
+  intent: >-
+    map vendor LLM APIs onto the provider-neutral invocation envelope
+    of the AI runtime
+  core_contracts_unchanged: true
+  unchanged_core_contract_refs:
+    - contracts/ai/MODEL_PROVIDER_ADAPTER_CONTRACT_V1.yaml
+    - contracts/ai/BOUNDARY_CONTRACT_V1.yaml
+    - contracts/mcp/MCP_CATALOG_V1.yaml
+
+model_providers:
+  - name: local-stub
+    mode: deterministic-canned-completion
+    vendor_neutral: true
+    deterministic: true
+    performs_live_calls: false
+    requires_credentials: false
+    supported_profiles:
+      - quickstart
+      - dev
+    required_fields:
+      - provider
+      - model_ref
+    outputs:
+      generated_values:
+        - aiRuntime.modelProvider.name
+        - aiRuntime.modelProvider.mode
+  - name: anthropic-reference
+    mode: messages-api-push
+    vendor_neutral: false
+    status: reference
+    reference_default_model_ref: claude-sonnet-5
+    supported_profiles:
+      - staging
+      - prod
+    required_fields:
+      - provider
+      - model_ref
+      - api_key_ref
+      - endpoint_ref
+    outputs:
+      generated_values:
+        - aiRuntime.modelProvider.name
+        - aiRuntime.modelProvider.mode
+        - aiRuntime.modelProvider.adapterRef
+    stub_definition: adapters/providers/model/ANTHROPIC_REFERENCE_ADAPTER_STUB_V1.yaml
+
+constraints:
+  dispatch_mode: reasoning-backend-only
+  core_stays_vendor_neutral: true
+  deny_core_contract_mutation: true
+  allowed_wrap_methods:
+    - provisioning-api
+  forbidden_wrap_methods:
+    - fork
+  secrets_via_secrets_backend_only: true
+  datastore_access: forbidden
+  mcp_gateway_bypass: forbidden

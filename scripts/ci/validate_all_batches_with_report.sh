@@ -37,6 +37,7 @@ declare -a BATCH_IDS=(
   "21"
   "22"
   "23"
+  "24"
 )
 
 declare -a BATCH_NAMES=(
@@ -64,6 +65,7 @@ declare -a BATCH_NAMES=(
   "Unified Management Portal"
   "Metering, Billing, and Commercial Operations"
   "Live-Cluster Validation and Evidence"
+  "AI/MCP Runtime Activation"
 )
 
 declare -a VALIDATION_CRITERIA=(
@@ -91,6 +93,7 @@ declare -a VALIDATION_CRITERIA=(
   "Validate portal contract schema checks, UI catalog aggregation tests, Git-commit-only config edit flow tests, SSO role mapping and tenant scoping tests, and admin GUI smoke extension for the portal endpoint."
   "Validate metering contract dimension coverage, control-tenancy index write tests with tenant attribution, plan catalog quota bound checks, billing adapter stub metadata and rollback notes, and seeded rejection fixture behavior."
   "Validate harness contract and ADR coherence with pinned entry point, captured install and readiness evidence chain, live drill and GUI smoke and SDN-B15 denial evidence artifacts, captured-evidence references in validation contracts, and disabled-by-default nightly workflow posture."
+  "Validate model-provider adapter stub metadata and secrets-backend key resolution, live KAgent and KHook and MCP gateway deployment evidence, trigger-to-casefile-to-approval rehearsal evidence with policy and redaction and audit intact, signoff record with measured thresholds, structural activation checks without a cluster, and extended AI runbook sections."
 )
 
 declare -a SCRIPT_PATHS=(
@@ -118,6 +121,7 @@ declare -a SCRIPT_PATHS=(
   "scripts/ci/validate_batch21_smoke.sh"
   "scripts/ci/validate_batch22_smoke.sh"
   "scripts/ci/validate_batch23_smoke.sh"
+  "scripts/ci/validate_batch24_smoke.sh"
 )
 
 declare -a STATUSES=()

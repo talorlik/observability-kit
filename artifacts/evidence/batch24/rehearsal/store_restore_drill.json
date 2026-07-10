@@ -1,0 +1,22 @@
+{
+  "artifact_kind": "live_ai_rehearsal_store_restore_drill",
+  "batch": 24,
+  "captured_at": "2026-07-10T13:27:52.216762+00:00",
+  "check_command": "harness_assets/run_ai_rehearsal.py (store_restore_drill)",
+  "harness": {
+    "kubectl_context": "kind-obskit-evidence",
+    "node_image": "kindest/node:v1.29.14",
+    "stack_profile": "evidence-disposable"
+  },
+  "payload": {
+    "cadence_days_required": 90,
+    "contract": "contracts/ai/KAGENT_PERSISTENCE_CONTRACT_V1.yaml",
+    "drilled_at": "2026-07-10T13:27:51.938442+00:00",
+    "dump_bytes": 348630,
+    "live_casefiles": 32,
+    "match": true,
+    "restored_casefiles": 32,
+    "scenario": "kagent-postgres-restore-drill"
+  },
+  "status": "pass"
+}

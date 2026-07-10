@@ -1,0 +1,154 @@
+{
+  "artifact_kind": "live_ai_rehearsal_timeout_drill",
+  "batch": 24,
+  "captured_at": "2026-07-10T13:27:52.101582+00:00",
+  "check_command": "harness_assets/run_ai_rehearsal.py (timeout_drill)",
+  "harness": {
+    "kubectl_context": "kind-obskit-evidence",
+    "node_image": "kindest/node:v1.29.14",
+    "stack_profile": "evidence-disposable"
+  },
+  "payload": {
+    "approval_before": {
+      "approval_id": "97439ccbaa6f43aa9ccf19f007a59fdb",
+      "approver": null,
+      "casefile_id": "29297ce6-50da-4a9f-bc05-a9e7b6541be5",
+      "change_ticket": null,
+      "deadline_at": "2026-07-10T14:25:01.753857+00:00",
+      "decided_at": null,
+      "decision": null,
+      "escalation": {
+        "chain": [
+          {
+            "escalate_at": "2026-07-10T14:25:01.753857+00:00",
+            "role": "oncall-sre",
+            "sla_minutes": 30
+          },
+          {
+            "escalate_at": "2026-07-10T14:55:01.753857+00:00",
+            "role": "incident-commander",
+            "sla_minutes": 60
+          },
+          {
+            "escalate_at": "2026-07-10T15:55:01.753857+00:00",
+            "role": "platform-director",
+            "sla_minutes": 120
+          }
+        ],
+        "notify_channels": [
+          "audit-log",
+          "paging-service",
+          "casefile-comment"
+        ],
+        "on_unresolved": "deny"
+      },
+      "requested_at": "2026-07-10T13:25:01.753857+00:00",
+      "requested_by": "ops-ceo-agent",
+      "risk_class": "write.high-risk",
+      "state": "pending",
+      "tool": "runbook-plan.v1",
+      "warning_at": "2026-07-10T13:55:01.753857+00:00"
+    },
+    "as_of": "2026-07-10T14:26:01.753857+00:00",
+    "casefile_after": {
+      "action_journal": [
+        {
+          "action": "runbook-plan.v1",
+          "outcome": "blocked",
+          "recorded_at": "2026-07-10T14:26:01.753857+00:00"
+        }
+      ],
+      "agent_outputs": [
+        {
+          "agent": "ops-ceo-agent",
+          "output_ref": "152c5e66-fbb6-4a68-b67c-25d65b90f0a0",
+          "recorded_at": "2026-07-10T13:25:01.686728+00:00"
+        },
+        {
+          "agent": "incident-investigator",
+          "output_ref": "a89522f8-92db-4f01-b171-4809634587c9",
+          "recorded_at": "2026-07-10T13:25:01.700971+00:00"
+        },
+        {
+          "agent": "trace-analyst",
+          "output_ref": "c97ba740-bb55-4aa3-a483-f7395a403fce",
+          "recorded_at": "2026-07-10T13:25:01.712155+00:00"
+        },
+        {
+          "agent": "metrics-correlator",
+          "output_ref": "d47b495f-60ea-436c-89af-48d500bc39d6",
+          "recorded_at": "2026-07-10T13:25:01.722968+00:00"
+        },
+        {
+          "agent": "graph-analyst",
+          "output_ref": "62c1c6d3-fe1a-484b-a694-ceacd2a70770",
+          "recorded_at": "2026-07-10T13:25:01.733170+00:00"
+        },
+        {
+          "agent": "change-correlator",
+          "output_ref": "337883cc-3c1b-4e52-8e2c-58b92f49fdd3",
+          "recorded_at": "2026-07-10T13:25:01.745062+00:00"
+        },
+        {
+          "agent": "evidence-summarizer",
+          "output_ref": "1199a4de-5c55-420b-a99f-3d7d79207e16",
+          "recorded_at": "2026-07-10T13:25:01.751242+00:00"
+        }
+      ],
+      "approval_state": {
+        "approval_ref": "97439ccbaa6f43aa9ccf19f007a59fdb",
+        "required": true,
+        "status": "expired"
+      },
+      "case_id": "29297ce6-50da-4a9f-bc05-a9e7b6541be5",
+      "casefile_id": "29297ce6-50da-4a9f-bc05-a9e7b6541be5",
+      "created_at": "2026-07-10T13:25:01.672262+00:00",
+      "evidence_handles": [
+        "evidence://incident-search/3c999fa1dad9",
+        "evidence://trace-investigation/3c999fa1dad9",
+        "evidence://metrics-correlation/3c999fa1dad9",
+        "evidence://graph-analysis/3c999fa1dad9",
+        "evidence://change-intelligence/3c999fa1dad9"
+      ],
+      "incident_context": {
+        "namespace": "observability",
+        "object_name": "demo-workload-timeout",
+        "reason": "OOMKilled",
+        "severity": "critical",
+        "summary": "OOMKilled: rehearsal synthetic event: container in demo-workload-timeout was OOM killed",
+        "tenant": "tenant-demo"
+      },
+      "lineage": {
+        "correlation_id": "76d87e1733b905fbcd0f52461479f41acc5c0201a877263c64af466b9d90a09f",
+        "workflow_id": "569d298a-831f-410e-b3fd-ed08dde9ea21"
+      },
+      "schema_version": "v1",
+      "status": "rejected",
+      "tenant_id": "tenant-demo",
+      "updated_at": "2026-07-10T13:25:03.115423+00:00"
+    },
+    "evaluation": {
+      "as_of": "2026-07-10T14:26:01.753857+00:00",
+      "deadline_at": "2026-07-10T14:25:01.753857+00:00",
+      "escalation_events": [
+        {
+          "channels": [
+            "audit-log",
+            "paging-service",
+            "casefile-comment"
+          ],
+          "escalated_at": "2026-07-10T14:25:01.753857+00:00",
+          "role": "oncall-sre"
+        }
+      ],
+      "final_denial": false,
+      "on_unresolved": "deny",
+      "outcome": "deny-and-escalate",
+      "state": "expired",
+      "status": "expired"
+    },
+    "note": "Timeout and escalation rules are the contract values (60m deadline, 30m warning, escalation chain); the as-of clock substitutes for a 61-minute wall-clock wait on the disposable harness.",
+    "scenario": "timeout-deny-and-escalate"
+  },
+  "status": "pass"
+}
