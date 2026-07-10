@@ -407,9 +407,9 @@ check_install() {
     bash scripts/validate/post_install_readiness.sh
 
   local artifact
-  for artifact in preflight_report discovery_probes \
-    capability_matrix compatibility_result mode_recommendation \
-    remediation_list install_summary readiness_report \
+  for artifact in preflight_report capability_matrix \
+    compatibility_result mode_recommendation remediation_list \
+    install_contract install_summary readiness_report \
     argocd_application_state; do
     cp "$INSTALL_OUTPUT/$artifact.json" \
       "$EVIDENCE_DIR/install/$artifact.json"

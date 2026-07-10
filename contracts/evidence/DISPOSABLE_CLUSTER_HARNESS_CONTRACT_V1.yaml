@@ -173,12 +173,15 @@ evidence:
   required_artifacts:
     install:
       - install/preflight_report.json
-      - install/discovery_probes.json
+      - install/capability_matrix.json
       - install/compatibility_result.json
       - install/mode_recommendation.json
+      - install/remediation_list.json
+      - install/install_contract.json
       - install/install_summary.json
       - install/readiness_report.json
       - install/argocd_application_state.json
+      - install/evidence_manifest.json
     checks:
       - checks/restore_drill.json
       - checks/rollback_drill.json
