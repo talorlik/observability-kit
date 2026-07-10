@@ -1,8 +1,61 @@
 # Observability Kit
 
-A portable, plug-and-play observability intelligence platform for any
-conformant Kubernetes cluster — cloud or on-prem. Cloud-agnostic by design;
+A portable, plug-and-play observability SaaS platform for any conformant
+Kubernetes cluster - cloud or on-prem. One guided install turns a cluster
+into a multi-tenant observability platform with logs, metrics, traces,
+vector search, a derived service graph, and AI-assisted incident analysis,
+all operated from a single management plane. Cloud-agnostic by design;
 provider-specific integrations are handled by adapters under `adapters/`.
+
+## Product Documentation
+
+The customer-facing documentation set lives under `docs/product/`, indexed
+by [docs/product/INDEX.md](docs/product/INDEX.md):
+
+- Evaluators: [Getting Started](docs/product/GETTING_STARTED.md)
+- Installers and operators:
+  [Installation Guide](docs/product/INSTALLATION_GUIDE.md),
+  [Configuration Guide](docs/product/CONFIGURATION_GUIDE.md),
+  [Operations Guide](docs/product/OPERATIONS_GUIDE.md)
+- Tenant administrators:
+  [Tenant Admin Guide](docs/product/TENANT_ADMIN_GUIDE.md),
+  [API Reference](docs/product/API_REFERENCE.md)
+- End users: [End User Guide](docs/product/END_USER_GUIDE.md)
+- Commercial teams:
+  [Pricing and Packaging](docs/product/PRICING_AND_PACKAGING.md),
+  [Support and Onboarding](docs/product/SUPPORT_AND_ONBOARDING.md)
+
+GA readiness is recorded in the signed
+[GA Readiness Review](docs/product/GA_READINESS_REVIEW.md).
+
+## What the Product Delivers
+
+Every capability below is delivered and validated, not aspirational:
+
+- Guided installation (`obskit install`): preflight, compatibility
+  grading, mode recommendation, install contract, GitOps-only render,
+  ArgoCD bootstrap, and readiness - interactive or non-interactive
+- Unified configuration: one schema-validated document rendered
+  deterministically to native configs (`obskit render`), with drift
+  detection (`obskit drift`) and rollback (`obskit rollback`)
+- Multi-tenant control plane with contract-enforced, deny-by-default
+  isolation, approval-gated destructive transitions, and full audit
+- A unified management portal over every wrapped UI, with SSO via the
+  admin access plane
+- Usage metering from platform telemetry, a plan catalog bound to
+  tenant tiers, pluggable billing adapters, and vendor-neutral invoice
+  export
+- Live-cluster evidence from a disposable kind harness, including
+  cross-tenant denial scenarios and drills
+- An AI/MCP runtime with governance contracts, a pluggable model
+  provider, and rehearsed approval flows
+- Tag-driven releases: packaged and OCI-published charts, cosign
+  signing posture, SBOM, image scan gates, and OSS license compliance
+
+Validation is contract-first: contracts under `contracts/` are the source
+of truth, enforced by the validators in `scripts/ci/`, with live evidence
+captured under `artifacts/evidence/`. Third-party license attributions are
+in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Primary Implementation Languages
 

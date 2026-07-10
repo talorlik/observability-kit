@@ -85,7 +85,7 @@ bash scripts/ci/check_no_hardcoded_env_values.sh
 bash scripts/ci/validate_all_batches_with_report.sh
 # Reports written to docs/reports/validation/
 # Covers every batch registered in its BATCH_IDS array (currently
-# 1-9A, 10-25; new batches register themselves when implemented).
+# 1-9A, 10-26; new batches register themselves when implemented).
 ```
 
 ### Running a Single Batch
@@ -119,6 +119,7 @@ bash scripts/ci/validate_commercial_contracts.sh      # Batch 22
 bash scripts/ci/validate_live_evidence.sh             # Batch 23
 bash scripts/ci/validate_ai_activation.sh             # Batch 24
 bash scripts/ci/validate_release_engineering.sh       # Batch 25
+bash scripts/ci/validate_product_docs.sh              # Batch 26
 ```
 
 Batch 17 delivers the `obskit` executor runtime under `tools/obskit/`
@@ -251,11 +252,24 @@ seeded rejections (unpinned production profile, missing license
 inventory entry) with fixtures in `tests/release/`. The operator
 flow is `docs/runbooks/PRODUCTION_RELEASE_GATE_RUNBOOK.md`.
 
-Batch 26 (SaaS productization: product docs and GA readiness) is
-authored in `TASKS.md` but not yet implemented. The plan is
-`docs/auxiliary/planning/SAAS_PRODUCTIZATION_PLAN.md`; execute it via
-`/run-batch 26` or the prompt in
-`docs/auxiliary/task_execution/SAAS_EXECUTION_PROMPT.md`.
+Batch 26 closes the SaaS productization arc
+(`docs/auxiliary/planning/SAAS_PRODUCTIZATION_PLAN.md`) with the
+customer-facing product documentation set and the GA readiness
+review. The `docs/product/` tree (indexed by `docs/product/INDEX.md`
+with a five-audience map) carries nine guides plus
+`docs/product/GA_READINESS_REVIEW.md`, a signed checklist walking
+the plan's definition of done with an evidence link per item.
+`docs/product/API_REFERENCE.md` is generated from
+`contracts/tenancy/TENANT_CONTROL_PLANE_API_V1.yaml` by
+`scripts/dev/generate_api_reference.py` (deterministic; `--check`
+fails on hand edits - regenerate, never edit). The docs-coverage
+matrix `contracts/docs/DOCS_COVERAGE_MATRIX_V1.yaml` maps every
+Batch 17-25 capability to a product doc section;
+`validate_product_docs.sh` (PR-gated in CI, unlike the
+evidence-backed Batch 23-25 validators) enforces the tree, the
+matrix, cross-tree links, API reference freshness, and the GA review
+structure. The operator flow is
+`docs/runbooks/PRODUCT_DOCUMENTATION_RUNBOOK.md`.
 
 Each batch also has a smoke wrapper: `scripts/ci/validate_batch<N>_smoke.sh`.
 
@@ -459,7 +473,7 @@ adapter and neutrality contracts pass. Run them (or the all-batches report)
 before trusting adapter/neutrality changes.
 
 `scripts/ci/validate_all_batches_with_report.sh` runs every batch smoke
-wrapper (currently 1-9, 9A, and 10-25) and writes a
+wrapper (currently 1-9, 9A, and 10-26) and writes a
 markdown + JSON report under `docs/reports/validation/`. It is intended for
 developer / QA use and is not part of the CI workflow itself.
 
