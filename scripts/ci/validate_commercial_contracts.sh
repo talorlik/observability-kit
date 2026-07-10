@@ -162,7 +162,9 @@ echo "Validating commercial contract structure and seeded rejections (venv)..."
 python3 - <<'PY'
 import json
 import math
+import re
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import yaml
@@ -171,6 +173,27 @@ import yaml
 def fail(message: str) -> None:
     print(f"ERROR: {message}")
     sys.exit(1)
+
+
+def assert_named_rule_fired(
+    sample_name: str, expected_rejection: str, problems: list[str]
+) -> None:
+    """Pin each seeded rejection to its named fail_if_* rule.
+
+    A fixture rejected only for an incidental reason means its named
+    rule silently lost coverage - exactly the regression this gate
+    exists to prevent. Samples whose expected_rejection names no
+    fail_if_* token are covered by the non-empty problems check alone.
+    """
+    tokens = re.findall(r"fail_if_[a-z_]+", expected_rejection)
+    if not tokens:
+        return
+    blob = " ".join(problems)
+    if tokens[0] not in blob:
+        fail(
+            f"seeded sample {sample_name!r} was rejected, but not by "
+            f"its named rule {tokens[0]} (got: {problems})"
+        )
 
 
 root = Path(".")
@@ -243,7 +266,11 @@ for flag in (
     "fail_if_usage_record_missing_tenant_id",
     "fail_if_telemetry_payload_embedded_in_usage_record",
     "fail_if_unknown_dimension",
+    "fail_if_unknown_signal_for_dimension",
     "fail_if_usage_written_outside_control_plane_indices",
+    "fail_if_window_end_not_after_window_start",
+    "fail_if_new_collection_path_introduced",
+    "fail_if_collector_added_to_requirements_ci",
 ):
     if metering["compliance"].get(flag) is not True:
         fail(f"metering compliance flag {flag} must be true")
@@ -294,13 +321,22 @@ def bound_range_violations(field: str, bound: dict) -> list[str]:
         problems.append(f"{field}: min {low} > max {high}")
     if field == "quotas.ingest.max_gb_per_day":
         if low <= 0:
-            problems.append(f"{field}: min must be > 0")
+            problems.append(
+                f"{field}: min must be > 0 "
+                "(fail_if_quota_bound_outside_tenant_schema_range)"
+            )
     elif field == "quotas.ingest.max_events_per_second":
         if low < 1:
-            problems.append(f"{field}: min must be >= 1")
+            problems.append(
+                f"{field}: min must be >= 1 "
+                "(fail_if_quota_bound_outside_tenant_schema_range)"
+            )
     else:
         if low < 1 or high > 3650:
-            problems.append(f"{field}: bounds must stay within 1..3650")
+            problems.append(
+                f"{field}: bounds must stay within 1..3650 "
+                "(fail_if_quota_bound_outside_tenant_schema_range)"
+            )
     return problems
 
 
@@ -382,7 +418,7 @@ fixture = json.loads(
     .read_text(encoding="utf-8")
 )
 if json.dumps(fixture, sort_keys=True) != json.dumps(
-    catalog, sort_keys=True, default=str
+    catalog, sort_keys=True
 ):
     fail(
         "tests/commercial/fixtures/plan_catalog_v1.json drifted from "
@@ -473,6 +509,9 @@ for sample in invalid_plans["samples"]:
         problems = plan_violations(payload)
     if not problems:
         fail(f"seeded invalid plan sample {sample['name']!r} accepted")
+    assert_named_rule_fired(
+        sample["name"], sample["expected_rejection"], problems
+    )
     rejected += 1
 names = [sample["name"] for sample in invalid_plans["samples"]]
 if "plan-missing-quota-bounds" not in names:
@@ -587,7 +626,8 @@ def invoice_violations(document: dict) -> list[str]:
     if unknown:
         problems.append(
             f"unknown top-level fields {sorted(unknown)} "
-            "(vendor/currency fields are adapter-side only)"
+            "(fail_if_vendor_field_in_export_document; vendor and "
+            "currency fields are adapter-side only)"
         )
     if "currency" in document:
         problems.append(
@@ -599,7 +639,17 @@ def invoice_violations(document: dict) -> list[str]:
             "missing tenant_id (fail_if_invoice_missing_tenant_id)"
         )
     period = document.get("billing_period", {})
-    if period.get("end", "") <= period.get("start", ""):
+    try:
+        start = datetime.fromisoformat(
+            str(period.get("start", "")).replace("Z", "+00:00")
+        )
+        end = datetime.fromisoformat(
+            str(period.get("end", "")).replace("Z", "+00:00")
+        )
+        ordered = end > start
+    except ValueError:
+        ordered = False
+    if not ordered:
         problems.append(
             "billing period end not after start "
             "(fail_if_period_end_not_after_period_start)"
@@ -609,7 +659,8 @@ def invoice_violations(document: dict) -> list[str]:
         if item.get("dimension") not in metering_line_dims:
             problems.append(
                 f"line item dimension {item.get('dimension')!r} not "
-                "in the metering catalog"
+                "in the metering catalog "
+                "(fail_if_line_item_dimension_not_in_metering_contract)"
             )
     totals = document.get("totals", {})
     overage = round(
@@ -660,6 +711,9 @@ for sample in invalid_billing["samples"]:
             f"seeded invalid billing sample {sample['name']!r} was "
             "accepted"
         )
+    assert_named_rule_fired(
+        sample["name"], sample["expected_rejection"], problems
+    )
     rejected += 1
 names = [sample["name"] for sample in invalid_billing["samples"]]
 if "fork-like-core-mutation" not in names:
