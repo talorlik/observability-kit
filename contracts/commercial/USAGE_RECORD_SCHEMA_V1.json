@@ -1,0 +1,215 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observability-kit.local/contracts/commercial/usage-record/v1",
+  "title": "Usage Record",
+  "description": "One metered usage measurement for one tenant, one dimension, and one UTC-day window (TR-23). Usage records are control-plane documents written to control-tenancy-usage-v1-* and must honor the TR-16 plane separation: telemetry is referenced through index names, document counts, content digests, and derived aggregate values, never embedded payloads. A record without tenant_id is rejected.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "record_id",
+    "tenant_id",
+    "dimension",
+    "signal",
+    "value",
+    "unit",
+    "window_start",
+    "window_end",
+    "source_reference",
+    "collected_at",
+    "collector_version"
+  ],
+  "properties": {
+    "record_id": {
+      "type": "string",
+      "description": "Deterministic identifier derived from (tenant_id, dimension, signal, window_start) so re-collection of the same window is idempotent.",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "tenant_id": {
+      "type": "string",
+      "description": "Tenant attribution, mandatory on every usage record. Same slug rules as contracts/tenancy/TENANT_CONTRACT_SCHEMA_V1.json.",
+      "pattern": "^[a-z0-9]([a-z0-9-]{0,30}[a-z0-9])?$"
+    },
+    "dimension": {
+      "type": "string",
+      "enum": [
+        "ingest_gb_per_day",
+        "retention_days",
+        "active_tenants",
+        "query_volume"
+      ]
+    },
+    "signal": {
+      "type": "string",
+      "description": "Signal scope for signal-scoped dimensions; the literal 'platform' for tenant-level dimensions (active_tenants, query_volume).",
+      "enum": [
+        "logs",
+        "metrics",
+        "traces",
+        "platform"
+      ]
+    },
+    "value": {
+      "type": "number",
+      "minimum": 0
+    },
+    "unit": {
+      "type": "string",
+      "enum": [
+        "gb",
+        "days",
+        "count",
+        "queries"
+      ]
+    },
+    "window_start": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$"
+    },
+    "window_end": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$"
+    },
+    "source_reference": {
+      "type": "object",
+      "description": "How the value was derived. Only plane-separation-safe telemetry reference forms are representable: index names, a document count, a content digest, and the source surface identifier.",
+      "additionalProperties": false,
+      "required": [
+        "source_type"
+      ],
+      "properties": {
+        "source_type": {
+          "type": "string",
+          "enum": [
+            "opensearch-aggregation",
+            "tenant-descriptor"
+          ]
+        },
+        "indices": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "document_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "content_digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "descriptor_field": {
+          "type": "string",
+          "description": "For tenant-descriptor sources: the dotted quota field the value was read from (e.g. quotas.retention.logs_days).",
+          "minLength": 1
+        }
+      }
+    },
+    "collected_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$"
+    },
+    "collector_version": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "dimension": {
+            "const": "ingest_gb_per_day"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "signal": {
+            "enum": [
+              "logs",
+              "metrics",
+              "traces"
+            ]
+          },
+          "unit": {
+            "const": "gb"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "dimension": {
+            "const": "retention_days"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "signal": {
+            "enum": [
+              "logs",
+              "metrics",
+              "traces"
+            ]
+          },
+          "unit": {
+            "const": "days"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "dimension": {
+            "const": "active_tenants"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "signal": {
+            "const": "platform"
+          },
+          "unit": {
+            "const": "count"
+          },
+          "value": {
+            "enum": [
+              0,
+              1
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "dimension": {
+            "const": "query_volume"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "signal": {
+            "const": "platform"
+          },
+          "unit": {
+            "const": "queries"
+          }
+        }
+      }
+    }
+  ]
+}

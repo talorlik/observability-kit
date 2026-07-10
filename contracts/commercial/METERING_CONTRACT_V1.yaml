@@ -1,0 +1,198 @@
+# Metering contract for commercial operations (Batch 22 Task 1,
+# TR-23). Fixes the usage dimensions, their telemetry sources, the
+# usage record surface, the control-plane destination, and the
+# rejection rules the metering collector and its validators enforce.
+#
+# The narrative decision record is
+# docs/adr/ADR_0006_METERING_ARCHITECTURE.md.
+
+metadata:
+  contract: metering
+  version: v1
+  batch: TB-22
+  owner: platform-commercial
+  technical_requirements:
+    - TR-23
+    - TR-16
+  decided_by: docs/adr/ADR_0006_METERING_ARCHITECTURE.md
+  validated_by: scripts/ci/validate_commercial_contracts.sh
+  related_contracts:
+    - contracts/commercial/USAGE_RECORD_SCHEMA_V1.json
+    - contracts/commercial/PLAN_CATALOG_V1.yaml
+    - contracts/tenancy/TENANT_CONTRACT_SCHEMA_V1.json
+    - contracts/tenancy/TENANT_OVERLAY_GENERATION_CONTRACT_V1.yaml
+
+principles:
+  # TR-23: usage is derived from platform telemetry already in
+  # OpenSearch. Metering never adds receivers, sidecars, agents,
+  # request middleware, or per-request metering events.
+  no_new_collection_path: true
+  sole_collector_unchanged: opentelemetry
+  # TR-16 plane separation: usage records are tenant-management data
+  # and live in control-plane indices. They reference telemetry only
+  # as index names, document counts, content digests, and derived
+  # aggregate values - never embedded telemetry payloads.
+  plane_separation_contract:
+    contracts/tenancy/TENANT_OVERLAY_GENERATION_CONTRACT_V1.yaml
+  # The three reference forms below are exactly the vocabulary fixed
+  # by the plane-separation contract; this contract does not extend
+  # it. A usage record's numeric value is a usage MEASUREMENT, not a
+  # telemetry reference - it never carries telemetry content.
+  telemetry_reference_forms_allowed:
+    - index-name
+    - document-count
+    - content-digest
+  usage_value_is_measurement_not_telemetry_reference: true
+  # Sourcing note: three dimensions are telemetry-derived from
+  # OpenSearch; retention_days alone is descriptor-derived (billed as
+  # configured capability). The ADR records this deliberately.
+  descriptor_sourced_dimensions:
+    - retention_days
+  tenant_attribution: >-
+    Attribution rides on the isolation-matrix index partitioning
+    (tenant-<id>-<signal>-*). The collector derives tenant_id from
+    index naming and validated tenant descriptors; it never parses
+    telemetry payloads for attribution.
+
+dimensions:
+  - id: ingest_gb_per_day
+    description: >-
+      Gigabytes retained per tenant per signal per UTC day, derived
+      from store size and document statistics over the tenant's
+      per-signal indices.
+    unit: gb
+    granularity: utc-day
+    signal_scoped: true
+    signals:
+      - logs
+      - metrics
+      - traces
+    source:
+      type: opensearch-aggregation
+      surface: index-stats-and-date-histogram
+      index_pattern: tenant-<tenant_id>-<signal>-*
+    quota_binding: quotas.ingest.max_gb_per_day
+  - id: retention_days
+    description: >-
+      Configured retention days per tenant per signal, read from the
+      validated tenant descriptor. Billed as configured capability,
+      not as observed storage age.
+    unit: days
+    granularity: utc-day
+    signal_scoped: true
+    signals:
+      - logs
+      - metrics
+      - traces
+    source:
+      type: tenant-descriptor
+      surface: quotas.retention
+      fields:
+        - quotas.retention.logs_days
+        - quotas.retention.metrics_days
+        - quotas.retention.traces_days
+    quota_binding: quotas.retention
+  - id: active_tenants
+    description: >-
+      Per-tenant activity marker per UTC day: value 1 when the tenant
+      had any retained telemetry or executed queries in the window,
+      else 0. Every usage record carries tenant_id, so the platform
+      active-tenant count is never stored as a platform-scoped
+      record; exporters aggregate the count at read time.
+    unit: count
+    granularity: utc-day
+    signal_scoped: false
+    signals:
+      - platform
+    source:
+      type: opensearch-aggregation
+      surface: presence-over-tenant-indices-and-query-volume
+      index_pattern: tenant-<tenant_id>-*-*
+    quota_binding: null
+  - id: query_volume
+    description: >-
+      Queries executed against the tenant's data-plane partition per
+      UTC day, counted from the audit and SLO telemetry the platform
+      already collects (Batch 9 / TR-12 surfaces). No query
+      interception is added.
+    unit: queries
+    granularity: utc-day
+    signal_scoped: false
+    signals:
+      - platform
+    source:
+      type: opensearch-aggregation
+      surface: existing-audit-and-slo-indices
+      # control-tenancy-audit-* is the control-plane audit store the
+      # Batch 20 lifecycle contract defines; its live OpenSearch
+      # wiring (and the SLO query telemetry of TR-12) lands with the
+      # Batch 23 evidence harness. Until then the collector's fixture
+      # source stands in for this surface.
+      index_pattern: control-tenancy-audit-*
+    quota_binding: null
+
+record:
+  schema: contracts/commercial/USAGE_RECORD_SCHEMA_V1.json
+  required_attribution_field: tenant_id
+  window:
+    alignment: utc-day
+    start_inclusive: true
+    end_exclusive: true
+  determinism: >-
+    Record construction is pure: the same source data and window
+    yield byte-identical records apart from collected_at. record_id
+    is deterministic over (tenant_id, dimension, signal,
+    window_start) so re-collection is idempotent.
+
+destination:
+  plane: control-plane
+  store: opensearch
+  index_naming: control-tenancy-usage-v1-*
+  index_pattern_rule: >-
+    Usage indices match the control-tenancy-* control-plane store
+    pattern fixed by the plane-separation contract. Usage records are
+    never written to tenant data-plane indices
+    (tenant-<tenant_id>-<signal>-*).
+
+collector:
+  runtime: services/commercial/
+  package: commercialsvc
+  language: python
+  minimum_version: "3.11"
+  dependency_manifest: services/commercial/pyproject.toml
+  # requirements-ci.txt stays lint-only; the collector never extends
+  # it (ADR-0001 posture).
+  extends_requirements_ci: false
+  core_dependencies: stdlib-only
+  typing:
+    type_hints: mandatory
+    structured_data: frozen-dataclasses
+  offline_validation: >-
+    CI exercises the collector through fixture sources and in-memory
+    sinks; the live OpenSearch source and bulk sink share the same
+    pure record-building code path.
+
+quota_breach_handling:
+  # TR-23: breach handling is evidence-based. Detection compares
+  # usage records against the tenant's descriptor quotas and the plan
+  # catalog bounds; it never inspects telemetry payloads.
+  detection_input:
+    - usage-records
+    - tenant-descriptor-quotas
+    - plan-catalog-bounds
+  surfacing: tr-12-alerting-path
+  enforcement_audit: >-
+    Every enforcement action emits an audit record (TR-09) carrying
+    the tenant id. Enforcement itself is a lifecycle concern executed
+    through the Batch 20 control plane, never a direct store
+    mutation.
+
+compliance:
+  fail_if_usage_record_missing_tenant_id: true
+  fail_if_telemetry_payload_embedded_in_usage_record: true
+  fail_if_unknown_dimension: true
+  fail_if_unknown_signal_for_dimension: true
+  fail_if_usage_written_outside_control_plane_indices: true
+  fail_if_window_end_not_after_window_start: true
+  fail_if_new_collection_path_introduced: true
+  fail_if_collector_added_to_requirements_ci: true
