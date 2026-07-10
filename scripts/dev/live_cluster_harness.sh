@@ -80,7 +80,8 @@ PORTAL_PORT=8688
 OPENSEARCH_LOCAL_PORT=19200
 
 usage() {
-  sed -n '2,50p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  awk 'NR > 1 && !/^#/ { exit } NR > 1 { sub(/^# ?/, ""); print }' \
+    "${BASH_SOURCE[0]}"
 }
 
 log() {
@@ -105,10 +106,10 @@ safety_gates() {
     die "remote DOCKER_HOST '${DOCKER_HOST}' refused: the harness" \
       "operates only on the local Docker engine."
   fi
-  command -v docker >/dev/null || die "docker not found on PATH."
-  command -v kind >/dev/null || die "kind not found on PATH."
-  command -v kubectl >/dev/null || die "kubectl not found on PATH."
-  command -v git >/dev/null || die "git not found on PATH."
+  local tool
+  for tool in docker kind kubectl git python3 curl openssl; do
+    command -v "$tool" >/dev/null || die "$tool not found on PATH."
+  done
   docker info >/dev/null 2>&1 \
     || die "the local Docker engine is not reachable."
 }
@@ -159,6 +160,7 @@ mode_create() {
   kind create cluster \
     --name "$CLUSTER_NAME" \
     --image "$NODE_IMAGE" \
+    --config "$ASSETS_DIR/kind-cluster-config.yaml" \
     --kubeconfig "$KUBECONFIG_FILE" \
     --wait 180s
 
@@ -167,33 +169,37 @@ mode_create() {
     --filter "label=io.x-k8s.kind.cluster=$CLUSTER_NAME" \
     --format '{{.ID}}' | head -1)"
 
-  python3 - "$PROVENANCE_FILE" <<PY
+  python3 - "$PROVENANCE_FILE" "$KUBECONFIG_FILE" "$CONTEXT" \
+    "$STACK_PROFILE" "$NODE_IMAGE" "$CLUSTER_NAME" \
+    "$node_container" <<'PY'
 import json
 import subprocess
 import sys
 from datetime import datetime, timezone
 
+(_, output, kubeconfig, context, stack_profile, node_image,
+ cluster_name, node_container) = sys.argv
 server_version = subprocess.run(
-    ["kubectl", "--kubeconfig", "$KUBECONFIG_FILE",
-     "--context", "$CONTEXT", "version", "-o", "json"],
+    ["kubectl", "--kubeconfig", kubeconfig,
+     "--context", context, "version", "-o", "json"],
     capture_output=True, text=True, check=True).stdout
 provenance = {
     "artifact_kind": "harness_provenance",
     "batch": 23,
     "captured_at": datetime.now(timezone.utc).isoformat(),
     "harness": {
-        "stack_profile": "$STACK_PROFILE",
-        "kubectl_context": "$CONTEXT",
-        "node_image": "$NODE_IMAGE",
+        "stack_profile": stack_profile,
+        "kubectl_context": context,
+        "node_image": node_image,
     },
-    "cluster_name": "$CLUSTER_NAME",
-    "kubectl_context": "$CONTEXT",
-    "node_image": "$NODE_IMAGE",
-    "kind_node_container": "$node_container",
+    "cluster_name": cluster_name,
+    "kubectl_context": context,
+    "node_image": node_image,
+    "kind_node_container": node_container,
     "server_version": json.loads(server_version).get(
         "serverVersion", {}),
 }
-with open(sys.argv[1], "w") as handle:
+with open(output, "w") as handle:
     json.dump(provenance, handle, indent=2, sort_keys=True)
     handle.write("\n")
 PY
@@ -205,6 +211,10 @@ PY
   kc apply -f "$INGRESS_NGINX_MANIFEST"
 
   log "provisioning conformance baseline: external-secrets"
+  # The upstream release manifest hardcodes its namespaced resources
+  # into "default" (helm-templated release); apply it as released.
+  # Discovery matches the secret integration by CRD suffix and
+  # workload name, not namespace.
   kc apply --server-side -f "$EXTERNAL_SECRETS_MANIFEST"
 
   log "provisioning conformance baseline: Argo CD"
@@ -212,8 +222,8 @@ PY
   kc -n argocd apply --server-side -f "$ARGOCD_MANIFEST"
 
   log "waiting for baseline rollouts"
-  wait_rollout ingress-nginx deployment/ingress-nginx-controller 420s
-  wait_rollout external-secrets deployment/external-secrets 420s
+  wait_rollout ingress-nginx deployment/ingress-nginx-controller 600s
+  wait_rollout default deployment/external-secrets 420s
   wait_rollout argocd deployment/argocd-repo-server 600s
   wait_rollout argocd statefulset/argocd-application-controller 600s
 
@@ -318,7 +328,7 @@ check_install() {
   #    daemon; the platform arrives only through Argo CD.
   log "committing rendered output into the disposable GitOps clone"
   git clone --quiet --depth 1 "file://$REPO_ROOT" "$GITOPS_CLONE"
-  cp "$INSTALL_OUTPUT"/rendered/overlays/*/platform-core-values.yaml \
+  cp "$INSTALL_OUTPUT/rendered/overlays/dev/platform-core-values.yaml" \
     "$GITOPS_CLONE/gitops/overlays/dev/platform-core-values.yaml"
   git -C "$GITOPS_CLONE" add gitops/overlays
   git -C "$GITOPS_CLONE" \
@@ -485,13 +495,23 @@ check_gui_smoke() {
     --port "$PORTAL_PORT" --certfile "$cert" --keyfile "$key" \
     > "$LOG_DIR/portal.log" 2>&1 &
   local portal_pid=$!
-  trap 'kill "$portal_pid" 2>/dev/null || true' RETURN
-  local attempt
+  # EXIT trap so the portal never leaks even when set -e aborts the
+  # run mid-check; RETURN alone does not fire on an errexit abort.
+  trap 'kill "$portal_pid" 2>/dev/null || true' RETURN EXIT
+  local attempt ready=false
   for attempt in $(seq 1 30); do
-    curl -fsSk "https://127.0.0.1:$PORTAL_PORT/healthz" \
-      >/dev/null 2>&1 && break
+    if curl -fsSk "https://127.0.0.1:$PORTAL_PORT/healthz" \
+      >/dev/null 2>&1; then
+      ready=true
+      break
+    fi
     sleep 1
   done
+  [[ "$ready" == "true" ]] \
+    || die "portal never answered /healthz; see $LOG_DIR/portal.log"
+  local healthz_file="$LOG_DIR/healthz_response.json"
+  curl -fsSk "https://127.0.0.1:$PORTAL_PORT/healthz" \
+    > "$healthz_file" || true
   local smoke_out="$LOG_DIR/gui_smoke.log"
   if PORTAL_BASE_URL="https://127.0.0.1:$PORTAL_PORT" \
     PORTAL_TLS_INSECURE=1 \
@@ -501,19 +521,19 @@ check_gui_smoke() {
   else
     status=fail
   fi
-  local healthz
-  healthz="$(curl -fsSk "https://127.0.0.1:$PORTAL_PORT/healthz")"
   kill "$portal_pid" 2>/dev/null || true
-  python3 - "$smoke_out" "$payload" <<PY
+  python3 - "$smoke_out" "$healthz_file" "$payload" <<'PY'
 import json
 import sys
 
 with open(sys.argv[1]) as handle:
     lines = handle.read().splitlines()
-with open(sys.argv[2], "w") as handle:
+with open(sys.argv[2]) as handle:
+    healthz = json.load(handle)
+with open(sys.argv[3], "w") as handle:
     json.dump({
         "smoke_output": lines,
-        "healthz_response": json.loads('''$healthz'''),
+        "healthz_response": healthz,
         "tls": "self-signed harness certificate, verification "
                "disabled via PORTAL_TLS_INSECURE=1",
     }, handle, indent=2)
@@ -534,14 +554,20 @@ check_denials() {
   kc -n "$BACKEND_NS" port-forward svc/opensearch \
     "$OPENSEARCH_LOCAL_PORT:9200" > "$LOG_DIR/port-forward.log" 2>&1 &
   pf_pid=$!
-  trap 'kill "$pf_pid" 2>/dev/null || true' RETURN
-  local attempt
+  # EXIT trap so the port-forward never leaks on an errexit abort.
+  trap 'kill "$pf_pid" 2>/dev/null || true' RETURN EXIT
+  local attempt reachable=false
   for attempt in $(seq 1 30); do
-    curl -fsk -u "admin:$OPENSEARCH_ADMIN_PASSWORD" \
+    if curl -fsk -u "admin:$OPENSEARCH_ADMIN_PASSWORD" \
       "https://127.0.0.1:$OPENSEARCH_LOCAL_PORT/_cluster/health" \
-      >/dev/null 2>&1 && break
+      >/dev/null 2>&1; then
+      reachable=true
+      break
+    fi
     sleep 2
   done
+  [[ "$reachable" == "true" ]] \
+    || die "OpenSearch unreachable through the port-forward."
   "$VENV_DIR/bin/python3" "$ASSETS_DIR/run_denial_scenarios.py" \
     --opensearch-url "https://127.0.0.1:$OPENSEARCH_LOCAL_PORT" \
     --admin-password "$OPENSEARCH_ADMIN_PASSWORD" \
@@ -620,31 +646,35 @@ mode_teardown() {
     --filter "label=io.x-k8s.kind.cluster=$CLUSTER_NAME")" ]] \
     && docker_gone="false"
 
-  python3 - "$EVIDENCE_DIR/harness/teardown_verification.json" <<PY
+  python3 - "$EVIDENCE_DIR/harness/teardown_verification.json" \
+    "$STACK_PROFILE" "$CONTEXT" "$NODE_IMAGE" \
+    "$existed" "$kind_gone" "$docker_gone" <<'PY'
 import json
 import sys
 from datetime import datetime, timezone
 
+(_, output, stack_profile, context, node_image,
+ existed, kind_gone, docker_gone) = sys.argv
 verification = {
     "artifact_kind": "harness_teardown_verification",
     "batch": 23,
     "captured_at": datetime.now(timezone.utc).isoformat(),
     "harness": {
-        "stack_profile": "$STACK_PROFILE",
-        "kubectl_context": "$CONTEXT",
-        "node_image": "$NODE_IMAGE",
+        "stack_profile": stack_profile,
+        "kubectl_context": context,
+        "node_image": node_image,
     },
-    "cluster_existed_before_teardown": $existed,
-    "kind_reports_cluster_absent": $kind_gone,
-    "docker_reports_no_labeled_containers": $docker_gone,
+    "cluster_existed_before_teardown": existed == "true",
+    "kind_reports_cluster_absent": kind_gone == "true",
+    "docker_reports_no_labeled_containers": docker_gone == "true",
 }
-with open(sys.argv[1], "w") as handle:
+with open(output, "w") as handle:
     json.dump(verification, handle, indent=2, sort_keys=True)
     handle.write("\n")
 PY
 
   if [[ "$kind_gone" == "true" && "$docker_gone" == "true" ]]; then
-    rm -f "$KUBECONFIG_FILE" "$PROVENANCE_FILE"
+    rm -f "$KUBECONFIG_FILE" "$PROVENANCE_FILE" "$SECRETS_ENV"
     log "teardown verified: cluster absent in kind and Docker."
   else
     die "teardown verification failed" \

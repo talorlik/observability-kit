@@ -347,7 +347,8 @@ def _setup_neo4j(args: Args) -> None:
         f"GRANT ACCESS ON DATABASE `{TENANT_A}` TO `tenant-a-role`",
         f"GRANT MATCH {{*}} ON GRAPH `{TENANT_A}` TO `tenant-a-role`",
         "GRANT ROLE `tenant-a-role` TO `tenant-a-reader`",
-        "REVOKE ROLE PUBLIC FROM `tenant-a-reader`",
+        # PUBLIC stays: it grants access to the home database only,
+        # never to tenant databases, and Neo4j forbids revoking it.
     ]
     for statement in statements:
         code, output = _cypher(

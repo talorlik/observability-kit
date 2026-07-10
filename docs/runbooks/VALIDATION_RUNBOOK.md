@@ -283,8 +283,20 @@ bash scripts/ci/validate_commercial_contracts.sh
 bash scripts/ci/validate_batch22_smoke.sh
 ```
 
+Run focused Batch 23 validation (live-cluster validation and
+evidence - harness contract and ADR coherence with the pinned entry
+point, captured install and readiness evidence chain, live drill and
+GUI smoke and SDN-B15 denial evidence artifacts, captured-evidence
+references in validation contracts, disabled-by-default nightly
+workflow posture; structural only, no cluster required):
+
+```bash
+bash scripts/ci/validate_live_evidence.sh
+bash scripts/ci/validate_batch23_smoke.sh
+```
+
 Run the full report-generating aggregator across every registered
-batch (currently 1-9, 9A, 10-22):
+batch (currently 1-9, 9A, 10-23):
 
 ```bash
 bash scripts/ci/validate_all_batches_with_report.sh

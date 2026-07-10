@@ -1,0 +1,11 @@
+# evidence-disposable kind cluster config (ADR-0007). Single node;
+# the ingress-ready label satisfies the ingress-nginx kind provider
+# manifest's node selector. The node image pin lives in
+# live_cluster_harness.sh (--image) so contract cross-checks have one
+# authoritative location.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    labels:
+      ingress-ready: "true"

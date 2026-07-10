@@ -39,6 +39,7 @@ stack_profiles:
     kubectl_context: kind-obskit-evidence
     node_image: kindest/node:v1.29.14
     kubernetes_minor: "1.29"
+    cluster_config: scripts/dev/harness_assets/kind-cluster-config.yaml
     nodes:
       count: 1
       max_count: 3

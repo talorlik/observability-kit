@@ -51,6 +51,7 @@ the install entrypoint below.
 | 20    | `TENANT_ADMINISTRATION_RUNBOOK.md`                       | Tenant control plane: lifecycle, approvals, purge evidence         |
 | 21    | `MANAGEMENT_PORTAL_GUIDE.md`                             | Management portal: setup, SSO, config editing, tenant views        |
 | 22    | `COMMERCIAL_OPERATIONS_RUNBOOK.md`                       | Commercial layer: pricing, metering, invoicing, quota breaches     |
+| 23    | `LIVE_VALIDATION_RUNBOOK.md`                             | Disposable harness lifecycle, live evidence capture, teardown      |
 
 ## Conventions
 
