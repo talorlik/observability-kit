@@ -13,6 +13,47 @@ first. Entry format:
 - Follow-up: <action for a future batch, or "none">
 ```
 
+## 2026-07-10 - Batch 27 - Demo Playground Technology and Wiring
+
+- Decision: ADR-0011 fixes the gated choices: house-built sample
+  services and load generator in ONE stdlib-only image
+  (`ghcr.io/obskit/demo:0.1.0`, five entrypoints) instead of
+  wrapping the upstream OpenTelemetry Demo or adopting k6/fortio; a
+  hand-rolled OTLP/HTTP JSON emitter (`demosvc/otel.py`) instead of
+  the OpenTelemetry Python SDK; SQLite (stdlib) as the demo
+  datastore instead of a postgres pod; tenant `demo` in namespace
+  `tenant-demo` onboarded via the Batch 7 one-block contract;
+  operator-explicit deploy (`demo/deploy.sh` kustomize apply, both
+  scripts refuse `ENVIRONMENT=production`) with an optional ArgoCD
+  Application under `demo/gitops/`, never in `gitops/apps/`.
+- Why: the OTel Demo (~20 polyglot services) blows the 1 CPU / 1 GiB
+  OrbStack sizing budget and trims toward fork territory; the SDK
+  and k6/fortio would each add PyPI or wrapped-system-registry and
+  license-inventory surface the demo does not need; stdlib-only
+  keeps every test offline. Two additive core edits were accepted
+  and gated: the `otel-gateway` Service now publishes the already
+  listening `otlp-http` 4318 port (collector topology validator
+  stays green), and the strict logs index template gained the
+  `k8s.namespace.name` keyword so the logs-explorer namespace filter
+  is real (the Batch 5 validator checks required fields subset-wise,
+  so the addition is safe). Gotchas: the Batch 7 onboarding schema
+  is a FLAT object with `additionalProperties: false` - onboarding
+  values are one values-document per service with the block at path
+  `observability` (multi-doc YAML), not a nested `services:` map;
+  scenario documents must live INSIDE the kustomize root
+  (`demo/gitops/base/scenarios/`) because kustomize load
+  restrictions forbid `../` configMapGenerator refs; seeded-invalid
+  fixtures must be semantically-invalid valid JSON so tree-wide
+  linters stay green; `validate_runbook_links.sh` requires the bash
+  array, the python list, AND a README.md link (its python list had
+  drifted - PRODUCTION_RELEASE_GATE and PRODUCT_DOCUMENTATION
+  runbooks were backfilled additively in this batch).
+- Follow-up: live-run the playground on the disposable kind harness
+  (guide section exists; no evidence capture was in scope for this
+  batch); consider a default-deny NetworkPolicy for `tenant-demo`
+  and a queue cap in the demo http-api if the demo is ever soaked
+  for hours (code-review suggestions, non-blocking).
+
 ## 2026-07-10 - Batch n/a - Demo Playground Backlog (27)
 
 - Decision: the demo and playground work is authored as Batch 27
