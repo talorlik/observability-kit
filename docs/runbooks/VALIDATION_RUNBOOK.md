@@ -271,8 +271,20 @@ bash scripts/ci/validate_portal_contracts.sh
 bash scripts/ci/validate_batch21_smoke.sh
 ```
 
+Run focused Batch 22 validation (commercial operations - metering
+contract dimension coverage, usage record schema with the tenant_id
+hard rule and TR-16 payload-embedding rejection, plan catalog tier
+binding with quota bounds, billing adapter house pattern with the
+fork wrap method rejected, vendor-neutral invoice export, seeded
+rejection checks pinned to their named fail_if rules):
+
+```bash
+bash scripts/ci/validate_commercial_contracts.sh
+bash scripts/ci/validate_batch22_smoke.sh
+```
+
 Run the full report-generating aggregator across every registered
-batch (currently 1-9, 9A, 10-21):
+batch (currently 1-9, 9A, 10-22):
 
 ```bash
 bash scripts/ci/validate_all_batches_with_report.sh

@@ -13,6 +13,67 @@ first. Entry format:
 - Follow-up: <action for a future batch, or "none">
 ```
 
+## 2026-07-10 - Batch 22 - Commercial Layer Semantics and Gotchas
+
+- Decision: `docs/adr/ADR_0006_METERING_ARCHITECTURE.md` fixes
+  derive-from-store metering: usage is computed from OpenSearch
+  aggregation and stats surfaces plus validated tenant descriptors -
+  no new collection path, no OTel processors, no request middleware.
+  The collector is `services/commercial/` (package `commercialsvc`,
+  stdlib-only, no optional extras; urllib covers the live OpenSearch
+  path) with source/sink protocol duality so offline CI exercises the
+  exact record-building code the live job runs.
+- Why: TR-23 forbids new collection paths; deriving from the store
+  bills what was retained (never charging for dropped data), keeps CI
+  offline, and honors the TR-16 plane separation.
+- Decision: the TR-16 telemetry reference vocabulary was NOT widened.
+  A first draft added `derived-aggregate-value` as a fourth reference
+  form; spec review flagged it as an unsanctioned extension of the
+  vocabulary fixed by
+  `contracts/tenancy/TENANT_OVERLAY_GENERATION_CONTRACT_V1.yaml`.
+  Resolution: usage record values are usage MEASUREMENTS, not
+  telemetry references; the metering contract states this explicitly
+  and keeps exactly the three canonical forms (index-name,
+  document-count, content-digest). The tenancy contract was never
+  touched.
+- Decision: `active_tenants` is stored as per-tenant 0/1 activity
+  records (never a platform-scoped record), because every usage
+  record must carry `tenant_id`; exporters aggregate the count at
+  read time. `retention_days` alone is descriptor-sourced (billed as
+  configured capability, not observed storage age) - a deliberate,
+  documented deviation from "sourced from telemetry".
+- Decision: additive contract surfaces beyond the literal task list:
+  `USAGE_RECORD_SCHEMA_V1.json`, `INVOICE_EXPORT_SCHEMA_V1.json`, the
+  `commercialsvc.invoicing` module, and VALID/INVALID sample sets.
+  They make the hard rules mechanically checkable (tenant_id
+  mandatory, payload embedding rejected, vendor/currency fields
+  rejected) and make the M4 "exported invoice for a sample period"
+  evidence executable offline. Plan catalog prices in abstract units;
+  currency assignment is adapter-side only.
+- Decision: the plan catalog binds tiers bijectively (four plans,
+  one per tier) with quota bounds in the exact Batch 15 field paths;
+  `query_volume` has no tenant quota field, so its overage basis is
+  full-quantity (ceil per 1000); dimensions without bounds are
+  contract-documented as such.
+- Gotcha: two review-caught validator holes worth remembering as
+  patterns: (a) present-but-null required fields passed validation
+  because per-field checks were gated on `is not None` - fixed with a
+  `_MISSING` sentinel; (b) a dotted-path walker in the CI validator
+  silently resolved nothing (accepting a seeded breach sample) -
+  fixed plus a `resolved == 0` hard-fail guard so path bugs can never
+  silently accept. The validator also pins every seeded rejection to
+  its named `fail_if_*` rule so fixtures cannot drift into being
+  rejected for incidental reasons.
+- Follow-up (Batch 23): fix the live-path minors before the first
+  live probe - `tenant_retention` defaulting missing descriptor
+  fields to 0 (silent under-billing; must fail loudly),
+  `OpenSearchBulkSink` raising bare RuntimeError instead of a
+  MeteringError subclass, and `_TENANT_INDEX_RE` misattributing
+  tenant slugs that end in a signal token. Live wiring of
+  `control-tenancy-audit-*` and SLO query telemetry (query_volume
+  source) lands with the Batch 23 harness; consider validating
+  invoice exports at the adapter dispatch boundary, not only in CI.
+
 ## 2026-07-10 - Batch 21 - Management Portal Semantics and Gotchas
 
 - Decision: `docs/adr/ADR_0005_MANAGEMENT_PORTAL_STACK.md` fixes the
