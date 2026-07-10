@@ -437,9 +437,11 @@ publish_gitops_clone() {
   kc -n "$GITOPS_NS" cp "$bare" "$pod:/repos/gitops.git"
   local attempt served=false
   for attempt in $(seq 1 12); do
+    # 127.0.0.1 explicitly: busybox wget resolves localhost to ::1
+    # first and the server binds IPv4 only.
     if kc -n "$GITOPS_NS" exec "$pod" -- \
       wget -q --no-check-certificate -O /dev/null \
-      https://localhost:8443/gitops.git/info/refs; then
+      https://127.0.0.1:8443/gitops.git/info/refs; then
       served=true
       break
     fi
