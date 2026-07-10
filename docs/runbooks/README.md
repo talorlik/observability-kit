@@ -48,6 +48,7 @@ the install entrypoint below.
 | 17    | `DISCOVERY_EXECUTOR_OPERATOR_GUIDE.md`                   | obskit executor: CLI and Job runs, RBAC, reports, remediation      |
 | 18    | `GUIDED_INSTALLATION_GUIDE.md`                           | Guided installer: wizard, answers files, resume, readiness         |
 | 19    | `UNIFIED_CONFIGURATION_RUNBOOK.md`                       | Executable renderer steps: render, commit, drift, rollback         |
+| 20    | `TENANT_ADMINISTRATION_RUNBOOK.md`                       | Tenant control plane: lifecycle, approvals, purge evidence         |
 
 ## Conventions
 

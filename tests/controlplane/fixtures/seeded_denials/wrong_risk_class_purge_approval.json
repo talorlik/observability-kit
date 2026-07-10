@@ -1,0 +1,35 @@
+{
+  "schema_version": "v1",
+  "scenario_id": "SDN-B20-003",
+  "scenario": "wrong-risk-class-purge-approval",
+  "requirement_markers": ["TR-16", "TR-09"],
+  "description": "Purge requires a write.critical approval record, which per APPROVAL_FLOW_V1.yaml additionally requires change_ticket. A write.high-risk-shaped approval (no change_ticket) on purge is denied as invalid. decided_at is substituted with the current UTC time by the driver so the only violated rule is the risk class field set.",
+  "tenant_id": "acme",
+  "setup": [
+    {"step": "create_tenant", "tenant_id": "acme"},
+    {"step": "provision", "tenant_id": "acme"},
+    {"step": "offboard_approved", "tenant_id": "acme"},
+    {"step": "advance_days", "days": 91}
+  ],
+  "attempt": {
+    "kind": "transition",
+    "transition": "purge",
+    "tenant_id": "acme",
+    "caller_scope": null,
+    "payload": {
+      "actor": "op@example.com",
+      "approval": {
+        "approval_id": "apr-sdn-003",
+        "approver": "approver@example.com",
+        "decision": "approved",
+        "decided_at": "__FRESH_UTC_NOW__"
+      }
+    }
+  },
+  "expected": {
+    "outcome": "denied",
+    "error_code": "approval-invalid",
+    "message_substring": "change_ticket",
+    "denial_audit_record": true
+  }
+}

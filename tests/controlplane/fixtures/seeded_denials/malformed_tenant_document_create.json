@@ -1,0 +1,37 @@
+{
+  "schema_version": "v1",
+  "scenario_id": "SDN-B20-009",
+  "scenario": "malformed-tenant-document-create",
+  "requirement_markers": ["TR-16"],
+  "description": "A tenant contract document that violates TENANT_CONTRACT_SCHEMA_V1.json (unknown isolation_class, missing quotas and created_at) is rejected at create. No tenant record is registered, so no lifecycle transition ever becomes reachable for it. Creation denials happen before a tenant exists, so no transition denial audit record applies.",
+  "tenant_id": "malformed-tenant",
+  "setup": [],
+  "attempt": {
+    "kind": "create_tenant",
+    "tenant_id": "malformed-tenant",
+    "caller_scope": null,
+    "document": {
+      "tenant_id": "malformed-tenant",
+      "display_name": "Malformed Tenant",
+      "tier": "enterprise",
+      "isolation_class": "no-isolation",
+      "residency": {
+        "region": "region-a",
+        "data_residency_required": true,
+        "pool": "dedicated",
+        "allowed_regions": ["region-a"]
+      },
+      "lifecycle_state": "provisioning",
+      "owner": {"name": "Platform Team", "email": "owner@example.com"},
+      "contacts": [
+        {"role": "technical", "email": "tech@example.com"}
+      ]
+    }
+  },
+  "expected": {
+    "outcome": "denied",
+    "error_code": "validation-failed",
+    "message_substring": "quotas",
+    "denial_audit_record": false
+  }
+}

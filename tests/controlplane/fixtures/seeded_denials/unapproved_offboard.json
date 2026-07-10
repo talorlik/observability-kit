@@ -1,0 +1,28 @@
+{
+  "schema_version": "v1",
+  "scenario_id": "SDN-B20-001",
+  "scenario": "unapproved-offboard",
+  "requirement_markers": ["TR-16", "TR-09"],
+  "description": "Offboard is destructive (write.high-risk) and must be denied when no approval record accompanies the request. Deny-by-default: the tenant stays active and a denial audit record is emitted.",
+  "tenant_id": "acme",
+  "setup": [
+    {"step": "create_tenant", "tenant_id": "acme"},
+    {"step": "provision", "tenant_id": "acme"}
+  ],
+  "attempt": {
+    "kind": "transition",
+    "transition": "offboard",
+    "tenant_id": "acme",
+    "caller_scope": null,
+    "payload": {
+      "actor": "op@example.com",
+      "reason": "contract ended"
+    }
+  },
+  "expected": {
+    "outcome": "denied",
+    "error_code": "approval-required",
+    "message_substring": "requires an approved request",
+    "denial_audit_record": true
+  }
+}

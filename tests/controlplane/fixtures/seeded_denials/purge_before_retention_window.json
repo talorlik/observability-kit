@@ -1,0 +1,35 @@
+{
+  "schema_version": "v1",
+  "scenario_id": "SDN-B20-006",
+  "scenario": "purge-before-retention-window",
+  "requirement_markers": ["TR-16", "TR-09"],
+  "description": "Purge requires the retention window recorded at offboarding (longest of the tenant's quotas.retention days) to have elapsed. Purging immediately after offboard, with a fully valid write.critical approval, is denied as a failed precondition.",
+  "tenant_id": "acme",
+  "setup": [
+    {"step": "create_tenant", "tenant_id": "acme"},
+    {"step": "provision", "tenant_id": "acme"},
+    {"step": "offboard_approved", "tenant_id": "acme"}
+  ],
+  "attempt": {
+    "kind": "transition",
+    "transition": "purge",
+    "tenant_id": "acme",
+    "caller_scope": null,
+    "payload": {
+      "actor": "op@example.com",
+      "approval": {
+        "approval_id": "apr-sdn-006",
+        "approver": "approver@example.com",
+        "decision": "approved",
+        "decided_at": "__FRESH_UTC_NOW__",
+        "change_ticket": "chg-sdn-006"
+      }
+    }
+  },
+  "expected": {
+    "outcome": "denied",
+    "error_code": "precondition-failed",
+    "message_substring": "retention window",
+    "denial_audit_record": true
+  }
+}

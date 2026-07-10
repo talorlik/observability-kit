@@ -1,0 +1,28 @@
+{
+  "schema_version": "v1",
+  "scenario_id": "SDN-B20-005",
+  "scenario": "illegal-transition",
+  "requirement_markers": ["TR-16", "TR-09"],
+  "description": "suspend is legal only from active per TENANT_LIFECYCLE_CONTRACT_V1.yaml. Attempting it while the tenant is still provisioning is an illegal transition and is denied without mutating state.",
+  "tenant_id": "acme",
+  "setup": [
+    {"step": "create_tenant", "tenant_id": "acme"}
+  ],
+  "attempt": {
+    "kind": "transition",
+    "transition": "suspend",
+    "tenant_id": "acme",
+    "caller_scope": null,
+    "payload": {
+      "actor": "op@example.com",
+      "trigger_type": "operator",
+      "reason": "quota exceeded"
+    }
+  },
+  "expected": {
+    "outcome": "denied",
+    "error_code": "illegal-transition",
+    "message_substring": "not legal from state",
+    "denial_audit_record": true
+  }
+}

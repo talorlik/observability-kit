@@ -1,0 +1,34 @@
+{
+  "schema_version": "v1",
+  "scenario_id": "SDN-B20-004",
+  "scenario": "timed-out-approval",
+  "requirement_markers": ["TR-16", "TR-09"],
+  "description": "APPROVAL_FLOW_V1.yaml timeout_rules bound the life of an approval to pending_timeout_minutes after decided_at (60 minutes for write.high-risk). This approval was decided far outside the window relative to the wall clock, so the offboard is denied and escalated (on_timeout deny-and-escalate) via the denial audit record.",
+  "tenant_id": "acme",
+  "setup": [
+    {"step": "create_tenant", "tenant_id": "acme"},
+    {"step": "provision", "tenant_id": "acme"}
+  ],
+  "attempt": {
+    "kind": "transition",
+    "transition": "offboard",
+    "tenant_id": "acme",
+    "caller_scope": null,
+    "payload": {
+      "actor": "op@example.com",
+      "reason": "contract ended",
+      "approval": {
+        "approval_id": "apr-sdn-004",
+        "approver": "approver@example.com",
+        "decision": "approved",
+        "decided_at": "2026-01-01T00:00:00Z"
+      }
+    }
+  },
+  "expected": {
+    "outcome": "denied",
+    "error_code": "approval-invalid",
+    "message_substring": "timed out",
+    "denial_audit_record": true
+  }
+}
