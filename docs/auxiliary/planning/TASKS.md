@@ -44,6 +44,7 @@ Use these markers to trace each batch to `TECHNICAL.md`.
 | Batch 24 | `TR-13`, `TR-15`, `TR-24` |
 | Batch 25 | `TR-11`, `TR-12`, `TR-25` |
 | Batch 26 | `TR-14`, `TR-26` |
+| Batch 27 | `TR-06`, `TR-15`, `TR-27` |
 
 ## Agent Cross-Reference Index
 
@@ -79,6 +80,7 @@ Use this index first when actioning tasks so the correct section in
 | `TB-24` | Batch 24 - AI/MCP Runtime Activation | `TR-13`, `TR-15`, `TR-24` |
 | `TB-25` | Batch 25 - Production Operations and Release Engineering | `TR-11`, `TR-12`, `TR-25` |
 | `TB-26` | Batch 26 - Product Documentation and GA Readiness | `TR-14`, `TR-26` |
+| `TB-27` | Batch 27 - Demo Workloads and Observability Playground | `TR-06`, `TR-15`, `TR-27` |
 
 ## Batch 1 - Delivery Foundation [TB-01 | TR-10, TR-14]
 
@@ -1127,6 +1129,69 @@ review.
      `docs/auxiliary/planning/SAAS_PRODUCTIZATION_PLAN.md` with an
      evidence link per item; no item is marked complete without a
      link.
+
+## Batch 27 - Demo Workloads and Observability Playground [TB-27 | TR-06, TR-15, TR-27]
+
+Goal: give operators a deployable demo package - realistic sample
+services, scenario-driven traffic and fault simulation, demo
+dashboards, and an AI prompt pack - plus a step-by-step playground
+guide, so every product surface can be exercised on "real" data
+without instrumenting a production fleet.
+
+1. Record the demo architecture ADR and establish the package
+   skeleton.
+   - Dependencies: Batches 7, 9A, 18, 24, 26.
+   - Completion check: an ADR under `docs/adr/` records the demo
+     workload sourcing and load-generation technology choices
+     (wrap-never-fork enforced, development-stack sizing budget
+     stated, tenant scoping decided); `demo/README.md` establishes
+     the package layout and one-command deploy and teardown entry
+     points; the package's onboarding values block validates against
+     the Batch 7 onboarding contract.
+2. Deliver the sample services.
+   - Dependencies: Task 1.
+   - Completion check: the package deploys at minimum an HTTP API
+     service, an asynchronous worker, a scheduled job, and a
+     datastore-backed service, each emitting logs, metrics, and
+     traces through OpenTelemetry to the platform collector (no
+     direct store writes); all manifests render cleanly offline; a
+     signal inventory file enumerates, per service, the emitted
+     signal types and key attributes the dashboards and AI prompts
+     rely on.
+3. Deliver traffic, load, and fault simulation.
+   - Dependencies: Task 1.
+   - Completion check: declarative scenario definitions exist for
+     steady baseline, burst, error-injection, and latency-injection,
+     with a schema and a seeded-invalid rejection; the load generator
+     deploys from the same package with documented scenario
+     selection; each fault scenario documents the dashboard panels
+     and AI surfaces it is expected to light up.
+4. Deliver the demo dashboards as code.
+   - Dependencies: Tasks 2, 3.
+   - Completion check: demo dashboards covering a service overview, a
+     logs explorer, latency and traces, and an errors-and-alerts view
+     live under the platform dashboard provisioning paths, carry the
+     standard filters (time range, tenant, service, namespace,
+     severity or status), and pass the visualization validation path.
+5. Deliver the AI playground prompt pack.
+   - Dependencies: Tasks 2, 3.
+   - Completion check: a prompt pack document provides ready-to-use
+     prompts bound to actual MCP catalog tools, covering service
+     health, log and trace investigation, and fault RCA over the
+     demo scenarios; every prompt names the tools it exercises and
+     the demo scenario that produces the data it needs; read-path by
+     default, with any write-path prompt routed through the approval
+     flow unchanged.
+6. Deliver the playground guide, validators, and registration.
+   - Dependencies: Tasks 1-5.
+   - Completion check: `docs/product/PLAYGROUND_GUIDE.md` walks setup
+     end to end (platform install or dev-stack reuse, demo deploy,
+     scenario runs, dashboards, AI prompts, teardown) and is
+     registered in `docs/product/INDEX.md` with the product docs
+     validator staying green; `validate_demo_playground.sh` and
+     `validate_batch27_smoke.sh` pass; the batch is registered in
+     `validate_all_batches_with_report.sh`; a demo playground
+     runbook is registered in `validate_runbook_links.sh`.
 
 ## Batch Completion Gate
 

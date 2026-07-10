@@ -39,6 +39,7 @@ phased delivery toward optional assisted RCA.
 | 24 | `Do batch 24: AI/MCP runtime activation.` | Validate model-provider adapter contract with secrets-backend key handling, live AI runtime deployment with catalog and governance enforcement, trigger-to-approval rehearsal evidence with human-surrogate approval, executed go/no-go signoff with threshold evidence, structural AI activation validator pass, and extended AI runbook completeness. |
 | 25 | `Do batch 25: production operations and release engineering.` | Validate release engineering contract coverage, resolved wrapped-system version pins with harness install proof, N-1 upgrade evidence with platform SLO productionization, image scanning and SBOM and license compliance artifacts, production reference architecture completeness, seeded rejection fixtures, and production release-gate runbook completeness. |
 | 26 | `Do batch 26: product documentation and GA readiness.` | Validate product docs information architecture and audience map, core and tenant and commercial document completeness, generated API reference fidelity, docs-coverage matrix and link validation, and signed GA readiness review with evidence links. |
+| 27 | `Do batch 27: demo workloads and observability playground.` | Validate demo package deploy and teardown neutrality, sample service signal emission via OpenTelemetry only, scenario-driven load and fault simulation, demo dashboards with standard filters, AI prompt pack bound to MCP catalog tools, and step-by-step playground guide integration. |
 
 ## Optional Strict Commands
 

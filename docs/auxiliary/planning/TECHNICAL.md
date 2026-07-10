@@ -33,6 +33,7 @@ implementation requirements in this document.
 | `TR-24` | Live-Cluster Validation Evidence and Runtime Activation Requirements |
 | `TR-25` | Release Engineering and Production Operations Requirements |
 | `TR-26` | Product Documentation and GA Readiness Requirements |
+| `TR-27` | Demo Workloads and Observability Playground Requirements |
 
 ## 0.1 Task Batch Reverse Lookup
 
@@ -67,6 +68,7 @@ corresponding execution batches in `TASKS.md`.
 | `TR-24` | `TB-23`, `TB-24` |
 | `TR-25` | `TB-25` |
 | `TR-26` | `TB-26` |
+| `TR-27` | `TB-27` |
 
 ## 1. Purpose [TR-01]
 
@@ -986,3 +988,47 @@ declaration.
   `docs/product/GA_READINESS_REVIEW.md` walking the definition of
   done in `docs/auxiliary/planning/SAAS_PRODUCTIZATION_PLAN.md` with
   an evidence link for every item.
+
+## 27. Demo Workloads and Observability Playground Requirements [TR-27]
+
+The demo package exists so an operator can generate realistic
+telemetry and exercise every product surface - dashboards, tenancy,
+metering, and the AI layer - without instrumenting a real fleet. It
+is a playground, never a production dependency.
+
+- The package is optional, additive, and removable: deploying or
+  tearing it down never modifies core platform charts, contracts, or
+  the ArgoCD bootstrap. It lives under `demo/` and is deployed
+  explicitly by the operator, never by the installer.
+- Sample services cover distinct workload kinds - at minimum an HTTP
+  API service, an asynchronous worker, a scheduled job, and a
+  datastore-backed service - each emitting logs, metrics, and traces
+  through OpenTelemetry to the platform collector. No demo component
+  writes to OpenSearch or Neo4j directly (`TR-02`, `TR-07`).
+- Demo workloads onboard through the Batch 7 one-block subscription
+  contract; the package doubles as a conformance example of the
+  onboarding path (`TR-06`).
+- The package deploys tenant-scoped so isolation, per-tenant
+  dashboards, and usage metering are exercised on demo data
+  (`TR-16`, `TR-23`).
+- Traffic simulation is scenario-driven and declarative: steady
+  baseline, burst, error-injection, and latency-injection scenarios
+  with a validated schema and seeded-invalid rejection. Fault
+  scenarios must produce data the risk scoring and assisted RCA
+  surfaces can consume (`TR-08`, `TR-13`).
+- Sizing fits the development stack (OrbStack reference machine) and
+  the disposable kind harness; the persistent dev stack remains
+  never-an-evidence-source (`TR-24`).
+- Demo dashboards are dashboards-as-code under the platform
+  provisioning paths with the standard filter set - time range,
+  tenant, service, namespace, and severity or status (`TR-03`).
+- The AI playground is a prompt pack bound to actual MCP catalog
+  tools, read-path by default; any write-path prompt goes through
+  the approval flow unchanged (`TR-15`).
+- The playground guide is a product document (evaluator and operator
+  audiences) registered in `docs/product/INDEX.md`, so the product
+  docs validator continues to gate the whole tree (`TR-26`).
+- Technology choices (workload sourcing, load-generation tooling)
+  are ADR-gated. Wrap-never-fork applies: an upstream demo
+  application may be wrapped through its own chart or manifests,
+  never forked (`TR-10`).

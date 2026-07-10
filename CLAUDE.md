@@ -271,6 +271,11 @@ matrix, cross-tree links, API reference freshness, and the GA review
 structure. The operator flow is
 `docs/runbooks/PRODUCT_DOCUMENTATION_RUNBOOK.md`.
 
+Batch 27 (demo workloads and observability playground) is authored
+in `TASKS.md` but not yet implemented. The plan is
+`docs/auxiliary/planning/DEMO_PLAYGROUND_PLAN.md`; execute it via
+`/run-batch 27` or the kick-off prompt in that plan's section 6.
+
 Each batch also has a smoke wrapper: `scripts/ci/validate_batch<N>_smoke.sh`.
 
 ### Batch 14 - AI/MCP layer
