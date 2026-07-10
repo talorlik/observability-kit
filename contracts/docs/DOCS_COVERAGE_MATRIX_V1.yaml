@@ -1,0 +1,296 @@
+# Docs-coverage matrix (Batch 26 Task 5, TB-26, TR-26).
+#
+# Maps every Batch 17-25 capability to the product documentation
+# section that documents it. The structural validator
+# (scripts/ci/validate_product_docs.sh) fails when a batch listed in
+# TR-26 scope (17-25) is missing from this matrix, when a capability
+# points at a document outside docs/product/, when the document does
+# not exist, or when the named section heading is not present verbatim
+# in that document. An unmapped capability is therefore a validation
+# failure, not a documentation debt item.
+#
+# Capabilities are the headline deliverables of each batch as fixed by
+# docs/auxiliary/planning/TASKS.md and the per-batch summaries in
+# CLAUDE.md. `doc` is a path relative to the repository root and must
+# live under docs/product/. `section` is the exact heading text (any
+# level) inside that document.
+
+version: 1
+description: >-
+  TR-26 docs-coverage matrix binding every Batch 17-25 capability to a
+  product documentation section under docs/product/. Enforced by
+  scripts/ci/validate_product_docs.sh.
+doc_root: docs/product
+
+batches:
+  "17":
+    name: Discovery executor runtime
+    capabilities:
+      - id: b17-obskit-executor-cli
+        summary: >-
+          The obskit executor CLI runs preflight checks and capability
+          probes against a target cluster, offline or live.
+        doc: docs/product/GETTING_STARTED.md
+        section: Install the Obskit Tool
+      - id: b17-preflight-gate
+        summary: >-
+          Preflight and discovery results gate the install path before
+          anything is rendered or applied.
+        doc: docs/product/INSTALLATION_GUIDE.md
+        section: Before You Run the Installer
+      - id: b17-compatibility-grading
+        summary: >-
+          Discovery grades the cluster against the compatibility matrix
+          and reports remediation for blocked or degraded findings.
+        doc: docs/product/INSTALLATION_GUIDE.md
+        section: Compatibility Grading and Remediation
+
+  "18":
+    name: Guided installer
+    capabilities:
+      - id: b18-seven-step-flow
+        summary: >-
+          obskit install executes the seven-step flow fixed by
+          INSTALL_FLOW_CONTRACT_V1 (ADR-0002).
+        doc: docs/product/INSTALLATION_GUIDE.md
+        section: The Seven Steps
+      - id: b18-interactive-install
+        summary: Interactive wizard flow with per-step prompts.
+        doc: docs/product/INSTALLATION_GUIDE.md
+        section: Interactive Installation
+      - id: b18-noninteractive-install
+        summary: Non-interactive installation driven by answers files.
+        doc: docs/product/INSTALLATION_GUIDE.md
+        section: Non-Interactive Installation
+      - id: b18-gitops-only-output
+        summary: >-
+          The installer emits GitOps-only rendered output; the operator
+          commits it and Argo CD reconciles the platform from Git.
+        doc: docs/product/GETTING_STARTED.md
+        section: Commit and Bootstrap
+      - id: b18-resume-rerun
+        summary: Install runs can be resumed and safely re-run.
+        doc: docs/product/INSTALLATION_GUIDE.md
+        section: Re-Running and Resuming
+
+  "19":
+    name: Configuration rendering runtime
+    capabilities:
+      - id: b19-unified-render
+        summary: >-
+          obskit render turns the unified configuration document into
+          native configs at each binding's render_target,
+          deterministically and idempotently (ADR-0003).
+        doc: docs/product/CONFIGURATION_GUIDE.md
+        section: Rendering Configuration
+      - id: b19-render-strategies
+        summary: >-
+          Per-system render strategies from the Batch 16 propagation
+          contract and the renderer architecture catalog.
+        doc: docs/product/CONFIGURATION_GUIDE.md
+        section: Render Strategies
+      - id: b19-drift-detection
+        summary: >-
+          obskit drift diffs rendered state against live state and
+          reports divergence per system.
+        doc: docs/product/CONFIGURATION_GUIDE.md
+        section: Detecting Drift
+      - id: b19-config-rollback
+        summary: >-
+          obskit rollback re-renders a prior document revision as the
+          rollback path for configuration changes.
+        doc: docs/product/CONFIGURATION_GUIDE.md
+        section: Rolling Back Configuration
+
+  "20":
+    name: Tenant control plane
+    capabilities:
+      - id: b20-control-plane-api
+        summary: >-
+          Typed tenant control plane API surface fixed by
+          TENANT_CONTROL_PLANE_API_V1 (ADR-0004).
+        doc: docs/product/API_REFERENCE.md
+        section: Endpoints
+      - id: b20-tenant-lifecycle
+        summary: >-
+          Tenant lifecycle transitions executed as GitOps renders
+          through the Batch 19 renderer.
+        doc: docs/product/TENANT_ADMIN_GUIDE.md
+        section: The Tenant Lifecycle
+      - id: b20-isolation-renders
+        summary: >-
+          Isolation provisioning renders follow the tenant isolation
+          matrix contract.
+        doc: docs/product/TENANT_ADMIN_GUIDE.md
+        section: Isolation Classes
+      - id: b20-destructive-approvals
+        summary: >-
+          Destructive transitions honor APPROVAL_FLOW_V1 timeout and
+          escalation rules.
+        doc: docs/product/TENANT_ADMIN_GUIDE.md
+        section: Approvals for Destructive Transitions
+      - id: b20-tenant-overlays
+        summary: Per-tenant GitOps overlays rendered by the control plane.
+        doc: docs/product/TENANT_ADMIN_GUIDE.md
+        section: Per-Tenant GitOps Overlays
+
+  "21":
+    name: Unified management portal
+    capabilities:
+      - id: b21-portal-single-pane
+        summary: >-
+          Server-rendered portal aggregating the single-pane UI catalog
+          (ADR-0005).
+        doc: docs/product/END_USER_GUIDE.md
+        section: The Portal
+      - id: b21-portal-sso
+        summary: >-
+          Portal sign-in follows the admin access plane SSO profile and
+          binds the authenticated principal to caller scope.
+        doc: docs/product/END_USER_GUIDE.md
+        section: Signing In
+      - id: b21-unified-config-edit
+        summary: >-
+          Unified configuration edits executed GitOps-only through the
+          Batch 19 renderer from the portal.
+        doc: docs/product/CONFIGURATION_GUIDE.md
+        section: Editing Through the Portal
+      - id: b21-health-summary
+        summary: The portal serves a TR-12 platform health summary.
+        doc: docs/product/OPERATIONS_GUIDE.md
+        section: Health and Product SLOs
+
+      - id: b21-tenant-management-delegation
+        summary: >-
+          The portal delegates tenant management to the Batch 20
+          control plane API, binding the authenticated principal to
+          caller_scope so portal actions carry the caller's authority
+          and audit identity.
+        doc: docs/product/TENANT_ADMIN_GUIDE.md
+        section: How Tenant Management Works
+
+  "22":
+    name: Commercial layer
+    capabilities:
+      - id: b22-plan-catalog
+        summary: >-
+          Plan catalog bound bijectively to the tenant tier enum
+          (ADR-0006).
+        doc: docs/product/PRICING_AND_PACKAGING.md
+        section: Plans and Tiers
+      - id: b22-quota-bounds
+        summary: Per-plan quota bounds enforced against tenant tiers.
+        doc: docs/product/PRICING_AND_PACKAGING.md
+        section: Quota Bounds per Plan
+      - id: b22-usage-metering
+        summary: >-
+          Usage metering derived from telemetry already in OpenSearch,
+          written to control-plane usage indices; no new collection
+          path.
+        doc: docs/product/PRICING_AND_PACKAGING.md
+        section: Metering Dimensions
+      - id: b22-billing-adapters
+        summary: >-
+          Billing adapter boundary with the Stripe reference stub and
+          the file-export fallback.
+        doc: docs/product/PRICING_AND_PACKAGING.md
+        section: Billing Adapter Options
+      - id: b22-invoice-export
+        summary: Vendor-neutral invoice export contract and schema.
+        doc: docs/product/PRICING_AND_PACKAGING.md
+        section: Invoice Export Flow
+
+  "23":
+    name: Live-cluster validation and evidence
+    capabilities:
+      - id: b23-disposable-harness
+        summary: >-
+          Disposable kind harness executes the full guided install live
+          and captures committed evidence (ADR-0007).
+        doc: docs/product/OPERATIONS_GUIDE.md
+        section: Live Validation and Evidence Capture
+      - id: b23-live-drills
+        summary: Live operational drills executed against the harness.
+        doc: docs/product/OPERATIONS_GUIDE.md
+        section: Operational Drills
+      - id: b23-denial-evidence
+        summary: >-
+          SDN-B15 denial scenarios captured as committed evidence and
+          surfaced as support triage material.
+        doc: docs/product/SUPPORT_AND_ONBOARDING.md
+        section: Tenant Lifecycle Denials
+      - id: b23-drill-rehearsal
+        summary: >-
+          Support and onboarding teams rehearse failure modes with the
+          same drills that produce the evidence.
+        doc: docs/product/SUPPORT_AND_ONBOARDING.md
+        section: Rehearsing with Drills
+
+  "24":
+    name: AI/MCP runtime activation
+    capabilities:
+      - id: b24-ai-runtime-activation
+        summary: >-
+          The obskit-ai-runtime deploys live via the harness checks
+          ai-deploy, ai-rehearsal, and ai-signoff with committed
+          evidence (ADR-0008, ADR-0009).
+        doc: docs/product/OPERATIONS_GUIDE.md
+        section: Live Validation and Evidence Capture
+      - id: b24-ai-assisted-analysis
+        summary: >-
+          Risk scoring, assisted RCA, and casefile review surfaces for
+          tenant end users.
+        doc: docs/product/END_USER_GUIDE.md
+        section: AI-Assisted Incident Analysis
+      - id: b24-approval-gated-actions
+        summary: >-
+          AI reads through governed read-only tool paths; any action
+          requires human approval with APPROVAL_FLOW_V1 timeout and
+          escalation.
+        doc: docs/product/END_USER_GUIDE.md
+        section: AI-Assisted Incident Analysis
+      - id: b24-model-provider-adapter
+        summary: >-
+          The LLM provider is pluggable behind the model provider
+          adapter contract with an Anthropic reference adapter, a
+          local-stub harness provider, and secrets-backend-only key
+          resolution.
+        doc: docs/product/OPERATIONS_GUIDE.md
+        section: AI Model Provider
+
+  "25":
+    name: Release engineering
+    capabilities:
+      - id: b25-release-pipeline
+        summary: >-
+          Tag-driven publication with packaged chart, OCI publication,
+          cosign-keyless signing, syft SBOM, and trivy CRITICAL gate
+          (ADR-0010).
+        doc: docs/product/OPERATIONS_GUIDE.md
+        section: Releases
+      - id: b25-license-compliance
+        summary: >-
+          OSS license inventory bijective with the wrapped-system
+          registry and THIRD_PARTY_NOTICES.md attribution.
+        doc: docs/product/OPERATIONS_GUIDE.md
+        section: Releases
+      - id: b25-production-pins-upgrades
+        summary: >-
+          Wrapped-system production pins resolved to harness-proven
+          versions; version bumps roll as observable updates exercised
+          by the upgrade drill.
+        doc: docs/product/OPERATIONS_GUIDE.md
+        section: Upgrades
+      - id: b25-reference-architecture
+        summary: >-
+          Production reference architecture: HA topology, sizing tiers
+          bound to the tenancy tier enum, storage and ingress via
+          Batch 2 profiles, backup and DR posture, prod overlay.
+        doc: docs/product/OPERATIONS_GUIDE.md
+        section: Production Reference Architecture
+      - id: b25-product-slos
+        summary: >-
+          Declared-for-GA platform product SLOs with a zero violation
+          budget on the isolation SLO.
+        doc: docs/product/OPERATIONS_GUIDE.md
+        section: Health and Product SLOs

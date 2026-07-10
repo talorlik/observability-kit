@@ -53,6 +53,7 @@ the install entrypoint below.
 | 22    | `COMMERCIAL_OPERATIONS_RUNBOOK.md`                       | Commercial layer: pricing, metering, invoicing, quota breaches     |
 | 23    | `LIVE_VALIDATION_RUNBOOK.md`                             | Disposable harness lifecycle, live evidence capture, teardown      |
 | 25    | `PRODUCTION_RELEASE_GATE_RUNBOOK.md`                     | Release gates, tag-to-publication, pin bumps, upgrade testing      |
+| 26    | `PRODUCT_DOCUMENTATION_RUNBOOK.md`                       | Product docs tree, API reference regeneration, coverage matrix     |
 
 ## Conventions
 

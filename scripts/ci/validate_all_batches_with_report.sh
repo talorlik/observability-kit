@@ -39,6 +39,7 @@ declare -a BATCH_IDS=(
   "23"
   "24"
   "25"
+  "26"
 )
 
 declare -a BATCH_NAMES=(
@@ -68,6 +69,7 @@ declare -a BATCH_NAMES=(
   "Live-Cluster Validation and Evidence"
   "AI/MCP Runtime Activation"
   "Production Operations and Release Engineering"
+  "Product Documentation and GA Readiness"
 )
 
 declare -a VALIDATION_CRITERIA=(
@@ -97,6 +99,7 @@ declare -a VALIDATION_CRITERIA=(
   "Validate harness contract and ADR coherence with pinned entry point, captured install and readiness evidence chain, live drill and GUI smoke and SDN-B15 denial evidence artifacts, captured-evidence references in validation contracts, and disabled-by-default nightly workflow posture."
   "Validate model-provider adapter stub metadata and secrets-backend key resolution, live KAgent and KHook and MCP gateway deployment evidence, trigger-to-casefile-to-approval rehearsal evidence with policy and redaction and audit intact, signoff record with measured thresholds, structural activation checks without a cluster, and extended AI runbook sections."
   "Validate release contract semver and changelog and OCI publication rules, concrete registry pins with fail-if rule pass and harness install evidence, N-1 upgrade evidence with data and config survival, platform SLO extension checks, SBOM and image scan and license inventory artifacts, production reference architecture section checks, and seeded unpinned-profile and missing-license rejections."
+  "Validate product docs index and audience map coverage, core and tenant and commercial document presence checks, generated API reference marker and contract fidelity, docs-coverage matrix with every Batch 17-25 capability mapped, link validation across the docs tree, and signed GA readiness checklist with per-item evidence links."
 )
 
 declare -a SCRIPT_PATHS=(
@@ -126,6 +129,7 @@ declare -a SCRIPT_PATHS=(
   "scripts/ci/validate_batch23_smoke.sh"
   "scripts/ci/validate_batch24_smoke.sh"
   "scripts/ci/validate_batch25_smoke.sh"
+  "scripts/ci/validate_batch26_smoke.sh"
 )
 
 declare -a STATUSES=()

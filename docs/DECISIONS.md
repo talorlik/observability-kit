@@ -13,6 +13,87 @@ first. Entry format:
 - Follow-up: <action for a future batch, or "none">
 ```
 
+## 2026-07-10 - Batch 26 - Product Docs and GA Readiness Decisions
+
+- Decision: `validate_product_docs.sh` is PR-gated in
+  `.github/workflows/ci.yaml`, unlike the Batch 23-25 validators.
+- Why: it is purely repository-structural (no captured live evidence
+  dependency), and the plan's documentation program (section 7)
+  explicitly requires wiring the docs-coverage validator into CI.
+  The Batch 23-25 precedent covers evidence-backed validators only.
+- Follow-up: none.
+
+- Decision: the docs-coverage matrix is a contract file,
+  `contracts/docs/DOCS_COVERAGE_MATRIX_V1.yaml` (new `contracts/docs/`
+  directory), not a file under `docs/product/`.
+- Why: it is machine-validated engineering data, not customer-facing
+  documentation; the contracts naming convention gives it a stable,
+  versioned path the validator can enforce against.
+- Follow-up: when a future batch ships a capability, add its matrix
+  entry and doc section together; an unmapped capability fails
+  `validate_product_docs.sh`.
+
+- Decision: the GA review's Item 13 evidence is a committed copy of
+  the final pre-merge all-batches regression report under
+  `artifacts/evidence/batch26/all_batches_regression/`.
+- Why: `docs/reports/validation/` is gitignored, and check 6 of the
+  validator requires a resolvable markdown evidence link per item. A
+  placeholder file held the link resolvable during the regression
+  run, then the captured report replaced it and the batch validator
+  was re-run green.
+- Follow-up: regenerate with
+  `bash scripts/ci/validate_all_batches_with_report.sh` and re-copy
+  if the review is ever re-executed.
+
+- Decision: `GA_READINESS_REVIEW.md` is signed by
+  `ga-readiness-reviewer-surrogate` (autonomous run, human-surrogate
+  convention) dated 2026-07-10.
+- Why: the run is fully autonomous by standing instruction; the
+  Batch 24 signoff evidence set the surrogate-approver precedent.
+- Follow-up: the owner may countersign or re-execute the review
+  before any external GA announcement.
+
+- Decision: two documentation gaps surfaced by review were closed by
+  adding sections rather than dropping matrix coverage: the Batch 24
+  pluggable model provider (new "AI Model Provider" section in
+  `OPERATIONS_GUIDE.md`) and the Batch 21 portal tenant-management
+  delegation with `caller_scope` binding (`TENANT_ADMIN_GUIDE.md`).
+- Why: TR-26 requires every Batch 17-25 capability mapped; mapping a
+  capability to a section that does not genuinely document it would
+  be a fabricated coverage claim.
+- Follow-up: none.
+
+- Decision: review hardening landed in the same batch: the GA-review
+  check now requires a markdown evidence link per item and enforces
+  the item count parsed live from the plan's Definition of Done;
+  heading anchors parse raw lines (backtick-safe); the Signed-section
+  detector matches only `signed`/`sign-off` headings; the generator's
+  TOC slugs keep underscores (GitHub behavior).
+- Why: spec and code-quality reviewers demonstrated each miss as a
+  latent false-PASS or false-FAIL vector; a validator that can pass
+  on a stripped-down review is worse than none.
+- Follow-up: none.
+
+- Decision: both command sheets already carried authored Batch 26
+  rows; no sheet edit was needed. The all-batches registry criteria
+  string was aligned to the implementation sheet's authored row
+  verbatim.
+- Why: the report cites the implementation sheet as its criteria
+  source; drift between the two surfaces would be confusing.
+- Follow-up: none.
+
+- Deviation: `docs/runbooks/PRODUCT_DOCUMENTATION_RUNBOOK.md` was
+  added and registered in `validate_runbook_links.sh` and the runbook
+  index although TASKS.md Batch 26 does not list a runbook task.
+- Why: the plan's documentation program requires an operator runbook
+  from every batch 17-26; suspend-approval wording in
+  `SUPPORT_AND_ONBOARDING.md` was also corrected in-batch (suspend is
+  deliberately non-destructive and needs no approval - only offboard
+  and purge are approval-gated).
+- Follow-up: none. The SaaS productization arc (Batches 17-26) is
+  complete; production-cluster validation and operator-credentialed
+  OCI publication remain the deferred post-GA engagements.
+
 ## 2026-07-10 - Batch 25 - Release Engineering Decisions and Gotchas
 
 - Decision: the release engineering ADR is

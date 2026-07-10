@@ -106,6 +106,9 @@ jobs:
       - name: Commercial operations checks
         run: bash scripts/ci/validate_commercial_contracts.sh
 
+      - name: Product documentation checks
+        run: bash scripts/ci/validate_product_docs.sh
+
       - name: Preflight and discovery checks
         run: bash scripts/ci/validate_preflight_and_discovery.sh
 
