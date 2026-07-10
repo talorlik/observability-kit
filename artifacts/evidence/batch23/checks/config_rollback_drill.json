@@ -1,0 +1,25 @@
+{
+  "artifact_kind": "live_config_rollback_drill",
+  "batch": 23,
+  "captured_at": "2026-07-10T10:19:06.519555+00:00",
+  "check_command": "scripts/ops/run_config_rollback_drill.sh real",
+  "harness": {
+    "kubectl_context": "kind-obskit-evidence",
+    "node_image": "kindest/node:v1.29.14",
+    "stack_profile": "evidence-disposable"
+  },
+  "payload": {
+    "drill_output": [
+      "Running config rollback drill in non-production (real)...",
+      "Preparing scratch copy of the offline fixture tree...",
+      "Rendering the prior unified document revision...",
+      "Capturing the prior render manifest and reference tree...",
+      "Deriving and rendering a modified current document...",
+      "Executing the rollback re-render through the render pipeline...",
+      "Asserting the digest-equality proof...",
+      "Verifying the tree returned to the original rendered bytes...",
+      "Config rollback drill passed."
+    ]
+  },
+  "status": "pass"
+}

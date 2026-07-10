@@ -1,0 +1,395 @@
+{
+    "apiVersion": "argoproj.io/v1alpha1",
+    "kind": "Application",
+    "metadata": {
+        "annotations": {
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"argoproj.io/v1alpha1\",\"kind\":\"Application\",\"metadata\":{\"annotations\":{},\"name\":\"platform-core\",\"namespace\":\"argocd\"},\"spec\":{\"destination\":{\"namespace\":\"observability\",\"server\":\"https://kubernetes.default.svc\"},\"project\":\"default\",\"sources\":[{\"helm\":{\"valueFiles\":[\"$values/gitops/overlays/base/platform-core-values.yaml\",\"$values/gitops/overlays/dev/platform-core-values.yaml\"]},\"path\":\"gitops/charts/platform-core\",\"repoURL\":\"https://git-server.evidence-gitops.svc.cluster.local:8443/gitops.git\",\"targetRevision\":\"main\"},{\"ref\":\"values\",\"repoURL\":\"https://git-server.evidence-gitops.svc.cluster.local:8443/gitops.git\",\"targetRevision\":\"main\"}],\"syncPolicy\":{\"automated\":{\"prune\":true,\"selfHeal\":true},\"syncOptions\":[\"CreateNamespace=true\"]}}}\n"
+        },
+        "creationTimestamp": "2026-07-10T09:54:33Z",
+        "generation": 48,
+        "name": "platform-core",
+        "namespace": "argocd",
+        "resourceVersion": "4759",
+        "uid": "8e0f7d0d-45bc-424a-8961-6aca47ca85de"
+    },
+    "spec": {
+        "destination": {
+            "namespace": "observability",
+            "server": "https://kubernetes.default.svc"
+        },
+        "project": "default",
+        "sources": [
+            {
+                "helm": {
+                    "valueFiles": [
+                        "$values/gitops/overlays/base/platform-core-values.yaml",
+                        "$values/gitops/overlays/dev/platform-core-values.yaml"
+                    ]
+                },
+                "path": "gitops/charts/platform-core",
+                "repoURL": "https://git-server.evidence-gitops.svc.cluster.local:8443/gitops.git",
+                "targetRevision": "main"
+            },
+            {
+                "ref": "values",
+                "repoURL": "https://git-server.evidence-gitops.svc.cluster.local:8443/gitops.git",
+                "targetRevision": "main"
+            }
+        ],
+        "syncPolicy": {
+            "automated": {
+                "prune": true,
+                "selfHeal": true
+            },
+            "syncOptions": [
+                "CreateNamespace=true"
+            ]
+        }
+    },
+    "status": {
+        "controllerNamespace": "argocd",
+        "health": {
+            "lastTransitionTime": "2026-07-10T10:17:17Z",
+            "status": "Healthy"
+        },
+        "history": [
+            {
+                "deployStartedAt": "2026-07-10T10:07:09Z",
+                "deployedAt": "2026-07-10T10:07:09Z",
+                "id": 0,
+                "initiatedBy": {
+                    "automated": true
+                },
+                "revisions": [
+                    "36da1dc0162f5ed72d22c2849f99ca833cfb4815",
+                    "36da1dc0162f5ed72d22c2849f99ca833cfb4815"
+                ],
+                "source": {
+                    "repoURL": ""
+                },
+                "sources": [
+                    {
+                        "helm": {
+                            "valueFiles": [
+                                "$values/gitops/overlays/base/platform-core-values.yaml",
+                                "$values/gitops/overlays/dev/platform-core-values.yaml"
+                            ]
+                        },
+                        "path": "gitops/charts/platform-core",
+                        "repoURL": "https://git-server.evidence-gitops.svc.cluster.local:8443/gitops.git",
+                        "targetRevision": "main"
+                    },
+                    {
+                        "ref": "values",
+                        "repoURL": "https://git-server.evidence-gitops.svc.cluster.local:8443/gitops.git",
+                        "targetRevision": "main"
+                    }
+                ]
+            },
+            {
+                "deployStartedAt": "2026-07-10T10:16:56Z",
+                "deployedAt": "2026-07-10T10:16:57Z",
+                "id": 1,
+                "initiatedBy": {
+                    "automated": true
+                },
+                "revisions": [
+                    "7ec952db096e220312bf6165e9c055dbd21c3898",
+                    "7ec952db096e220312bf6165e9c055dbd21c3898"
+                ],
+                "source": {
+                    "repoURL": ""
+                },
+                "sources": [
+                    {
+                        "helm": {
+                            "valueFiles": [
+                                "$values/gitops/overlays/base/platform-core-values.yaml",
+                                "$values/gitops/overlays/dev/platform-core-values.yaml"
+                            ]
+                        },
+                        "path": "gitops/charts/platform-core",
+                        "repoURL": "https://git-server.evidence-gitops.svc.cluster.local:8443/gitops.git",
+                        "targetRevision": "main"
+                    },
+                    {
+                        "ref": "values",
+                        "repoURL": "https://git-server.evidence-gitops.svc.cluster.local:8443/gitops.git",
+                        "targetRevision": "main"
+                    }
+                ]
+            }
+        ],
+        "operationState": {
+            "finishedAt": "2026-07-10T10:16:57Z",
+            "message": "successfully synced (all tasks run)",
+            "operation": {
+                "initiatedBy": {
+                    "automated": true
+                },
+                "retry": {
+                    "limit": 5
+                },
+                "sync": {
+                    "prune": true,
+                    "revisions": [
+                        "7ec952db096e220312bf6165e9c055dbd21c3898",
+                        "7ec952db096e220312bf6165e9c055dbd21c3898"
+                    ],
+                    "syncOptions": [
+                        "CreateNamespace=true"
+                    ]
+                }
+            },
+            "phase": "Succeeded",
+            "startedAt": "2026-07-10T10:16:56Z",
+            "syncResult": {
+                "resources": [
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "Namespace",
+                        "message": "namespace/observability unchanged",
+                        "name": "observability",
+                        "namespace": "observability",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "ServiceAccount",
+                        "message": "serviceaccount/otel-collector created",
+                        "name": "otel-collector",
+                        "namespace": "observability",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "ConfigMap",
+                        "message": "configmap/otel-agent-config created",
+                        "name": "otel-agent-config",
+                        "namespace": "observability",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "ConfigMap",
+                        "message": "configmap/otel-gateway-config created",
+                        "name": "otel-gateway-config",
+                        "namespace": "observability",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "rbac.authorization.k8s.io",
+                        "hookPhase": "Running",
+                        "kind": "ClusterRole",
+                        "message": "clusterrole.rbac.authorization.k8s.io/platform-core-otel-collector reconciled. reconciliation required create\n\tmissing rules added:\n\t\t{Verbs:[get watch list] APIGroups:[] Resources:[pods namespaces nodes] ResourceNames:[] NonResourceURLs:[]}\n\t\t{Verbs:[get watch list] APIGroups:[apps] Resources:[replicasets] ResourceNames:[] NonResourceURLs:[]}. clusterrole.rbac.authorization.k8s.io/platform-core-otel-collector configured. Warning: resource clusterroles/platform-core-otel-collector is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by  apply.  apply should only be used on resources created declaratively by either  create --save-config or  apply. The missing annotation will be patched automatically.",
+                        "name": "platform-core-otel-collector",
+                        "namespace": "observability",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "rbac.authorization.k8s.io",
+                        "hookPhase": "Running",
+                        "kind": "ClusterRoleBinding",
+                        "message": "clusterrolebinding.rbac.authorization.k8s.io/platform-core-otel-collector reconciled. reconciliation required create\n\tmissing subjects added:\n\t\t{Kind:ServiceAccount APIGroup: Name:otel-collector Namespace:observability}. clusterrolebinding.rbac.authorization.k8s.io/platform-core-otel-collector configured. Warning: resource clusterrolebindings/platform-core-otel-collector is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by  apply.  apply should only be used on resources created declaratively by either  create --save-config or  apply. The missing annotation will be patched automatically.",
+                        "name": "platform-core-otel-collector",
+                        "namespace": "observability",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "Service",
+                        "message": "service/otel-gateway unchanged",
+                        "name": "otel-gateway",
+                        "namespace": "observability",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "apps",
+                        "hookPhase": "Running",
+                        "images": [
+                            "otel/opentelemetry-collector-k8s:0.101.0"
+                        ],
+                        "kind": "DaemonSet",
+                        "message": "daemonset.apps/otel-agent configured",
+                        "name": "otel-agent",
+                        "namespace": "observability",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "apps",
+                        "hookPhase": "Running",
+                        "images": [
+                            "otel/opentelemetry-collector-k8s:0.101.0"
+                        ],
+                        "kind": "Deployment",
+                        "message": "deployment.apps/otel-gateway configured",
+                        "name": "otel-gateway",
+                        "namespace": "observability",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    }
+                ],
+                "revision": "",
+                "revisions": [
+                    "7ec952db096e220312bf6165e9c055dbd21c3898",
+                    "7ec952db096e220312bf6165e9c055dbd21c3898"
+                ],
+                "source": {
+                    "repoURL": ""
+                },
+                "sources": [
+                    {
+                        "helm": {
+                            "valueFiles": [
+                                "$values/gitops/overlays/base/platform-core-values.yaml",
+                                "$values/gitops/overlays/dev/platform-core-values.yaml"
+                            ]
+                        },
+                        "path": "gitops/charts/platform-core",
+                        "repoURL": "https://git-server.evidence-gitops.svc.cluster.local:8443/gitops.git",
+                        "targetRevision": "main"
+                    },
+                    {
+                        "ref": "values",
+                        "repoURL": "https://git-server.evidence-gitops.svc.cluster.local:8443/gitops.git",
+                        "targetRevision": "main"
+                    }
+                ]
+            }
+        },
+        "reconciledAt": "2026-07-10T10:17:18Z",
+        "resourceHealthSource": "appTree",
+        "resources": [
+            {
+                "kind": "ConfigMap",
+                "name": "otel-agent-config",
+                "namespace": "observability",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "ConfigMap",
+                "name": "otel-gateway-config",
+                "namespace": "observability",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "Namespace",
+                "name": "observability",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "Service",
+                "name": "otel-gateway",
+                "namespace": "observability",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "kind": "ServiceAccount",
+                "name": "otel-collector",
+                "namespace": "observability",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "group": "apps",
+                "kind": "DaemonSet",
+                "name": "otel-agent",
+                "namespace": "observability",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "group": "apps",
+                "kind": "Deployment",
+                "name": "otel-gateway",
+                "namespace": "observability",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "group": "rbac.authorization.k8s.io",
+                "kind": "ClusterRole",
+                "name": "platform-core-otel-collector",
+                "status": "Synced",
+                "version": "v1"
+            },
+            {
+                "group": "rbac.authorization.k8s.io",
+                "kind": "ClusterRoleBinding",
+                "name": "platform-core-otel-collector",
+                "status": "Synced",
+                "version": "v1"
+            }
+        ],
+        "sourceHydrator": {},
+        "sourceTypes": [
+            "Helm",
+            ""
+        ],
+        "summary": {
+            "images": [
+                "otel/opentelemetry-collector-k8s:0.101.0"
+            ]
+        },
+        "sync": {
+            "comparedTo": {
+                "destination": {
+                    "namespace": "observability",
+                    "server": "https://kubernetes.default.svc"
+                },
+                "source": {
+                    "repoURL": ""
+                },
+                "sources": [
+                    {
+                        "helm": {
+                            "valueFiles": [
+                                "$values/gitops/overlays/base/platform-core-values.yaml",
+                                "$values/gitops/overlays/dev/platform-core-values.yaml"
+                            ]
+                        },
+                        "path": "gitops/charts/platform-core",
+                        "repoURL": "https://git-server.evidence-gitops.svc.cluster.local:8443/gitops.git",
+                        "targetRevision": "main"
+                    },
+                    {
+                        "ref": "values",
+                        "repoURL": "https://git-server.evidence-gitops.svc.cluster.local:8443/gitops.git",
+                        "targetRevision": "main"
+                    }
+                ]
+            },
+            "revisions": [
+                "7ec952db096e220312bf6165e9c055dbd21c3898",
+                "7ec952db096e220312bf6165e9c055dbd21c3898"
+            ],
+            "status": "Synced"
+        }
+    }
+}

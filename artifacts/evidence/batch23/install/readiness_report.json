@@ -1,0 +1,42 @@
+{
+  "metadata": {
+    "captured_at": "2026-07-10T10:18:16.751891+00:00",
+    "emitted_after": "live-install",
+    "generated_by": "scripts/dev/harness_assets/build_readiness_report.py",
+    "version": "v1"
+  },
+  "observed": {
+    "platform_components": {
+      "argocd_health": "Healthy",
+      "argocd_sync": "Synced",
+      "otel_agent_ready": true,
+      "otel_gateway_ready": true
+    },
+    "policy_and_access": {
+      "credential_secrets_present": true,
+      "opensearch_cluster_status": "yellow"
+    },
+    "telemetry_paths": {
+      "agent_pods_ready": 1,
+      "gateway_ready_endpoint_addresses": 2,
+      "schedulable_nodes": 1
+    }
+  },
+  "readiness_sections": [
+    {
+      "description": "Core platform component health and reconciliation status.",
+      "id": "platform_components",
+      "status": "pass"
+    },
+    {
+      "description": "Smoke checks for logs, metrics, and traces pipelines.",
+      "id": "telemetry_paths",
+      "status": "pass"
+    },
+    {
+      "description": "Identity, secret, and policy control validation summary.",
+      "id": "policy_and_access",
+      "status": "pass"
+    }
+  ]
+}

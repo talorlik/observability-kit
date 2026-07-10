@@ -1,0 +1,25 @@
+{
+  "capabilities": {
+    "default_gitops_controller": "argocd",
+    "default_ingress_profile": "nginx-ingress",
+    "default_secret_profile": "external-secrets",
+    "default_storage_profile": "standard-rwo",
+    "gitops_controller_candidates": [
+      "argocd"
+    ],
+    "ingress_profile_candidates": [
+      "nginx-ingress"
+    ],
+    "secret_profile_candidates": [
+      "external-secrets"
+    ],
+    "storage_profile_candidates": [
+      "standard-rwo"
+    ]
+  },
+  "metadata": {
+    "cluster_name": "obskit-evidence",
+    "generated_by": "obskit",
+    "version": "v1"
+  }
+}

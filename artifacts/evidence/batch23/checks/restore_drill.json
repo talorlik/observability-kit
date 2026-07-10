@@ -1,0 +1,32 @@
+{
+  "artifact_kind": "live_restore_drill",
+  "batch": 23,
+  "captured_at": "2026-07-10T10:18:48.069911+00:00",
+  "check_command": "scripts/ops/run_restore_drill.sh live",
+  "harness": {
+    "kubectl_context": "kind-obskit-evidence",
+    "node_image": "kindest/node:v1.29.14",
+    "stack_profile": "evidence-disposable"
+  },
+  "payload": {
+    "documents_restored": 3,
+    "documents_seeded": 3,
+    "drill": "restore",
+    "environment": "non-production",
+    "index": "evidence-restore-drill",
+    "mode": "live",
+    "restore_cycle_seconds": 2,
+    "snapshot": "restore-drill-snapshot",
+    "snapshot_repository": "evidence-fs-repo (filesystem, in-cluster)",
+    "steps": [
+      "register filesystem snapshot repository",
+      "seed drill index (3 documents)",
+      "snapshot (wait_for_completion)",
+      "delete index (simulated data loss)",
+      "restore from snapshot (wait_for_completion)",
+      "verify document count == 3",
+      "clean up drill index and snapshot"
+    ]
+  },
+  "status": "pass"
+}

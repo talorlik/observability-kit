@@ -70,7 +70,9 @@ wait_for_revision() {
     kc -n argocd annotate application "$ROLLBACK_APPLICATION" \
       argocd.argoproj.io/refresh=normal --overwrite >/dev/null 2>&1 \
       || true
-    revision="$(app_field '{.status.sync.revision}')"
+    # Multi-source Application: revisions is an array (one entry per
+    # source, same repo here); the singular field stays empty.
+    revision="$(app_field '{.status.sync.revisions[0]}')"
     health="$(app_field '{.status.health.status}')"
     replicas="$(kc -n observability get deployment otel-gateway \
       -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo 0)"

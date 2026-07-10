@@ -1,0 +1,15 @@
+{
+  "artifact_kind": "live_rollback_drill",
+  "batch": 23,
+  "captured_at": "2026-07-10T10:29:13.159416+00:00",
+  "check_command": "scripts/ops/run_rollback_drill.sh live",
+  "harness": {
+    "kubectl_context": "kind-obskit-evidence",
+    "node_image": "kindest/node:v1.29.14",
+    "stack_profile": "evidence-disposable"
+  },
+  "payload": {
+    "note": "check produced no payload file"
+  },
+  "status": "fail"
+}

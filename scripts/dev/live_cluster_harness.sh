@@ -540,10 +540,11 @@ check_gui_smoke() {
   "$VENV_DIR/bin/python3" "$ASSETS_DIR/run_portal.py" \
     --port "$PORTAL_PORT" --certfile "$cert" --keyfile "$key" \
     > "$LOG_DIR/portal.log" 2>&1 &
-  local portal_pid=$!
+  PORTAL_PID=$!
   # EXIT trap so the portal never leaks even when set -e aborts the
   # run mid-check; RETURN alone does not fire on an errexit abort.
-  trap 'kill "$portal_pid" 2>/dev/null || true' RETURN EXIT
+  # Global (not local) so the EXIT trap can still resolve it.
+  trap 'kill "${PORTAL_PID:-}" 2>/dev/null || true' RETURN EXIT
   local attempt ready=false
   for attempt in $(seq 1 30); do
     if curl -fsSk "https://127.0.0.1:$PORTAL_PORT/healthz" \
@@ -567,7 +568,7 @@ check_gui_smoke() {
   else
     status=fail
   fi
-  kill "$portal_pid" 2>/dev/null || true
+  kill "${PORTAL_PID:-}" 2>/dev/null || true
   python3 - "$smoke_out" "$healthz_file" "$payload" <<'PY'
 import json
 import sys
@@ -596,12 +597,12 @@ check_denials() {
   ensure_venv
   secrets
   mkdir -p "$EVIDENCE_DIR/checks/denials"
-  local pf_pid
   kc -n "$BACKEND_NS" port-forward svc/opensearch \
     "$OPENSEARCH_LOCAL_PORT:9200" > "$LOG_DIR/port-forward.log" 2>&1 &
-  pf_pid=$!
+  PF_PID=$!
   # EXIT trap so the port-forward never leaks on an errexit abort.
-  trap 'kill "$pf_pid" 2>/dev/null || true' RETURN EXIT
+  # Global (not local) so the EXIT trap can still resolve it.
+  trap 'kill "${PF_PID:-}" 2>/dev/null || true' RETURN EXIT
   local attempt reachable=false
   for attempt in $(seq 1 30); do
     if curl -fsk -u "admin:$OPENSEARCH_ADMIN_PASSWORD" \
@@ -628,7 +629,7 @@ check_denials() {
     --stack-profile "$STACK_PROFILE" \
     --node-image "$NODE_IMAGE" \
     ${DENIAL_SCENARIO:+--scenario "$DENIAL_SCENARIO"}
-  kill "$pf_pid" 2>/dev/null || true
+  kill "${PF_PID:-}" 2>/dev/null || true
   log "denial evidence captured under $EVIDENCE_DIR/checks/denials/"
 }
 
