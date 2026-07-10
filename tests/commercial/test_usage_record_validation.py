@@ -126,6 +126,31 @@ def test_tenant_id_pattern_enforced() -> None:
         )
 
 
+def test_present_but_null_required_fields_rejected() -> None:
+    # A present key holding JSON null must fail exactly like a bad
+    # value: tenant_id: null is NOT tenant attribution (TR-23), and
+    # null elsewhere is not schema-conformant. Guards the _MISSING
+    # sentinel in validate_record.
+    base = _load(VALID_SAMPLES)["records"][0]
+    for field in (
+        "tenant_id",
+        "record_id",
+        "dimension",
+        "signal",
+        "unit",
+        "value",
+        "window_start",
+        "window_end",
+        "collected_at",
+        "collector_version",
+        "source_reference",
+    ):
+        record = dict(base)
+        record[field] = None
+        errors = validate_record(record)
+        assert errors, f"{field}=null accepted"
+
+
 def test_source_reference_shape_by_source_type() -> None:
     base = _load(VALID_SAMPLES)["records"][0]
     # Aggregation source without indices is rejected.

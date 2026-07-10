@@ -134,6 +134,13 @@ def _validate_source_reference(
                 )
 
 
+# Sentinel distinguishing "key absent" (covered by the required-fields
+# check) from "key present with JSON null". A present-but-null required
+# field must fail its type check - tenant_id: null is NOT attribution
+# (TR-23), and null anywhere else is not schema-conformant either.
+_MISSING: Any = object()
+
+
 def validate_record(document: Mapping[str, Any]) -> tuple[str, ...]:
     """Validate one usage record document; return all errors found.
 
@@ -163,8 +170,8 @@ def validate_record(document: Mapping[str, Any]) -> tuple[str, ...]:
         # tenant attribution is rejected outright.
         errors.append("tenant_id is mandatory on every usage record")
 
-    tenant_id = document.get("tenant_id")
-    if tenant_id is not None and (
+    tenant_id = document.get("tenant_id", _MISSING)
+    if tenant_id is not _MISSING and (
         not isinstance(tenant_id, str)
         or not TENANT_ID_PATTERN.match(tenant_id)
     ):
@@ -173,34 +180,34 @@ def validate_record(document: Mapping[str, Any]) -> tuple[str, ...]:
             "pattern"
         )
 
-    record_id = document.get("record_id")
-    if record_id is not None and (
+    record_id = document.get("record_id", _MISSING)
+    if record_id is not _MISSING and (
         not isinstance(record_id, str)
         or not record_id
         or len(record_id) > 256
     ):
         errors.append("record_id must be a string of 1..256 chars")
 
-    dimension = document.get("dimension")
-    if dimension is not None and dimension not in DIMENSIONS:
+    dimension = document.get("dimension", _MISSING)
+    if dimension is not _MISSING and dimension not in DIMENSIONS:
         errors.append(
             f"unknown dimension {dimension!r} (catalog: "
             f"{list(DIMENSIONS)})"
         )
-    signal = document.get("signal")
-    if signal is not None and signal not in SIGNALS:
+    signal = document.get("signal", _MISSING)
+    if signal is not _MISSING and signal not in SIGNALS:
         errors.append(f"unknown signal {signal!r}")
-    unit = document.get("unit")
-    if unit is not None and unit not in UNITS:
+    unit = document.get("unit", _MISSING)
+    if unit is not _MISSING and unit not in UNITS:
         errors.append(f"unknown unit {unit!r}")
 
-    value = document.get("value")
-    if value is not None and (not _is_number(value) or value < 0):
+    value = document.get("value", _MISSING)
+    if value is not _MISSING and (not _is_number(value) or value < 0):
         errors.append("value must be a number >= 0")
 
     for name in ("window_start", "window_end", "collected_at"):
-        timestamp = document.get(name)
-        if timestamp is not None and (
+        timestamp = document.get(name, _MISSING)
+        if timestamp is not _MISSING and (
             not isinstance(timestamp, str)
             or not DATETIME_PATTERN.match(timestamp)
         ):
@@ -208,8 +215,8 @@ def validate_record(document: Mapping[str, Any]) -> tuple[str, ...]:
                 f"{name} must be an RFC 3339 UTC timestamp"
             )
 
-    collector_version = document.get("collector_version")
-    if collector_version is not None and (
+    collector_version = document.get("collector_version", _MISSING)
+    if collector_version is not _MISSING and (
         not isinstance(collector_version, str) or not collector_version
     ):
         errors.append("collector_version must be a non-empty string")
@@ -217,12 +224,12 @@ def validate_record(document: Mapping[str, Any]) -> tuple[str, ...]:
     # Dimension binding rules (the schema's allOf blocks).
     if isinstance(dimension, str) and dimension in DIMENSION_BINDINGS:
         binding = DIMENSION_BINDINGS[dimension]
-        if signal is not None and signal not in binding.signals:
+        if signal is not _MISSING and signal not in binding.signals:
             errors.append(
                 f"dimension {dimension} does not allow signal "
                 f"{signal!r} (allowed: {list(binding.signals)})"
             )
-        if unit is not None and unit != binding.unit:
+        if unit is not _MISSING and unit != binding.unit:
             errors.append(
                 f"dimension {dimension} requires unit "
                 f"{binding.unit!r}, got {unit!r}"
