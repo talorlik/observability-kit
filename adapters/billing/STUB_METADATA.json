@@ -1,0 +1,18 @@
+{
+  "adapter_class": "billing",
+  "stub_name": "stripe-reference-billing-stub",
+  "status": "ready_for_profile_wiring",
+  "prerequisites": [
+    "plan_catalog_validated",
+    "invoice_export_contract_validated",
+    "secrets_backend_configured"
+  ],
+  "generated_values": [
+    "billing.enabled",
+    "billing.mode"
+  ],
+  "fallback_behavior": {
+    "strategy": "disable_adapter_keep_core",
+    "notes": "Revert to the file-export backend: invoice export documents keep flowing with no vendor dependency and no core contract mutation."
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "invoice_id": "acme-corp:2026-07-01:2026-08-01",
+  "tenant_id": "acme-corp",
+  "plan_id": "plan-standard",
+  "tier": "standard",
+  "billing_period": {
+    "start": "2026-07-01T00:00:00Z",
+    "end": "2026-08-01T00:00:00Z"
+  },
+  "line_items": [
+    {
+      "dimension": "active_tenants",
+      "signal": "platform",
+      "quantity": 31,
+      "unit": "count",
+      "overage_units": 0,
+      "source_record_count": 31
+    },
+    {
+      "dimension": "ingest_gb_per_day",
+      "signal": "logs",
+      "quantity": 2632.0,
+      "unit": "gb",
+      "overage_units": 64.0,
+      "source_record_count": 31
+    },
+    {
+      "dimension": "ingest_gb_per_day",
+      "signal": "metrics",
+      "quantity": 806.0,
+      "unit": "gb",
+      "overage_units": 0,
+      "source_record_count": 31
+    },
+    {
+      "dimension": "ingest_gb_per_day",
+      "signal": "traces",
+      "quantity": 279.0,
+      "unit": "gb",
+      "overage_units": 0,
+      "source_record_count": 31
+    },
+    {
+      "dimension": "query_volume",
+      "signal": "platform",
+      "quantity": 164982,
+      "unit": "queries",
+      "overage_units": 165,
+      "source_record_count": 31
+    },
+    {
+      "dimension": "retention_days",
+      "signal": "logs",
+      "quantity": 930,
+      "unit": "days",
+      "overage_units": 0,
+      "source_record_count": 31
+    },
+    {
+      "dimension": "retention_days",
+      "signal": "metrics",
+      "quantity": 434,
+      "unit": "days",
+      "overage_units": 0,
+      "source_record_count": 31
+    },
+    {
+      "dimension": "retention_days",
+      "signal": "traces",
+      "quantity": 217,
+      "unit": "days",
+      "overage_units": 0,
+      "source_record_count": 31
+    }
+  ],
+  "totals": {
+    "base_monthly_units": 400,
+    "overage_units": 229,
+    "total_units": 629
+  },
+  "generated_at": "2026-08-01T01:10:00Z",
+  "exporter_version": "commercialsvc-0.1.0"
+}

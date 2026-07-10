@@ -1,0 +1,159 @@
+# Invoice export contract for commercial operations (Batch 22 Task 4,
+# TR-23). Fixes the vendor-neutral export document that one billing
+# period yields per tenant: derivation inputs, document shape, overage
+# semantics per dimension, the adapter boundary vendor billing systems
+# integrate through, and the rejection rules validators enforce.
+#
+# The narrative decision record is
+# docs/adr/ADR_0006_METERING_ARCHITECTURE.md.
+
+metadata:
+  contract: invoice-export
+  version: v1
+  batch: TB-22
+  owner: platform-commercial
+  technical_requirements:
+    - TR-23
+    - TR-16
+  decided_by: docs/adr/ADR_0006_METERING_ARCHITECTURE.md
+  validated_by: scripts/ci/validate_commercial_contracts.sh
+  related_contracts:
+    - contracts/commercial/METERING_CONTRACT_V1.yaml
+    - contracts/commercial/USAGE_RECORD_SCHEMA_V1.json
+    - contracts/commercial/PLAN_CATALOG_V1.yaml
+    - adapters/billing/BILLING_ADAPTER_COMPATIBILITY_V1.yaml
+
+derivation:
+  # Inputs are validated usage records plus the plan catalog. Records
+  # that fail USAGE_RECORD_SCHEMA_V1.json validation never reach the
+  # exporter; an invoice is single-tenant, and a record set carrying a
+  # foreign tenant_id is rejected outright (TR-16 attribution).
+  inputs:
+    - contracts/commercial/USAGE_RECORD_SCHEMA_V1.json
+    - contracts/commercial/PLAN_CATALOG_V1.yaml
+  cardinality: one-export-document-per-tenant-per-billing-period
+  determinism: >-
+    Export construction is pure: the same usage records, plan, and
+    billing period yield a byte-identical export document apart from
+    generated_at. invoice_id is deterministic over (tenant_id,
+    period_start, period_end) so re-export of the same period is
+    idempotent.
+  implemented_by:
+    runtime: services/commercial/
+    package: commercialsvc
+    module: invoicing
+
+export_document:
+  schema: contracts/commercial/INVOICE_EXPORT_SCHEMA_V1.json
+  fields:
+    invoice_id: >-
+      Deterministic identifier
+      <tenant_id>:<period_start YYYY-MM-DD>:<period_end YYYY-MM-DD>,
+      so re-export of the same tenant and period is idempotent.
+    tenant_id: >-
+      Tenant attribution, mandatory on every export document. Same
+      slug rules as contracts/tenancy/TENANT_CONTRACT_SCHEMA_V1.json.
+    plan_id: >-
+      The plan the invoice was priced against, from the plan catalog
+      (e.g. plan-standard).
+    tier: >-
+      The tenant tier the plan is bound to; a member of the tier enum
+      of contracts/tenancy/TENANT_CONTRACT_SCHEMA_V1.json (starter,
+      standard, premium, enterprise).
+    billing_period: >-
+      Object with start and end RFC 3339 UTC timestamps; start is
+      inclusive, end is exclusive, and end must be strictly after
+      start.
+    line_items: >-
+      Non-empty array with one entry per (dimension, signal) pair
+      present in the period's usage records: dimension (metering
+      contract catalog), signal (logs, metrics, traces, or the
+      literal platform), quantity (aggregated metered quantity, >= 0),
+      unit (gb, days, count, or queries per the dimension binding),
+      overage_units (currency-neutral overage charge, >= 0), and
+      source_record_count (number of usage records aggregated, >= 1).
+    totals: >-
+      Object with base_monthly_units (the plan's base charge),
+      overage_units (sum of line_items[].overage_units), and
+      total_units (base_monthly_units + overage_units); all
+      currency-neutral units, all >= 0.
+    generated_at: >-
+      RFC 3339 UTC timestamp of export construction; the only field
+      allowed to differ between re-exports of the same inputs.
+    exporter_version: >-
+      Version stamp of the exporting commercialsvc build.
+
+overage_semantics:
+  # Pricing model fixed by the plan catalog: base-plus-overage in
+  # currency-neutral units. Overage is computed against the max of the
+  # plan's quota bound for the dimension. Dimensions without a
+  # quota_bounds entry in the plan catalog use overage_basis
+  # full-quantity: the whole metered quantity is billable at the
+  # dimension's rate_units, with an implicit bound of 0.
+  pricing_model: base-plus-overage
+  currency_neutral: true
+  dimensions:
+    ingest_gb_per_day:
+      overage_basis: over-bound
+      bound: quotas.ingest.max_gb_per_day (max)
+      rule: >-
+        Per usage record, overage gb = max(0, value - bound). The line
+        item's overage_units is the sum of per-record overage gb over
+        the period, times the plan's rate_units for
+        ingest_gb_per_day.
+    retention_days:
+      overage_basis: over-bound
+      bound: quotas.retention.<signal>_days (max)
+      rule: >-
+        Per usage record, overage days = max(0, value - bound), where
+        the bound is the max of the record's signal-specific retention
+        bound. The line item's overage_units is the sum of per-record
+        overage days over the period, times the plan's rate_units for
+        retention_days.
+    active_tenants:
+      overage_basis: full-quantity
+      bound: null
+      rule: >-
+        Quantity is the count of active days in the period: usage
+        records with value 1. No quota_bounds entry exists, so the
+        full quantity is billable at rate_units; rate_units is
+        currently 0 in every plan, so the line item records activity
+        without charging for it.
+    query_volume:
+      overage_basis: full-quantity
+      bound: null
+      rule: >-
+        No tenant quota field exists for query volume, so the full
+        period quantity is billable: every started block of 1000
+        queries in the period costs rate_units (ceil semantics over
+        the summed period quantity; implicit bound 0).
+
+adapter_boundary:
+  # The vendor-neutral billing boundary of ADR-0006. Vendor billing
+  # systems consume export documents through this contract only;
+  # vendor object mapping lives under adapters/billing/.
+  consumption_surface: export-documents-only
+  vendor_mapping_location: adapters/billing/
+  core_never_imports_vendor_sdk: true
+  core_never_names_vendor: true
+  # Currency and tax are commercial concerns of the vendor system;
+  # the core document carries currency-neutral units only.
+  currency_assignment: adapter-side-only
+  tax_handling: adapter-side-only
+  credential_resolution: >-
+    Adapter credentials resolve through the secrets backend adapters
+    (adapters/secrets/) as secret references; a literal credential in
+    configuration or Git is a violation.
+  core_mutation: >-
+    A billing adapter never mutates the platform core: no core
+    contract edits, no core schema extensions, no fork of wrapped
+    systems. Fork-like core mutation is rejected by validation.
+
+compliance:
+  fail_if_invoice_missing_tenant_id: true
+  fail_if_line_item_dimension_not_in_metering_contract: true
+  fail_if_vendor_field_in_export_document: true
+  fail_if_currency_in_core_export_document: true
+  fail_if_period_end_not_after_period_start: true
+  fail_if_adapter_core_mutation: true
+  fail_if_totals_inconsistent_with_line_items: true

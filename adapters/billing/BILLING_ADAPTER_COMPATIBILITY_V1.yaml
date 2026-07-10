@@ -1,0 +1,64 @@
+metadata:
+  contract: billing-adapter-compatibility
+  version: v1
+  optional_batch: TB-22
+
+scope:
+  adapter_domain: billing
+  intent: >-
+    map vendor billing systems onto the vendor-neutral invoice-export
+    contract
+  core_contracts_unchanged: true
+  unchanged_core_contract_refs:
+    - contracts/commercial/METERING_CONTRACT_V1.yaml
+    - contracts/commercial/PLAN_CATALOG_V1.yaml
+    - contracts/commercial/INVOICE_EXPORT_CONTRACT_V1.yaml
+
+billing_backends:
+  - name: file-export
+    mode: export-file
+    vendor_neutral: true
+    supported_profiles:
+      - quickstart
+      - dev
+      - staging
+      - prod
+    required_fields:
+      - backend
+      - export_path_ref
+      - export_format
+    outputs:
+      generated_values:
+        - billing.enabled
+        - billing.mode
+  - name: stripe-reference
+    mode: invoice-export-push
+    vendor_neutral: false
+    status: stub
+    supported_profiles:
+      - staging
+      - prod
+    required_fields:
+      - backend
+      - api_key_ref
+      - account_ref
+      - currency
+      - export_format
+    outputs:
+      generated_values:
+        - billing.enabled
+        - billing.mode
+        - billing.adapterRef
+    stub_definition: adapters/billing/STRIPE_REFERENCE_ADAPTER_STUB_V1.yaml
+
+constraints:
+  dispatch_mode: export-only
+  core_stays_vendor_neutral: true
+  deny_core_contract_mutation: true
+  allowed_wrap_methods:
+    - provisioning-api
+    - sidecar
+  forbidden_wrap_methods:
+    - fork
+  secrets_via_secrets_backend_only: true
+  currency_assignment: adapter-side-only

@@ -1,0 +1,53 @@
+# Stripe reference billing adapter stub (Batch 22 Task 4, TB-22).
+# Declarative mapping stub only: no code, no live calls. It documents
+# how a vendor billing adapter maps the vendor-neutral export document
+# of contracts/commercial/INVOICE_EXPORT_CONTRACT_V1.yaml onto Stripe
+# objects, entirely adapter-side. The core never imports a vendor SDK
+# and never names a vendor.
+
+metadata:
+  stub: true
+  vendor: stripe
+  name: stripe-reference-billing-stub
+  version: v1
+  optional_batch: TB-22
+  contains_code: false
+  performs_live_calls: false
+  compatibility_entry: adapters/billing/BILLING_ADAPTER_COMPATIBILITY_V1.yaml
+
+# Neutral export document field -> Stripe object field. The left-hand
+# side is exactly the INVOICE_EXPORT_SCHEMA_V1.json vocabulary; the
+# right-hand side exists only in this adapter-scoped file.
+field_mapping:
+  tenant_id: customer.metadata.tenant_id
+  invoice_id: invoice.metadata.invoice_id
+  billing_period:
+    start: invoice.period_start
+    end: invoice.period_end
+  line_items:
+    dimension: invoiceitem.metadata.dimension
+    signal: invoiceitem.metadata.signal
+    quantity: invoiceitem.quantity
+    overage_units: invoiceitem.metadata.overage_units
+  totals:
+    total_units: >-
+      Adapter-side unit_amount computation: total_units times the
+      adapter's configured unit price, with currency assigned from
+      adapter configuration (currency is never present in the core
+      export document).
+
+auth:
+  # Secret REFERENCE resolved through the secrets backend adapters
+  # (adapters/secrets/); never a literal key, never a value in Git.
+  api_key_ref: secretref:billing/stripe-reference/api-key
+  account_ref: secretref:billing/stripe-reference/account-id
+
+non_goals:
+  # Stub scope: mapping declaration only.
+  - no webhooks
+  - no payment collection
+  - no tax logic
+
+compliance:
+  core_contracts_unchanged: true
+  wrap_method: provisioning-api

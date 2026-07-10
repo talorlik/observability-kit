@@ -1,0 +1,219 @@
+{
+  "description": "Seeded rejection samples for the billing adapter boundary (Batch 22 Task 4). Every sample must be REJECTED by INVOICE_EXPORT_CONTRACT_V1.yaml / INVOICE_EXPORT_SCHEMA_V1.json validation or the adapters/billing/ compatibility constraints; a sample that validates cleanly is a validator failure. Samples carry either an 'adapter' payload (an adapter declaration checked against BILLING_ADAPTER_COMPATIBILITY_V1.yaml constraints) or an 'invoice' payload (an export document checked against the schema and contract), so a validator can dispatch on the payload key.",
+  "samples": [
+    {
+      "name": "fork-like-core-mutation",
+      "expected_rejection": "wrap_method 'fork' is a fork-like core mutation; only provisioning-api and sidecar wrap methods are allowed (fail_if_adapter_core_mutation)",
+      "adapter": {
+        "name": "forked-billing-vendor",
+        "mode": "invoice-export-push",
+        "wrap_method": "fork",
+        "supported_profiles": [
+          "prod"
+        ]
+      }
+    },
+    {
+      "name": "adapter-mutates-core-contract",
+      "expected_rejection": "an adapter declaring core_contract_mutations against a core contract path mutates the platform core; core_contracts_unchanged must hold (fail_if_adapter_core_mutation)",
+      "adapter": {
+        "name": "core-mutating-billing-vendor",
+        "mode": "invoice-export-push",
+        "wrap_method": "provisioning-api",
+        "core_contract_mutations": [
+          "contracts/commercial/METERING_CONTRACT_V1.yaml"
+        ],
+        "supported_profiles": [
+          "prod"
+        ]
+      }
+    },
+    {
+      "name": "vendor-field-in-export-document",
+      "expected_rejection": "vendor object fields (stripe_customer_id) in the core export document violate the vendor-neutral boundary; vendor mapping lives under adapters/billing/ only (fail_if_vendor_field_in_export_document; additionalProperties)",
+      "invoice": {
+        "invoice_id": "acme-corp:2026-07-01:2026-08-01",
+        "tenant_id": "acme-corp",
+        "plan_id": "plan-standard",
+        "tier": "standard",
+        "stripe_customer_id": "cus_PLACEHOLDER000000",
+        "billing_period": {
+          "start": "2026-07-01T00:00:00Z",
+          "end": "2026-08-01T00:00:00Z"
+        },
+        "line_items": [
+          {
+            "dimension": "query_volume",
+            "signal": "platform",
+            "quantity": 164982,
+            "unit": "queries",
+            "overage_units": 165,
+            "source_record_count": 31
+          }
+        ],
+        "totals": {
+          "base_monthly_units": 400,
+          "overage_units": 165,
+          "total_units": 565
+        },
+        "generated_at": "2026-08-01T01:10:00Z",
+        "exporter_version": "commercialsvc-0.1.0"
+      }
+    },
+    {
+      "name": "currency-in-core-export-document",
+      "expected_rejection": "a currency field in the core export document violates currency neutrality; currency assignment is adapter-side only (fail_if_currency_in_core_export_document; additionalProperties)",
+      "invoice": {
+        "invoice_id": "acme-corp:2026-07-01:2026-08-01",
+        "tenant_id": "acme-corp",
+        "plan_id": "plan-standard",
+        "tier": "standard",
+        "currency": "USD",
+        "billing_period": {
+          "start": "2026-07-01T00:00:00Z",
+          "end": "2026-08-01T00:00:00Z"
+        },
+        "line_items": [
+          {
+            "dimension": "query_volume",
+            "signal": "platform",
+            "quantity": 164982,
+            "unit": "queries",
+            "overage_units": 165,
+            "source_record_count": 31
+          }
+        ],
+        "totals": {
+          "base_monthly_units": 400,
+          "overage_units": 165,
+          "total_units": 565
+        },
+        "generated_at": "2026-08-01T01:10:00Z",
+        "exporter_version": "commercialsvc-0.1.0"
+      }
+    },
+    {
+      "name": "period-end-not-after-start",
+      "expected_rejection": "billing_period.end must be strictly after billing_period.start (fail_if_period_end_not_after_period_start)",
+      "invoice": {
+        "invoice_id": "acme-corp:2026-08-01:2026-07-01",
+        "tenant_id": "acme-corp",
+        "plan_id": "plan-standard",
+        "tier": "standard",
+        "billing_period": {
+          "start": "2026-08-01T00:00:00Z",
+          "end": "2026-07-01T00:00:00Z"
+        },
+        "line_items": [
+          {
+            "dimension": "query_volume",
+            "signal": "platform",
+            "quantity": 164982,
+            "unit": "queries",
+            "overage_units": 165,
+            "source_record_count": 31
+          }
+        ],
+        "totals": {
+          "base_monthly_units": 400,
+          "overage_units": 165,
+          "total_units": 565
+        },
+        "generated_at": "2026-08-01T01:10:00Z",
+        "exporter_version": "commercialsvc-0.1.0"
+      }
+    },
+    {
+      "name": "totals-inconsistent-with-line-items",
+      "expected_rejection": "totals.overage_units must equal the sum of line_items[].overage_units and totals.total_units must equal base plus overage (fail_if_totals_inconsistent_with_line_items)",
+      "invoice": {
+        "invoice_id": "acme-corp:2026-07-01:2026-08-01",
+        "tenant_id": "acme-corp",
+        "plan_id": "plan-standard",
+        "tier": "standard",
+        "billing_period": {
+          "start": "2026-07-01T00:00:00Z",
+          "end": "2026-08-01T00:00:00Z"
+        },
+        "line_items": [
+          {
+            "dimension": "query_volume",
+            "signal": "platform",
+            "quantity": 164982,
+            "unit": "queries",
+            "overage_units": 165,
+            "source_record_count": 31
+          }
+        ],
+        "totals": {
+          "base_monthly_units": 400,
+          "overage_units": 999,
+          "total_units": 565
+        },
+        "generated_at": "2026-08-01T01:10:00Z",
+        "exporter_version": "commercialsvc-0.1.0"
+      }
+    },
+    {
+      "name": "invoice-missing-tenant-id",
+      "expected_rejection": "an export document without tenant_id is rejected (fail_if_invoice_missing_tenant_id)",
+      "invoice": {
+        "invoice_id": "acme-corp:2026-07-01:2026-08-01",
+        "plan_id": "plan-standard",
+        "tier": "standard",
+        "billing_period": {
+          "start": "2026-07-01T00:00:00Z",
+          "end": "2026-08-01T00:00:00Z"
+        },
+        "line_items": [
+          {
+            "dimension": "query_volume",
+            "signal": "platform",
+            "quantity": 164982,
+            "unit": "queries",
+            "overage_units": 165,
+            "source_record_count": 31
+          }
+        ],
+        "totals": {
+          "base_monthly_units": 400,
+          "overage_units": 165,
+          "total_units": 565
+        },
+        "generated_at": "2026-08-01T01:10:00Z",
+        "exporter_version": "commercialsvc-0.1.0"
+      }
+    },
+    {
+      "name": "line-item-dimension-not-in-metering-contract",
+      "expected_rejection": "line item dimension outside the METERING_CONTRACT_V1.yaml catalog is rejected (fail_if_line_item_dimension_not_in_metering_contract)",
+      "invoice": {
+        "invoice_id": "acme-corp:2026-07-01:2026-08-01",
+        "tenant_id": "acme-corp",
+        "plan_id": "plan-standard",
+        "tier": "standard",
+        "billing_period": {
+          "start": "2026-07-01T00:00:00Z",
+          "end": "2026-08-01T00:00:00Z"
+        },
+        "line_items": [
+          {
+            "dimension": "api_calls",
+            "signal": "platform",
+            "quantity": 100,
+            "unit": "count",
+            "overage_units": 0,
+            "source_record_count": 31
+          }
+        ],
+        "totals": {
+          "base_monthly_units": 400,
+          "overage_units": 0,
+          "total_units": 400
+        },
+        "generated_at": "2026-08-01T01:10:00Z",
+        "exporter_version": "commercialsvc-0.1.0"
+      }
+    }
+  ]
+}
