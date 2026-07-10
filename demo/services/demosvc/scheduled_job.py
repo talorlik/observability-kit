@@ -9,6 +9,7 @@ not a pod failure.
 
 from __future__ import annotations
 
+import http.client
 import json
 import os
 import sys
@@ -50,7 +51,12 @@ def _check(
                 )
                 json.loads(response.read().decode("utf-8"))
                 return 200 <= response.status < 300
-        except (urllib.error.URLError, OSError, ValueError) as exc:
+        except (
+            urllib.error.URLError,
+            http.client.HTTPException,
+            OSError,
+            ValueError,
+        ) as exc:
             span.set_status(False, f"check failed: {exc}")
             telemetry.log(
                 "ERROR",

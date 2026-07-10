@@ -31,8 +31,8 @@ def main(argv: list[str]) -> int:
         from demosvc.datastore import main as entry
     else:
         from demosvc.loadgen import main as entry
-    entry()
-    return 0
+    result = entry()
+    return result if isinstance(result, int) else 0
 
 
 if __name__ == "__main__":

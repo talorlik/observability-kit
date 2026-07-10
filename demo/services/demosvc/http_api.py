@@ -243,10 +243,13 @@ class DemoApiHandler(BaseHTTPRequestHandler):
         self, span: SpanHandle
     ) -> tuple[int, dict[str, object]]:
         payload = self._read_json()
-        order = {
-            "item": str(payload.get("item", "widget")),
-            "quantity": int(payload.get("quantity", 1) or 1),
-        }
+        try:
+            order = {
+                "item": str(payload.get("item", "widget")),
+                "quantity": int(payload.get("quantity", 1) or 1),
+            }
+        except (TypeError, ValueError):
+            return 400, {"error": "invalid order payload"}
         status, response = self._call_datastore(
             "POST", "/orders", order, span
         )

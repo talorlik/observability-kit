@@ -9,6 +9,7 @@ cross-service demo traces read end to end in the trace views.
 
 from __future__ import annotations
 
+import http.client
 import json
 import os
 import random
@@ -104,7 +105,12 @@ def run_once(telemetry: Telemetry, api_url: str) -> int:
         response = _api_request(
             telemetry, api_url, "GET", "/api/queue", None, None
         )
-    except (urllib.error.URLError, OSError, ValueError) as exc:
+    except (
+            urllib.error.URLError,
+            http.client.HTTPException,
+            OSError,
+            ValueError,
+        ) as exc:
         telemetry.counter(
             "demo.worker.processed", 0, {"worker.outcome": "poll-error"}
         )
@@ -131,7 +137,12 @@ def run_once(telemetry: Telemetry, api_url: str) -> int:
                 {"ack": item_ids},
                 None,
             )
-        except (urllib.error.URLError, OSError, ValueError) as exc:
+        except (
+            urllib.error.URLError,
+            http.client.HTTPException,
+            OSError,
+            ValueError,
+        ) as exc:
             telemetry.log(
                 "ERROR", f"queue ack failed: {exc}", {"worker.phase": "ack"}
             )

@@ -234,6 +234,21 @@ def test_histogram_payload_shape() -> None:
     assert sum(int(c) for c in point["bucketCounts"]) == 1
 
 
+def test_histogram_boundary_value_is_upper_inclusive() -> None:
+    # OTLP explicit bounds define upper-inclusive buckets: bucket i
+    # covers (bounds[i-1], bounds[i]], so an observation exactly on a
+    # bound (25.0 ms) belongs to the (10, 25] bucket at index 4.
+    telemetry, capture = _capturing_telemetry("metric-svc")
+    telemetry.histogram("demo.http.server.duration", 25.0, {})
+    telemetry.flush()
+    metrics = capture.payloads("/v1/metrics")[0]["resourceMetrics"][0][
+        "scopeMetrics"
+    ][0]["metrics"]
+    point = metrics[0]["histogram"]["dataPoints"][0]
+    assert point["bucketCounts"][4] == "1"
+    assert sum(int(c) for c in point["bucketCounts"]) == 1
+
+
 def test_export_failure_never_raises() -> None:
     telemetry = Telemetry("crash-svc")
 

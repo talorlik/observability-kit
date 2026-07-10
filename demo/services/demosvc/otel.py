@@ -31,7 +31,7 @@ import threading
 import time
 import urllib.error
 import urllib.request
-from bisect import bisect_right
+from bisect import bisect_left
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Callable, Iterator
@@ -314,7 +314,9 @@ class Telemetry:
         """Delta histogram with explicit latency-oriented bounds."""
         bounds = HISTOGRAM_BOUNDARIES_MS
         bucket_counts = ["0"] * (len(bounds) + 1)
-        bucket_counts[bisect_right(bounds, float(value))] = "1"
+        # OTLP explicit bounds are upper-inclusive: bucket i covers
+        # (bounds[i-1], bounds[i]], so boundary values use bisect_left.
+        bucket_counts[bisect_left(bounds, float(value))] = "1"
         now = str(time.time_ns())
         self._buffer(
             self._metrics,

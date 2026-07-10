@@ -201,8 +201,11 @@ class DatastoreHandler(BaseHTTPRequestHandler):
     ) -> tuple[int, dict[str, object]]:
         if route == "/orders" and method == "POST":
             payload = self._read_json()
-            item = str(payload.get("item", "widget"))
-            quantity = int(payload.get("quantity", 1) or 1)
+            try:
+                item = str(payload.get("item", "widget"))
+                quantity = int(payload.get("quantity", 1) or 1)
+            except (TypeError, ValueError):
+                return 400, {"error": "invalid order payload"}
             order_id = self.store.insert_order(item, quantity, parent)
             return 201, {"order_id": order_id}
         if route == "/orders" and method == "GET":
