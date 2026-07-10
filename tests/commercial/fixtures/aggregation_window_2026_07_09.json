@@ -1,0 +1,67 @@
+{
+  "description": "Committed aggregation-result fixture for the metering collector offline tests (Batch 22 Task 2). One UTC-day window with an active tenant (acme-corp) and a provisioned-but-idle tenant (globex) so all four TR-23 dimensions, including the 0-activity marker, are exercised.",
+  "window": {
+    "day": "2026-07-09"
+  },
+  "ingest": [
+    {
+      "tenant_id": "acme-corp",
+      "signal": "logs",
+      "store_size_bytes": 12400000000,
+      "document_count": 1842211,
+      "indices": [
+        "tenant-acme-corp-logs-2026.07.09"
+      ],
+      "content_digest": "sha256:6b8f4f1d9be1a2c3d4e5f60718293a4b5c6d7e8f9012a3b4c5d6e7f809182a3b"
+    },
+    {
+      "tenant_id": "acme-corp",
+      "signal": "metrics",
+      "store_size_bytes": 3100000000,
+      "document_count": 569773,
+      "indices": [
+        "tenant-acme-corp-metrics-2026.07.09"
+      ]
+    },
+    {
+      "tenant_id": "acme-corp",
+      "signal": "traces",
+      "store_size_bytes": 870000000,
+      "document_count": 120445,
+      "indices": [
+        "tenant-acme-corp-traces-2026.07.09"
+      ]
+    }
+  ],
+  "tenant_descriptors": [
+    {
+      "tenant_id": "acme-corp",
+      "quotas": {
+        "retention": {
+          "logs_days": 30,
+          "metrics_days": 14,
+          "traces_days": 7
+        }
+      }
+    },
+    {
+      "tenant_id": "globex",
+      "quotas": {
+        "retention": {
+          "logs_days": 7,
+          "metrics_days": 7,
+          "traces_days": 3
+        }
+      }
+    }
+  ],
+  "query_volume": [
+    {
+      "tenant_id": "acme-corp",
+      "query_count": 5321,
+      "indices": [
+        "control-tenancy-audit-2026.07.09"
+      ]
+    }
+  ]
+}

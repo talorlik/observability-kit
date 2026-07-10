@@ -1,0 +1,105 @@
+{
+  "description": "Sample tenant-to-plan binding checks for PLAN_CATALOG_V1.yaml (Batch 22 Task 3). Each entry pairs a tenant descriptor fragment (tenant_id, tier, quotas) with the plan_id its tier is bound to and the expected validation result. A validator iterates bindings, resolves plan_id from tier via tier_binding, and asserts quotas fall within that plan's quota_bounds.",
+  "bindings": [
+    {
+      "name": "starter-tenant-within-bounds",
+      "tenant": {
+        "tenant_id": "globex-labs",
+        "tier": "starter",
+        "quotas": {
+          "ingest": {
+            "max_gb_per_day": 10,
+            "max_events_per_second": 200
+          },
+          "retention": {
+            "logs_days": 14,
+            "metrics_days": 7,
+            "traces_days": 7
+          }
+        }
+      },
+      "plan_id": "plan-starter",
+      "expected_result": "accepted"
+    },
+    {
+      "name": "standard-tenant-within-bounds",
+      "tenant": {
+        "tenant_id": "acme-corp",
+        "tier": "standard",
+        "quotas": {
+          "ingest": {
+            "max_gb_per_day": 60,
+            "max_events_per_second": 1000
+          },
+          "retention": {
+            "logs_days": 30,
+            "metrics_days": 21,
+            "traces_days": 14
+          }
+        }
+      },
+      "plan_id": "plan-standard",
+      "expected_result": "accepted"
+    },
+    {
+      "name": "premium-tenant-within-bounds",
+      "tenant": {
+        "tenant_id": "initech-inc",
+        "tier": "premium",
+        "quotas": {
+          "ingest": {
+            "max_gb_per_day": 250,
+            "max_events_per_second": 5000
+          },
+          "retention": {
+            "logs_days": 90,
+            "metrics_days": 60,
+            "traces_days": 45
+          }
+        }
+      },
+      "plan_id": "plan-premium",
+      "expected_result": "accepted"
+    },
+    {
+      "name": "enterprise-tenant-within-bounds",
+      "tenant": {
+        "tenant_id": "hooli-systems",
+        "tier": "enterprise",
+        "quotas": {
+          "ingest": {
+            "max_gb_per_day": 2000,
+            "max_events_per_second": 50000
+          },
+          "retention": {
+            "logs_days": 365,
+            "metrics_days": 365,
+            "traces_days": 180
+          }
+        }
+      },
+      "plan_id": "plan-enterprise",
+      "expected_result": "accepted"
+    },
+    {
+      "name": "standard-tenant-at-exact-bound-edges",
+      "tenant": {
+        "tenant_id": "umbrella-holdings",
+        "tier": "standard",
+        "quotas": {
+          "ingest": {
+            "max_gb_per_day": 100,
+            "max_events_per_second": 2000
+          },
+          "retention": {
+            "logs_days": 30,
+            "metrics_days": 30,
+            "traces_days": 30
+          }
+        }
+      },
+      "plan_id": "plan-standard",
+      "expected_result": "accepted"
+    }
+  ]
+}

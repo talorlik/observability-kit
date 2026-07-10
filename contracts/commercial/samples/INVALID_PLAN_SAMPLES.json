@@ -1,0 +1,258 @@
+{
+  "description": "Seeded rejection samples for PLAN_CATALOG_V1.yaml (Batch 22 Task 3). Every sample must be REJECTED by the plan-catalog compliance rules (contracts/commercial/PLAN_CATALOG_V1.yaml rules.compliance) or by scripts/ci/validate_commercial_contracts.sh; a sample that validates cleanly is a validator failure. Structured self-describingly, like INVALID_USAGE_RECORD_SAMPLES.json, so a validator script can iterate it.",
+  "samples": [
+    {
+      "name": "plan-missing-quota-bounds",
+      "expected_rejection": "fail_if_plan_missing_quota_bounds: a plan with no quota_bounds object is rejected",
+      "payload": {
+        "plan_id": "plan-starter-broken",
+        "display_name": "Starter (broken)",
+        "tier": "starter",
+        "billing": {
+          "pricing_model": "base-plus-overage",
+          "currency_neutral": true,
+          "base_monthly_units": 100
+        },
+        "metered_dimensions": [
+          "ingest_gb_per_day",
+          "retention_days",
+          "active_tenants",
+          "query_volume"
+        ]
+      }
+    },
+    {
+      "name": "plan-tier-outside-tenant-schema-enum",
+      "expected_rejection": "fail_if_plan_tier_not_in_tenant_schema_enum: tier value 'ultimate' is not a member of the enum at contracts/tenancy/TENANT_CONTRACT_SCHEMA_V1.json /properties/tier/enum",
+      "payload": {
+        "plan_id": "plan-ultimate",
+        "display_name": "Ultimate",
+        "tier": "ultimate",
+        "quota_bounds": {
+          "quotas.ingest.max_gb_per_day": {
+            "min": 5000,
+            "max": 10000
+          },
+          "quotas.ingest.max_events_per_second": {
+            "min": 100000,
+            "max": 200000
+          },
+          "quotas.retention.logs_days": {
+            "min": 365,
+            "max": 3650
+          },
+          "quotas.retention.metrics_days": {
+            "min": 365,
+            "max": 3650
+          },
+          "quotas.retention.traces_days": {
+            "min": 365,
+            "max": 3650
+          }
+        },
+        "billing": {
+          "pricing_model": "base-plus-overage",
+          "currency_neutral": true,
+          "base_monthly_units": 8000
+        },
+        "metered_dimensions": [
+          "ingest_gb_per_day",
+          "retention_days",
+          "active_tenants",
+          "query_volume"
+        ]
+      }
+    },
+    {
+      "name": "tenant-quota-exceeds-plan-bound",
+      "expected_rejection": "fail_if_tenant_quota_exceeds_plan_bound: tenant quotas.ingest.max_gb_per_day (150) exceeds plan-starter's quota_bounds max (25) for its bound tier 'starter'",
+      "payload": {
+        "tenant": {
+          "tenant_id": "wonka-industries",
+          "tier": "starter",
+          "quotas": {
+            "ingest": {
+              "max_gb_per_day": 150,
+              "max_events_per_second": 300
+            },
+            "retention": {
+              "logs_days": 14,
+              "metrics_days": 14,
+              "traces_days": 7
+            }
+          }
+        },
+        "plan_id": "plan-starter"
+      }
+    },
+    {
+      "name": "duplicate-tier-binding",
+      "expected_rejection": "fail_if_duplicate_tier_binding: two plans (plan-standard and plan-standard-promo) are both bound to tier 'standard', violating the bijective tier_binding mapping",
+      "payload": {
+        "plans": [
+          {
+            "plan_id": "plan-standard",
+            "display_name": "Standard",
+            "tier": "standard",
+            "quota_bounds": {
+              "quotas.ingest.max_gb_per_day": {
+                "min": 25,
+                "max": 100
+              },
+              "quotas.ingest.max_events_per_second": {
+                "min": 500,
+                "max": 2000
+              },
+              "quotas.retention.logs_days": {
+                "min": 14,
+                "max": 30
+              },
+              "quotas.retention.metrics_days": {
+                "min": 14,
+                "max": 30
+              },
+              "quotas.retention.traces_days": {
+                "min": 7,
+                "max": 30
+              }
+            },
+            "billing": {
+              "pricing_model": "base-plus-overage",
+              "currency_neutral": true,
+              "base_monthly_units": 400
+            },
+            "metered_dimensions": [
+              "ingest_gb_per_day",
+              "retention_days",
+              "active_tenants",
+              "query_volume"
+            ]
+          },
+          {
+            "plan_id": "plan-standard-promo",
+            "display_name": "Standard Promo",
+            "tier": "standard",
+            "quota_bounds": {
+              "quotas.ingest.max_gb_per_day": {
+                "min": 25,
+                "max": 120
+              },
+              "quotas.ingest.max_events_per_second": {
+                "min": 500,
+                "max": 2200
+              },
+              "quotas.retention.logs_days": {
+                "min": 14,
+                "max": 30
+              },
+              "quotas.retention.metrics_days": {
+                "min": 14,
+                "max": 30
+              },
+              "quotas.retention.traces_days": {
+                "min": 7,
+                "max": 30
+              }
+            },
+            "billing": {
+              "pricing_model": "base-plus-overage",
+              "currency_neutral": true,
+              "base_monthly_units": 350
+            },
+            "metered_dimensions": [
+              "ingest_gb_per_day",
+              "retention_days",
+              "active_tenants",
+              "query_volume"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "quota-bound-outside-tenant-schema-range",
+      "expected_rejection": "fail_if_quota_bound_outside_tenant_schema_range: quota_bounds.quotas.retention.logs_days.max (4000) exceeds the tenant schema's retention.logs_days maximum of 3650",
+      "payload": {
+        "plan_id": "plan-enterprise-overreach",
+        "display_name": "Enterprise Overreach",
+        "tier": "enterprise",
+        "quota_bounds": {
+          "quotas.ingest.max_gb_per_day": {
+            "min": 500,
+            "max": 5000
+          },
+          "quotas.ingest.max_events_per_second": {
+            "min": 10000,
+            "max": 100000
+          },
+          "quotas.retention.logs_days": {
+            "min": 90,
+            "max": 4000
+          },
+          "quotas.retention.metrics_days": {
+            "min": 90,
+            "max": 3650
+          },
+          "quotas.retention.traces_days": {
+            "min": 90,
+            "max": 3650
+          }
+        },
+        "billing": {
+          "pricing_model": "base-plus-overage",
+          "currency_neutral": true,
+          "base_monthly_units": 4000
+        },
+        "metered_dimensions": [
+          "ingest_gb_per_day",
+          "retention_days",
+          "active_tenants",
+          "query_volume"
+        ]
+      }
+    },
+    {
+      "name": "metered-dimension-not-in-metering-contract",
+      "expected_rejection": "fail_if_metered_dimension_not_in_metering_contract: dimension 'api_calls' is not present in the dimensions catalog of contracts/commercial/METERING_CONTRACT_V1.yaml",
+      "payload": {
+        "plan_id": "plan-standard-extra-dimension",
+        "display_name": "Standard (extra dimension)",
+        "tier": "standard",
+        "quota_bounds": {
+          "quotas.ingest.max_gb_per_day": {
+            "min": 25,
+            "max": 100
+          },
+          "quotas.ingest.max_events_per_second": {
+            "min": 500,
+            "max": 2000
+          },
+          "quotas.retention.logs_days": {
+            "min": 14,
+            "max": 30
+          },
+          "quotas.retention.metrics_days": {
+            "min": 14,
+            "max": 30
+          },
+          "quotas.retention.traces_days": {
+            "min": 7,
+            "max": 30
+          }
+        },
+        "billing": {
+          "pricing_model": "base-plus-overage",
+          "currency_neutral": true,
+          "base_monthly_units": 400
+        },
+        "metered_dimensions": [
+          "ingest_gb_per_day",
+          "retention_days",
+          "active_tenants",
+          "query_volume",
+          "api_calls"
+        ]
+      }
+    }
+  ]
+}
