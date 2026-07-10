@@ -24,6 +24,10 @@ spec:
       labels:
         app: neo4j
     spec:
+      # Kubelet service links would inject NEO4J_PORT_* env vars from
+      # the neo4j Service, which the image entrypoint misparses as
+      # config settings (strict validation aborts). Disable them.
+      enableServiceLinks: false
       containers:
         - name: neo4j
           image: neo4j:5.26.0-enterprise

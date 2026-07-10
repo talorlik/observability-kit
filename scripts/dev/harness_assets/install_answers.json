@@ -2,7 +2,7 @@
   "cluster_name": "obskit-evidence",
   "environment": "dev",
   "deployment_mode": "attach",
-  "gitops_repo_url": "git://git-server.evidence-gitops.svc.cluster.local/gitops.git",
+  "gitops_repo_url": "https://git-server.evidence-gitops.svc.cluster.local:8443/gitops.git",
   "gitops_path": "gitops",
   "base_domain": "evidence.observability-kit.local",
   "storage_profile": "standard-rwo",

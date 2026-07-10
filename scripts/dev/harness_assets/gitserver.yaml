@@ -1,8 +1,15 @@
-# In-cluster git daemon serving the disposable GitOps clone to
-# Argo CD (ADR-0007). The harness ships the bare repository into the
-# pod with kubectl cp; git daemon serves whatever appears under
-# /repos. Read-only, anonymous, disposable - exactly the lifetime of
-# the evidence cluster.
+# In-cluster git server serving the disposable GitOps clone to
+# Argo CD over HTTPS (ADR-0007). The install contract schema requires
+# an https:// (or git@) gitops_repo_url, so the harness serves the
+# bare repository over TLS with a per-run self-signed certificate
+# (Secret git-server-tls, created by the harness) and registers a
+# declarative Argo CD repository secret with insecure: "true".
+#
+# The server is a Python stdlib static HTTPS server over the bare
+# repo (git "dumb" HTTP protocol; the harness runs
+# `git update-server-info` before shipping the repo with kubectl cp).
+# Read-only, anonymous, disposable - exactly the lifetime of the
+# evidence cluster.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -21,18 +28,33 @@ spec:
         app: git-server
     spec:
       containers:
-        - name: git-daemon
-          image: alpine/git:2.47.2
+        - name: git-https
+          image: python:3.12-alpine
           command:
-            - git
-            - daemon
-            - --base-path=/repos
-            - --export-all
-            - --reuseaddr
-            - --verbose
+            - python3
+            - -c
+            - |
+              import http.server
+              import os
+              import ssl
+
+              os.makedirs("/repos", exist_ok=True)
+              os.chdir("/repos")
+              httpd = http.server.HTTPServer(
+                  ("0.0.0.0", 8443),
+                  http.server.SimpleHTTPRequestHandler,
+              )
+              context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+              context.load_cert_chain(
+                  "/certs/tls.crt", "/certs/tls.key"
+              )
+              httpd.socket = context.wrap_socket(
+                  httpd.socket, server_side=True
+              )
+              httpd.serve_forever()
           ports:
-            - containerPort: 9418
-              name: git
+            - containerPort: 8443
+              name: https
           resources:
             requests:
               cpu: 50m
@@ -43,9 +65,15 @@ spec:
           volumeMounts:
             - name: repos
               mountPath: /repos
+            - name: tls
+              mountPath: /certs
+              readOnly: true
       volumes:
         - name: repos
           emptyDir: {}
+        - name: tls
+          secret:
+            secretName: git-server-tls
 ---
 apiVersion: v1
 kind: Service
@@ -56,6 +84,6 @@ spec:
   selector:
     app: git-server
   ports:
-    - name: git
-      port: 9418
-      targetPort: 9418
+    - name: https
+      port: 8443
+      targetPort: 8443

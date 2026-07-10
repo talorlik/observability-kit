@@ -136,8 +136,14 @@ attached_backend:
         Commercial licensing is a Batch 25 release-gate concern.
       role: tenant-isolation fixture infrastructure only
     - name: git-server
-      image: alpine/git:2.47.2
-      role: in-cluster git daemon serving the disposable GitOps clone
+      image: python:3.12-alpine
+      role: >-
+        In-cluster HTTPS git server (stdlib static server over the
+        bare repo, git dumb protocol, per-run self-signed TLS)
+        serving the disposable GitOps clone; the install contract
+        schema requires an https gitops_repo_url, and Argo CD trusts
+        the per-run certificate through a repository credential with
+        insecure: "true" scoped to this URL.
 
 harness_scoped_pins_note: >-
   Every version above is a harness-scoped pin for reproducible evidence

@@ -75,7 +75,7 @@ ARGOCD_MANIFEST="https://raw.githubusercontent.com/argoproj/argo-cd/v3.1.0/manif
 BACKEND_NS="evidence-backend"
 GITOPS_NS="evidence-gitops"
 PLATFORM_NS="observability"
-GIT_REPO_URL="git://git-server.${GITOPS_NS}.svc.cluster.local/gitops.git"
+GIT_REPO_URL="https://git-server.${GITOPS_NS}.svc.cluster.local:8443/gitops.git"
 PORTAL_PORT=8688
 OPENSEARCH_LOCAL_PORT=19200
 
@@ -249,10 +249,35 @@ PY
   kc apply -f "$ASSETS_DIR/backend-opensearch.yaml"
   kc apply -f "$ASSETS_DIR/backend-neo4j.yaml"
 
-  log "deploying in-cluster git server"
+  log "deploying in-cluster git server (HTTPS, per-run cert)"
   kc create namespace "$GITOPS_NS" --dry-run=client -o yaml \
     | kc apply -f -
+  openssl req -x509 -newkey rsa:2048 -nodes \
+    -keyout "$SCRATCH_DIR/git-server-key.pem" \
+    -out "$SCRATCH_DIR/git-server-cert.pem" -days 2 \
+    -subj "/CN=git-server.${GITOPS_NS}.svc.cluster.local" \
+    >/dev/null 2>&1
+  kc -n "$GITOPS_NS" create secret tls git-server-tls \
+    --cert="$SCRATCH_DIR/git-server-cert.pem" \
+    --key="$SCRATCH_DIR/git-server-key.pem" \
+    --dry-run=client -o yaml | kc apply -f -
   kc apply -f "$ASSETS_DIR/gitserver.yaml"
+  # Declarative Argo CD repository credential: TLS verification off
+  # for the per-run self-signed certificate. Scoped to exactly the
+  # harness repository URL.
+  kc -n argocd apply -f - <<EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: evidence-gitops-repo
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  type: git
+  url: $GIT_REPO_URL
+  insecure: "true"
+EOF
 
   log "waiting for backend rollouts (image pulls may take minutes)"
   wait_rollout "$BACKEND_NS" deployment/opensearch 900s
@@ -408,7 +433,8 @@ publish_gitops_clone() {
   kc -n "$GITOPS_NS" exec "$pod" -- rm -rf /repos/gitops.git
   kc -n "$GITOPS_NS" cp "$bare" "$pod:/repos/gitops.git"
   kc -n "$GITOPS_NS" exec "$pod" -- \
-    git ls-remote git://127.0.0.1/gitops.git HEAD >/dev/null
+    wget -q --no-check-certificate -O /dev/null \
+    https://localhost:8443/gitops.git/info/refs
 }
 
 check_restore_drill() {
