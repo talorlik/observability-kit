@@ -1,0 +1,23 @@
+{
+  "description": "TR-12 meta-monitoring snapshot fixture for the portal health summary tests: one degraded collector signal, a fully healthy backend, and an install-discovery family with one missing reading (unknown).",
+  "snapshot": {
+    "collector": {
+      "queue_depth": "ok",
+      "dropped_telemetry": {
+        "status": "degraded",
+        "detail": "exporter dropping spans above queue capacity"
+      },
+      "retry_failure": "ok"
+    },
+    "backend": {
+      "ingest_errors_lag": "ok",
+      "storage_pressure": {
+        "status": "ok"
+      }
+    },
+    "install_discovery": {
+      "preflight_failure_rate": "ok",
+      "generation_apply_success": "ok"
+    }
+  }
+}

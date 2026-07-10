@@ -49,6 +49,7 @@ the install entrypoint below.
 | 18    | `GUIDED_INSTALLATION_GUIDE.md`                           | Guided installer: wizard, answers files, resume, readiness         |
 | 19    | `UNIFIED_CONFIGURATION_RUNBOOK.md`                       | Executable renderer steps: render, commit, drift, rollback         |
 | 20    | `TENANT_ADMINISTRATION_RUNBOOK.md`                       | Tenant control plane: lifecycle, approvals, purge evidence         |
+| 21    | `MANAGEMENT_PORTAL_GUIDE.md`                             | Management portal: setup, SSO, config editing, tenant views        |
 
 ## Conventions
 

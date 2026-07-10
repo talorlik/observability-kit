@@ -117,6 +117,10 @@
         },
         "neo4j_bloom": {
           "type": "string"
+        },
+        "portal": {
+          "type": "string",
+          "minLength": 1
         }
       },
       "additionalProperties": false

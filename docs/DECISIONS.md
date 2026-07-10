@@ -13,6 +13,51 @@ first. Entry format:
 - Follow-up: <action for a future batch, or "none">
 ```
 
+## 2026-07-10 - Batch 21 - Management Portal Semantics and Gotchas
+
+- Decision: `docs/adr/ADR_0005_MANAGEMENT_PORTAL_STACK.md` fixes the
+  portal as `services/portal/` (package `portalsvc`): stdlib-typed
+  core plus optional FastAPI `[api]` adapter (ADR-0004 posture) and a
+  server-rendered `string.Template` no-JS frontend - no npm, no
+  bundler, no vendored JS.
+- Why: offline CI can neither install nor rebuild a frontend asset
+  bundle; every contract-bearing behavior stays testable with system
+  `python3`, and a richer SPA remains a frontend-layer swap behind
+  the same core and JSON API.
+- Decision: contract-first additions - new
+  `contracts/management/PORTAL_CONTRACT_V1.yaml` (views, api_surface,
+  authentication, fail_if rules) and an additive optional `portal`
+  key in the admin-access profile `endpoints` schema. The portal's
+  five lifecycle routes mirror the control plane's discrete
+  operations (a generic transitions route was rejected in spec review
+  as state-machine forking; `delegates_to` must name real
+  operationIds).
+- Decision: the contract JSON routes accept both raw-JSON and
+  urlencoded form bodies (same routes, same semantics): dotted field
+  names nest (`approval.approver`), empty fields drop (blank approval
+  fieldset yields the contract's `approval-required` denial), and on
+  form posts `actor` is ALWAYS overwritten with the authenticated
+  subject so audit attribution cannot be forged from the browser.
+  JSON API callers may still assert `actor` (Batch 20 API contract
+  semantics).
+- Decision: the Batch 20 caller_scope gap is closed -
+  `tenantctl/api.py` binds `x-portal-tenant` to the service-layer
+  `caller_scope` on every handler. Fail-closed on malformed input on
+  both sides: portal rejects an empty tenant header
+  (NotAuthenticated); tenantctl maps it to a scope matching no
+  tenant.
+- Gotcha: the portal config commit flow mutates the working tree at
+  `repo_root` (persist document, re-render, prepare commit), so it is
+  single-writer per `repo_root`: in-process `threading.Lock`, and the
+  runbook mandates one replica/worker for the commit path (an
+  earlier "scale portal replicas freely" claim was corrected in
+  review).
+- Follow-up: tenantctl should bind the audit `actor` to
+  `x-portal-user` server-side when the header is present, so non-form
+  callers cannot assert an arbitrary actor either - the portal is not
+  the only possible caller. Candidate for Batch 22 alongside its
+  metering/audit work.
+
 ## 2026-07-10 - Batch 20 - Tenant Control Plane Semantics and Gotchas
 
 - Decision: `docs/adr/ADR_0004_TENANT_CONTROL_PLANE_SERVICE.md` fixes

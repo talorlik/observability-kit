@@ -343,6 +343,7 @@ Report outputs:
 - `docs/runbooks/DISCOVERY_EXECUTOR_OPERATOR_GUIDE.md`
 - `docs/runbooks/GUIDED_INSTALLATION_GUIDE.md`
 - `docs/runbooks/TENANT_ADMINISTRATION_RUNBOOK.md`
+- `docs/runbooks/MANAGEMENT_PORTAL_GUIDE.md`
 
 ## Project-Local Snyk Path
 
