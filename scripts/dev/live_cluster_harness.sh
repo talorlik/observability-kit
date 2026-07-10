@@ -428,13 +428,25 @@ publish_gitops_clone() {
   git clone --quiet --bare "$GITOPS_CLONE" "$bare"
   git -C "$bare" update-server-info
   touch "$bare/git-daemon-export-ok"
+  kc -n "$GITOPS_NS" rollout status deployment/git-server \
+    --timeout=180s >/dev/null
   pod="$(kc -n "$GITOPS_NS" get pods -l app=git-server \
+    --field-selector=status.phase=Running \
     -o jsonpath='{.items[0].metadata.name}')"
   kc -n "$GITOPS_NS" exec "$pod" -- rm -rf /repos/gitops.git
   kc -n "$GITOPS_NS" cp "$bare" "$pod:/repos/gitops.git"
-  kc -n "$GITOPS_NS" exec "$pod" -- \
-    wget -q --no-check-certificate -O /dev/null \
-    https://localhost:8443/gitops.git/info/refs
+  local attempt served=false
+  for attempt in $(seq 1 12); do
+    if kc -n "$GITOPS_NS" exec "$pod" -- \
+      wget -q --no-check-certificate -O /dev/null \
+      https://localhost:8443/gitops.git/info/refs; then
+      served=true
+      break
+    fi
+    sleep 5
+  done
+  [[ "$served" == "true" ]] \
+    || die "git server never served the published repository."
 }
 
 check_restore_drill() {
