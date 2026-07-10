@@ -64,12 +64,26 @@ class GitSmartHTTPHandler(http.server.BaseHTTPRequestHandler):
             capture_output=True,
         )
         raw = completed.stdout
-        header_blob, _, payload = raw.partition(b"\r\n\r\n")
+        # CGI header terminator: git http-backend emits LF or CRLF
+        # depending on platform; accept both or the payload is lost.
+        crlf_index = raw.find(b"\r\n\r\n")
+        lf_index = raw.find(b"\n\n")
+        if crlf_index != -1 and (
+            lf_index == -1 or crlf_index <= lf_index
+        ):
+            header_blob = raw[:crlf_index]
+            payload = raw[crlf_index + 4:]
+        elif lf_index != -1:
+            header_blob = raw[:lf_index]
+            payload = raw[lf_index + 2:]
+        else:
+            header_blob = raw
+            payload = b""
         status = 200
         headers: list[tuple[str, str]] = []
         for line in header_blob.decode(
             "latin-1", errors="replace"
-        ).split("\r\n"):
+        ).splitlines():
             if not line.strip():
                 continue
             key, _, value = line.partition(":")
