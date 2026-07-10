@@ -13,6 +13,29 @@ first. Entry format:
 - Follow-up: <action for a future batch, or "none">
 ```
 
+## 2026-07-10 - Batch n/a - Demo Playground Backlog (27)
+
+- Decision: the demo and playground work is authored as Batch 27
+  (`TB-27 | TR-06, TR-15, TR-27`) with the charter in
+  `docs/auxiliary/planning/DEMO_PLAYGROUND_PLAN.md`, six tasks in
+  TASKS.md mapping one-to-one to the operator's needs (sample
+  services, traffic and fault simulation, one-command package,
+  filtered dashboards, AI prompt pack, step-by-step guide), wave plan
+  `[1] -> [2, 3] -> [4, 5] -> [6]`, and rows in both command sheets.
+- Why: the owner asked for demo data, load simulation, dashboards, AI
+  test prompts, and setup instructions under the same methodology as
+  Batches 17-26. Key charter constraints: the package is optional,
+  additive, removable, and never touches core charts or the
+  bootstrap; workloads onboard via the Batch 7 one-block contract and
+  deploy tenant-scoped; workload sourcing and load tooling are
+  ADR-gated (wrap-never-fork); the playground guide joins
+  `docs/product/` so `validate_product_docs.sh` keeps gating the
+  tree; the Batch 27 kick-off prompt says pushing `main` requires
+  explicit owner instruction (the 2026-07-10 push was a one-time
+  authorization).
+- Follow-up: execute via `/run-batch 27` in a fresh session using the
+  kick-off prompt in the plan's section 6.
+
 ## 2026-07-10 - Batch n/a - Main CI Repair After First Push
 
 - Decision: the first push of `main` to the remote surfaced two
