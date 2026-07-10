@@ -1,0 +1,80 @@
+{
+  "description": "Valid usage records covering every metering dimension of METERING_CONTRACT_V1.yaml. Each record validates against USAGE_RECORD_SCHEMA_V1.json and is accepted by the commercialsvc record validator.",
+  "records": [
+    {
+      "record_id": "acme-corp:ingest_gb_per_day:logs:2026-07-09",
+      "tenant_id": "acme-corp",
+      "dimension": "ingest_gb_per_day",
+      "signal": "logs",
+      "value": 12.4,
+      "unit": "gb",
+      "window_start": "2026-07-09T00:00:00Z",
+      "window_end": "2026-07-10T00:00:00Z",
+      "source_reference": {
+        "source_type": "opensearch-aggregation",
+        "indices": [
+          "tenant-acme-corp-logs-2026.07.09"
+        ],
+        "document_count": 1842211,
+        "content_digest": "sha256:6b8f4f1d9be1a2c3d4e5f60718293a4b5c6d7e8f9012a3b4c5d6e7f809182a3b"
+      },
+      "collected_at": "2026-07-10T01:05:00Z",
+      "collector_version": "commercialsvc-0.1.0"
+    },
+    {
+      "record_id": "acme-corp:retention_days:logs:2026-07-09",
+      "tenant_id": "acme-corp",
+      "dimension": "retention_days",
+      "signal": "logs",
+      "value": 30,
+      "unit": "days",
+      "window_start": "2026-07-09T00:00:00Z",
+      "window_end": "2026-07-10T00:00:00Z",
+      "source_reference": {
+        "source_type": "tenant-descriptor",
+        "descriptor_field": "quotas.retention.logs_days"
+      },
+      "collected_at": "2026-07-10T01:05:00Z",
+      "collector_version": "commercialsvc-0.1.0"
+    },
+    {
+      "record_id": "acme-corp:active_tenants:platform:2026-07-09",
+      "tenant_id": "acme-corp",
+      "dimension": "active_tenants",
+      "signal": "platform",
+      "value": 1,
+      "unit": "count",
+      "window_start": "2026-07-09T00:00:00Z",
+      "window_end": "2026-07-10T00:00:00Z",
+      "source_reference": {
+        "source_type": "opensearch-aggregation",
+        "indices": [
+          "tenant-acme-corp-logs-2026.07.09",
+          "tenant-acme-corp-metrics-2026.07.09"
+        ],
+        "document_count": 2411984
+      },
+      "collected_at": "2026-07-10T01:05:00Z",
+      "collector_version": "commercialsvc-0.1.0"
+    },
+    {
+      "record_id": "acme-corp:query_volume:platform:2026-07-09",
+      "tenant_id": "acme-corp",
+      "dimension": "query_volume",
+      "signal": "platform",
+      "value": 5321,
+      "unit": "queries",
+      "window_start": "2026-07-09T00:00:00Z",
+      "window_end": "2026-07-10T00:00:00Z",
+      "source_reference": {
+        "source_type": "opensearch-aggregation",
+        "indices": [
+          "control-tenancy-audit-2026.07.09"
+        ],
+        "document_count": 5321
+      },
+      "collected_at": "2026-07-10T01:05:00Z",
+      "collector_version": "commercialsvc-0.1.0"
+    }
+  ]
+}

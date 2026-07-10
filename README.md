@@ -344,6 +344,7 @@ Report outputs:
 - `docs/runbooks/GUIDED_INSTALLATION_GUIDE.md`
 - `docs/runbooks/TENANT_ADMINISTRATION_RUNBOOK.md`
 - `docs/runbooks/MANAGEMENT_PORTAL_GUIDE.md`
+- `docs/runbooks/COMMERCIAL_OPERATIONS_RUNBOOK.md`
 
 ## Project-Local Snyk Path
 

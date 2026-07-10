@@ -1,0 +1,120 @@
+{
+  "description": "Seeded rejection samples for usage records (Batch 22 Task 5). Every sample must be REJECTED by USAGE_RECORD_SCHEMA_V1.json validation or the commercialsvc record validator; a sample that validates cleanly is a validator failure.",
+  "samples": [
+    {
+      "name": "missing-tenant-id",
+      "expected_rejection": "usage record without tenant_id is rejected (TR-23)",
+      "record": {
+        "record_id": "orphan:ingest_gb_per_day:logs:2026-07-09",
+        "dimension": "ingest_gb_per_day",
+        "signal": "logs",
+        "value": 3.2,
+        "unit": "gb",
+        "window_start": "2026-07-09T00:00:00Z",
+        "window_end": "2026-07-10T00:00:00Z",
+        "source_reference": {
+          "source_type": "opensearch-aggregation",
+          "indices": [
+            "tenant-acme-corp-logs-2026.07.09"
+          ]
+        },
+        "collected_at": "2026-07-10T01:05:00Z",
+        "collector_version": "commercialsvc-0.1.0"
+      }
+    },
+    {
+      "name": "embedded-telemetry-payload",
+      "expected_rejection": "telemetry payload embedded in a control-plane usage record violates TR-16 plane separation (additionalProperties)",
+      "record": {
+        "record_id": "acme-corp:ingest_gb_per_day:logs:2026-07-09",
+        "tenant_id": "acme-corp",
+        "dimension": "ingest_gb_per_day",
+        "signal": "logs",
+        "value": 12.4,
+        "unit": "gb",
+        "window_start": "2026-07-09T00:00:00Z",
+        "window_end": "2026-07-10T00:00:00Z",
+        "source_reference": {
+          "source_type": "opensearch-aggregation",
+          "indices": [
+            "tenant-acme-corp-logs-2026.07.09"
+          ]
+        },
+        "sample_documents": [
+          {
+            "message": "ERROR payment failed for card ending 4242",
+            "level": "error"
+          }
+        ],
+        "collected_at": "2026-07-10T01:05:00Z",
+        "collector_version": "commercialsvc-0.1.0"
+      }
+    },
+    {
+      "name": "unknown-dimension",
+      "expected_rejection": "dimension outside the METERING_CONTRACT_V1.yaml catalog is rejected",
+      "record": {
+        "record_id": "acme-corp:api_calls:platform:2026-07-09",
+        "tenant_id": "acme-corp",
+        "dimension": "api_calls",
+        "signal": "platform",
+        "value": 100,
+        "unit": "count",
+        "window_start": "2026-07-09T00:00:00Z",
+        "window_end": "2026-07-10T00:00:00Z",
+        "source_reference": {
+          "source_type": "opensearch-aggregation",
+          "indices": [
+            "control-tenancy-audit-2026.07.09"
+          ]
+        },
+        "collected_at": "2026-07-10T01:05:00Z",
+        "collector_version": "commercialsvc-0.1.0"
+      }
+    },
+    {
+      "name": "window-end-not-after-start",
+      "expected_rejection": "window_end must be strictly after window_start (contract compliance rule; enforced by the commercialsvc record validator)",
+      "record": {
+        "record_id": "acme-corp:query_volume:platform:2026-07-09",
+        "tenant_id": "acme-corp",
+        "dimension": "query_volume",
+        "signal": "platform",
+        "value": 10,
+        "unit": "queries",
+        "window_start": "2026-07-10T00:00:00Z",
+        "window_end": "2026-07-09T00:00:00Z",
+        "source_reference": {
+          "source_type": "opensearch-aggregation",
+          "indices": [
+            "control-tenancy-audit-2026.07.09"
+          ]
+        },
+        "collected_at": "2026-07-10T01:05:00Z",
+        "collector_version": "commercialsvc-0.1.0"
+      }
+    },
+    {
+      "name": "signal-unit-mismatch",
+      "expected_rejection": "ingest_gb_per_day scoped to signal 'platform' with unit 'queries' violates the dimension binding rules",
+      "record": {
+        "record_id": "acme-corp:ingest_gb_per_day:platform:2026-07-09",
+        "tenant_id": "acme-corp",
+        "dimension": "ingest_gb_per_day",
+        "signal": "platform",
+        "value": 12.4,
+        "unit": "queries",
+        "window_start": "2026-07-09T00:00:00Z",
+        "window_end": "2026-07-10T00:00:00Z",
+        "source_reference": {
+          "source_type": "opensearch-aggregation",
+          "indices": [
+            "tenant-acme-corp-logs-2026.07.09"
+          ]
+        },
+        "collected_at": "2026-07-10T01:05:00Z",
+        "collector_version": "commercialsvc-0.1.0"
+      }
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+# Dependency manifest for the commercial metering collector (Batch 22,
+# TR-23, ADR-0006). This package owns its dependencies; nothing here is
+# ever added to requirements-ci.txt, which stays lint-only - the same
+# posture ADR-0001 fixed for tools/obskit and ADR-0004/ADR-0005 reuse
+# for tenantctl and portalsvc.
+#
+# The core is standard-library-only: the metering query surface needed
+# against OpenSearch (aggregations, _stats, _bulk) is small enough for
+# stdlib urllib, so there is no mandatory third-party dependency and no
+# optional extra (ADR-0006 rejected a third-party OpenSearch client).
+# Offline CI imports the package with system python3 alone.
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "obskit-commercialsvc"
+version = "0.1.0"
+description = "Observability Kit commercial metering collector"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+obskit-metering = "commercialsvc.metering:main"
+
+[tool.setuptools.packages.find]
+include = ["commercialsvc*"]
+
+[tool.setuptools.package-data]
+commercialsvc = ["py.typed"]

@@ -1,0 +1,280 @@
+{
+  "metadata": {
+    "contract": "plan-catalog",
+    "version": "v1",
+    "batch": "TB-22",
+    "owner": "platform-commercial",
+    "technical_requirements": [
+      "TR-23",
+      "TR-16"
+    ],
+    "decided_by": "docs/adr/ADR_0006_METERING_ARCHITECTURE.md",
+    "validated_by": "scripts/ci/validate_commercial_contracts.sh",
+    "related_contracts": [
+      "contracts/commercial/METERING_CONTRACT_V1.yaml",
+      "contracts/commercial/USAGE_RECORD_SCHEMA_V1.json",
+      "contracts/tenancy/TENANT_CONTRACT_SCHEMA_V1.json"
+    ]
+  },
+  "tier_binding": {
+    "source_of_truth": "contracts/tenancy/TENANT_CONTRACT_SCHEMA_V1.json",
+    "source_pointer": "/properties/tier/enum",
+    "mapping_shape": "bijective",
+    "mapping_rule": "Each plan.tier value must appear in the source enum exactly once across the whole plans list; a tier absent from a plan, or bound to more than one plan, is a contract violation."
+  },
+  "plans": [
+    {
+      "plan_id": "plan-starter",
+      "display_name": "Starter",
+      "tier": "starter",
+      "quota_bounds": {
+        "quotas.ingest.max_gb_per_day": {
+          "min": 1,
+          "max": 25
+        },
+        "quotas.ingest.max_events_per_second": {
+          "min": 1,
+          "max": 500
+        },
+        "quotas.retention.logs_days": {
+          "min": 1,
+          "max": 14
+        },
+        "quotas.retention.metrics_days": {
+          "min": 1,
+          "max": 14
+        },
+        "quotas.retention.traces_days": {
+          "min": 1,
+          "max": 7
+        }
+      },
+      "billing": {
+        "pricing_model": "base-plus-overage",
+        "currency_neutral": true,
+        "base_monthly_units": 100,
+        "overage": {
+          "ingest_gb_per_day": {
+            "unit": "units-per-gb-over-bound",
+            "rate_units": 2
+          },
+          "retention_days": {
+            "unit": "units-per-signal-day-over-bound",
+            "rate_units": 1
+          },
+          "active_tenants": {
+            "unit": "units-per-active-tenant-day",
+            "rate_units": 0
+          },
+          "query_volume": {
+            "unit": "units-per-1000-queries-over-bound",
+            "rate_units": 1
+          }
+        }
+      },
+      "metered_dimensions": [
+        "ingest_gb_per_day",
+        "retention_days",
+        "active_tenants",
+        "query_volume"
+      ]
+    },
+    {
+      "plan_id": "plan-standard",
+      "display_name": "Standard",
+      "tier": "standard",
+      "quota_bounds": {
+        "quotas.ingest.max_gb_per_day": {
+          "min": 25,
+          "max": 100
+        },
+        "quotas.ingest.max_events_per_second": {
+          "min": 500,
+          "max": 2000
+        },
+        "quotas.retention.logs_days": {
+          "min": 14,
+          "max": 30
+        },
+        "quotas.retention.metrics_days": {
+          "min": 14,
+          "max": 30
+        },
+        "quotas.retention.traces_days": {
+          "min": 7,
+          "max": 30
+        }
+      },
+      "billing": {
+        "pricing_model": "base-plus-overage",
+        "currency_neutral": true,
+        "base_monthly_units": 400,
+        "overage": {
+          "ingest_gb_per_day": {
+            "unit": "units-per-gb-over-bound",
+            "rate_units": 2
+          },
+          "retention_days": {
+            "unit": "units-per-signal-day-over-bound",
+            "rate_units": 1
+          },
+          "active_tenants": {
+            "unit": "units-per-active-tenant-day",
+            "rate_units": 0
+          },
+          "query_volume": {
+            "unit": "units-per-1000-queries-over-bound",
+            "rate_units": 1
+          }
+        }
+      },
+      "metered_dimensions": [
+        "ingest_gb_per_day",
+        "retention_days",
+        "active_tenants",
+        "query_volume"
+      ]
+    },
+    {
+      "plan_id": "plan-premium",
+      "display_name": "Premium",
+      "tier": "premium",
+      "quota_bounds": {
+        "quotas.ingest.max_gb_per_day": {
+          "min": 100,
+          "max": 500
+        },
+        "quotas.ingest.max_events_per_second": {
+          "min": 2000,
+          "max": 10000
+        },
+        "quotas.retention.logs_days": {
+          "min": 30,
+          "max": 90
+        },
+        "quotas.retention.metrics_days": {
+          "min": 30,
+          "max": 90
+        },
+        "quotas.retention.traces_days": {
+          "min": 30,
+          "max": 90
+        }
+      },
+      "billing": {
+        "pricing_model": "base-plus-overage",
+        "currency_neutral": true,
+        "base_monthly_units": 1200,
+        "overage": {
+          "ingest_gb_per_day": {
+            "unit": "units-per-gb-over-bound",
+            "rate_units": 1
+          },
+          "retention_days": {
+            "unit": "units-per-signal-day-over-bound",
+            "rate_units": 1
+          },
+          "active_tenants": {
+            "unit": "units-per-active-tenant-day",
+            "rate_units": 0
+          },
+          "query_volume": {
+            "unit": "units-per-1000-queries-over-bound",
+            "rate_units": 1
+          }
+        }
+      },
+      "metered_dimensions": [
+        "ingest_gb_per_day",
+        "retention_days",
+        "active_tenants",
+        "query_volume"
+      ]
+    },
+    {
+      "plan_id": "plan-enterprise",
+      "display_name": "Enterprise",
+      "tier": "enterprise",
+      "quota_bounds": {
+        "quotas.ingest.max_gb_per_day": {
+          "min": 500,
+          "max": 5000
+        },
+        "quotas.ingest.max_events_per_second": {
+          "min": 10000,
+          "max": 100000
+        },
+        "quotas.retention.logs_days": {
+          "min": 90,
+          "max": 3650
+        },
+        "quotas.retention.metrics_days": {
+          "min": 90,
+          "max": 3650
+        },
+        "quotas.retention.traces_days": {
+          "min": 90,
+          "max": 3650
+        }
+      },
+      "billing": {
+        "pricing_model": "base-plus-overage",
+        "currency_neutral": true,
+        "base_monthly_units": 4000,
+        "overage": {
+          "ingest_gb_per_day": {
+            "unit": "units-per-gb-over-bound",
+            "rate_units": 1
+          },
+          "retention_days": {
+            "unit": "units-per-signal-day-over-bound",
+            "rate_units": 1
+          },
+          "active_tenants": {
+            "unit": "units-per-active-tenant-day",
+            "rate_units": 0
+          },
+          "query_volume": {
+            "unit": "units-per-1000-queries-over-bound",
+            "rate_units": 1
+          }
+        }
+      },
+      "metered_dimensions": [
+        "ingest_gb_per_day",
+        "retention_days",
+        "active_tenants",
+        "query_volume"
+      ]
+    }
+  ],
+  "rules": {
+    "compliance": {
+      "fail_if_plan_missing_quota_bounds": {
+        "severity": "error",
+        "description": "A plan without a quota_bounds object, or with an empty quota_bounds object, is rejected. Every plan must bound all five tenant quota fields."
+      },
+      "fail_if_plan_tier_not_in_tenant_schema_enum": {
+        "severity": "error",
+        "description": "A plan whose tier value is not a member of the enum at tier_binding.source_pointer in contracts/tenancy/TENANT_CONTRACT_SCHEMA_V1.json is rejected."
+      },
+      "fail_if_duplicate_tier_binding": {
+        "severity": "error",
+        "description": "Two or more plans bound to the same tier value is rejected; the mapping from tier to plan must be one-to-one (tier_binding.mapping_shape: bijective)."
+      },
+      "fail_if_quota_bound_outside_tenant_schema_range": {
+        "severity": "error",
+        "description": "A quota_bounds entry whose min or max falls outside the corresponding field's range in contracts/tenancy/TENANT_CONTRACT_SCHEMA_V1.json (ingest fields: exclusiveMinimum 0 / integer >= 1; retention fields: integer 1..3650) is rejected."
+      },
+      "fail_if_tenant_quota_exceeds_plan_bound": {
+        "severity": "error",
+        "description": "A tenant descriptor whose quotas value for any of the five bound fields falls outside the [min, max] range of the plan bound to the tenant's tier fails validation. Enforcement of an existing breach is a lifecycle action executed through the Batch 20 control plane, per contracts/commercial/METERING_CONTRACT_V1.yaml quota_breach_handling; this rule governs admission-time validation of the descriptor against its plan."
+      },
+      "fail_if_metered_dimension_not_in_metering_contract": {
+        "severity": "error",
+        "description": "A plan's metered_dimensions list containing a dimension id not present in the dimensions catalog of contracts/commercial/METERING_CONTRACT_V1.yaml is rejected."
+      }
+    },
+    "schema_versioning": "This contract is versioned via the _V1 filename suffix per contracts/CONTRACTS_NAMING_CONVENTION.md. Breaking changes to the tier-binding shape, the quota_bounds field set, or the compliance rules require a new PLAN_CATALOG_V<N>.yaml plus documented migration notes before release. Never rename this file."
+  }
+}

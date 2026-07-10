@@ -1,0 +1,248 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observability-kit.local/contracts/commercial/invoice-export/v1",
+  "title": "Invoice Export Document",
+  "description": "One vendor-neutral invoice export document for one tenant and one billing period (TR-23), derived from validated usage records and the plan catalog. The document is currency-neutral: totals are expressed in plan units, and currency assignment is adapter-side only (INVOICE_EXPORT_CONTRACT_V1.yaml adapter_boundary). A document without tenant_id is rejected.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "invoice_id",
+    "tenant_id",
+    "plan_id",
+    "tier",
+    "billing_period",
+    "line_items",
+    "totals",
+    "generated_at",
+    "exporter_version"
+  ],
+  "properties": {
+    "invoice_id": {
+      "type": "string",
+      "description": "Deterministic identifier <tenant_id>:<period_start YYYY-MM-DD>:<period_end YYYY-MM-DD> so re-export of the same tenant and period is idempotent.",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "tenant_id": {
+      "type": "string",
+      "description": "Tenant attribution, mandatory on every export document. Same slug rules as contracts/tenancy/TENANT_CONTRACT_SCHEMA_V1.json.",
+      "pattern": "^[a-z0-9]([a-z0-9-]{0,30}[a-z0-9])?$"
+    },
+    "plan_id": {
+      "type": "string",
+      "description": "The plan catalog plan the invoice was priced against.",
+      "minLength": 1
+    },
+    "tier": {
+      "type": "string",
+      "description": "Tenant tier the plan is bound to, verbatim from the tenant contract schema enum.",
+      "enum": [
+        "starter",
+        "standard",
+        "premium",
+        "enterprise"
+      ]
+    },
+    "billing_period": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start",
+        "end"
+      ],
+      "properties": {
+        "start": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$"
+        },
+        "end": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$"
+        }
+      }
+    },
+    "line_items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "dimension",
+          "signal",
+          "quantity",
+          "unit",
+          "overage_units",
+          "source_record_count"
+        ],
+        "properties": {
+          "dimension": {
+            "type": "string",
+            "enum": [
+              "ingest_gb_per_day",
+              "retention_days",
+              "active_tenants",
+              "query_volume"
+            ]
+          },
+          "signal": {
+            "type": "string",
+            "description": "Signal scope for signal-scoped dimensions; the literal 'platform' for tenant-level dimensions (active_tenants, query_volume).",
+            "enum": [
+              "logs",
+              "metrics",
+              "traces",
+              "platform"
+            ]
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Aggregated metered quantity over the period; for active_tenants, the count of active (value 1) days.",
+            "minimum": 0
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "gb",
+              "days",
+              "count",
+              "queries"
+            ]
+          },
+          "overage_units": {
+            "type": "number",
+            "description": "Currency-neutral overage charge per INVOICE_EXPORT_CONTRACT_V1.yaml overage_semantics.",
+            "minimum": 0
+          },
+          "source_record_count": {
+            "type": "integer",
+            "description": "Number of usage records aggregated into this line item.",
+            "minimum": 1
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "dimension": {
+                  "const": "ingest_gb_per_day"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "signal": {
+                  "enum": [
+                    "logs",
+                    "metrics",
+                    "traces"
+                  ]
+                },
+                "unit": {
+                  "const": "gb"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "dimension": {
+                  "const": "retention_days"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "signal": {
+                  "enum": [
+                    "logs",
+                    "metrics",
+                    "traces"
+                  ]
+                },
+                "unit": {
+                  "const": "days"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "dimension": {
+                  "const": "active_tenants"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "signal": {
+                  "const": "platform"
+                },
+                "unit": {
+                  "const": "count"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "dimension": {
+                  "const": "query_volume"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "signal": {
+                  "const": "platform"
+                },
+                "unit": {
+                  "const": "queries"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "totals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base_monthly_units",
+        "overage_units",
+        "total_units"
+      ],
+      "properties": {
+        "base_monthly_units": {
+          "type": "number",
+          "minimum": 0
+        },
+        "overage_units": {
+          "type": "number",
+          "description": "Must equal the sum of line_items[].overage_units (fail_if_totals_inconsistent_with_line_items).",
+          "minimum": 0
+        },
+        "total_units": {
+          "type": "number",
+          "description": "Must equal base_monthly_units + overage_units.",
+          "minimum": 0
+        }
+      }
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$"
+    },
+    "exporter_version": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
