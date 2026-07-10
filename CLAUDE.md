@@ -85,7 +85,7 @@ bash scripts/ci/check_no_hardcoded_env_values.sh
 bash scripts/ci/validate_all_batches_with_report.sh
 # Reports written to docs/reports/validation/
 # Covers every batch registered in its BATCH_IDS array (currently
-# 1-9A, 10-21; new batches register themselves when implemented).
+# 1-9A, 10-22; new batches register themselves when implemented).
 ```
 
 ### Running a Single Batch
@@ -115,6 +115,7 @@ bash scripts/ci/validate_guided_installer.sh           # Batch 18
 bash scripts/ci/validate_config_renderer.sh            # Batch 19
 bash scripts/ci/validate_tenant_control_plane.sh      # Batch 20
 bash scripts/ci/validate_portal_contracts.sh          # Batch 21
+bash scripts/ci/validate_commercial_contracts.sh      # Batch 22
 ```
 
 Batch 17 delivers the `obskit` executor runtime under `tools/obskit/`
@@ -168,8 +169,23 @@ TR-12 health summary. Its scope is fixed by
 access plane profile (which gains an optional `endpoints.portal`
 key). Offline tests live in `tests/portal/`.
 
-Batches 22-26 (SaaS productization:
-billing, live-cluster validation, AI activation, release
+Batch 22 adds the commercial layer (ADR-0006): usage metering derived
+from telemetry already in OpenSearch (no new collection path) via the
+`commercialsvc` collector job under `services/commercial/` (typed,
+stdlib-only, own `pyproject.toml`, never added to
+`requirements-ci.txt`), writing per-tenant usage records to
+control-plane `control-tenancy-usage-v1-*` indices per the TR-16
+plane separation. Contracts live in `contracts/commercial/` (metering
+contract, usage record schema, plan catalog bound bijectively to the
+tenant `tier` enum with quota bounds, vendor-neutral invoice export
+contract and schema); the billing adapter boundary is
+`adapters/billing/` (house pattern, Stripe reference stub,
+`file-export` fallback; fork wrap method rejected). Offline tests
+live in `tests/commercial/`; the runbook is
+`docs/runbooks/COMMERCIAL_OPERATIONS_RUNBOOK.md`.
+
+Batches 23-26 (SaaS productization:
+live-cluster validation, AI activation, release
 engineering, product docs) are authored in `TASKS.md` but not yet
 implemented. Their plan is
 `docs/auxiliary/planning/SAAS_PRODUCTIZATION_PLAN.md`; execute them via
@@ -378,7 +394,7 @@ adapter and neutrality contracts pass. Run them (or the all-batches report)
 before trusting adapter/neutrality changes.
 
 `scripts/ci/validate_all_batches_with_report.sh` runs every batch smoke
-wrapper (currently 1-9, 9A, and 10-21) and writes a
+wrapper (currently 1-9, 9A, and 10-22) and writes a
 markdown + JSON report under `docs/reports/validation/`. It is intended for
 developer / QA use and is not part of the CI workflow itself.
 
