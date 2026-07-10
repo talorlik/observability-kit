@@ -1012,8 +1012,9 @@ commercial distribution.
 
 1. Publish the release engineering ADR and release contract.
    - Dependencies: Batch 23.
-   - Completion check: `docs/adr/ADR_0009_RELEASE_ENGINEERING.md`
-     records the decision;
+   - Completion check: `docs/adr/ADR_0010_RELEASE_ENGINEERING.md`
+     (renumbered from 0009, which Batch 24 consumed) records the
+     decision;
      `contracts/release/RELEASE_ENGINEERING_CONTRACT_V1.yaml` fixes
      semver versioning, the `CHANGELOG.md` convention, tag-driven
      releases, the packaged Helm chart and OCI artifact publication

@@ -1,0 +1,44 @@
+{
+  "description": "Seeded rejection fixture: a production install profile enabling a wrapped system whose version_pin.status is to-be-pinned. Pinned to rejection rule fail_if_production_pin_missing of contracts/management/WRAPPED_SYSTEM_REGISTRY_V1.yaml (release gate pins-concrete of contracts/release/RELEASE_ENGINEERING_CONTRACT_V1.yaml).",
+  "expected_rejection_rule": "fail_if_production_pin_missing",
+  "install_profile": {
+    "profile": "prod",
+    "environment": "production",
+    "enabled_systems": [
+      "opensearch",
+      "opensearch-dashboards",
+      "argocd",
+      "grafana"
+    ]
+  },
+  "registry_systems": [
+    {
+      "system": "opensearch",
+      "version_pin": {
+        "value": "2.19.1",
+        "status": "pinned"
+      }
+    },
+    {
+      "system": "opensearch-dashboards",
+      "version_pin": {
+        "value": "2.19.1",
+        "status": "pinned"
+      }
+    },
+    {
+      "system": "argocd",
+      "version_pin": {
+        "value": "v3.1.0",
+        "status": "pinned"
+      }
+    },
+    {
+      "system": "grafana",
+      "version_pin": {
+        "value": "TO_BE_PINNED_BEFORE_RELEASE",
+        "status": "to-be-pinned"
+      }
+    }
+  ]
+}

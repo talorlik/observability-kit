@@ -195,14 +195,16 @@ systems:
         provider-managed deployment substitutes the provider's engine
         as the upstream source.
     version_pin:
-      value: TO_BE_PINNED
-      status: to-be-pinned
-      pinned_in: null
+      value: "2.19.1"
+      status: pinned
+      pinned_in: scripts/dev/harness_assets/backend-opensearch.yaml
       note: >-
-        The repository does not pin an OpenSearch engine or chart
-        version because the deployment is pluggable. Production
-        profiles must replace this placeholder with a concrete pin;
-        see policy rule fail_if_production_pin_missing.
+        Pin converges on the version the Batch 23 disposable harness
+        installs and proves (opensearchproject/opensearch:2.19.1), per
+        ADR-0010. Verified against upstream: GitHub release tag 2.19.1
+        of opensearch-project/OpenSearch, published 2025-02-27.
+        Bumping this pin requires a fresh harness evidence run per the
+        release contract.
     upgrade_mechanism: helm-chart-upgrade
     upgrade_notes: >-
       Self-managed deployments upgrade by bumping the pinned upstream
@@ -234,13 +236,17 @@ systems:
         Deployed alongside the selected OpenSearch backend; unmodified
         upstream chart or the provider-managed Dashboards endpoint.
     version_pin:
-      value: TO_BE_PINNED
-      status: to-be-pinned
-      pinned_in: null
+      value: "2.19.1"
+      status: pinned
+      pinned_in: scripts/dev/harness_assets/backend-opensearch.yaml
       note: >-
-        Follows the OpenSearch deployment choice; Dashboards must match
-        the engine version. Production profiles require a concrete pin
-        per fail_if_production_pin_missing.
+        Matches the pinned OpenSearch engine version; the Batch 23
+        disposable harness installs and proves
+        opensearchproject/opensearch-dashboards:2.19.1, per ADR-0010.
+        Verified against upstream: GitHub release tag 2.19.1 of
+        opensearch-project/OpenSearch-Dashboards, published 2025-03-02.
+        Bumping this pin requires a fresh harness evidence run per the
+        release contract.
     upgrade_mechanism: helm-chart-upgrade
     config_surface:
       - surface: saved-object dashboards
@@ -346,13 +352,16 @@ systems:
         install Argo CD themselves; upstream install manifests from the
         argoproj/argo-cd project are an equivalent path.
     version_pin:
-      value: TO_BE_PINNED
-      status: to-be-pinned
-      pinned_in: null
+      value: "v3.1.0"
+      status: pinned
+      pinned_in: scripts/dev/live_cluster_harness.sh
       note: >-
-        The repository does not install Argo CD, so no pin exists here.
-        Production profiles must record the concrete Argo CD version in
-        use; see policy rule fail_if_production_pin_missing.
+        Pin converges on the version the Batch 23 disposable harness
+        installs and proves (ARGOCD_MANIFEST, the upstream install
+        manifest at v3.1.0), per ADR-0010. Verified against upstream:
+        GitHub release tag v3.1.0 of argoproj/argo-cd, published
+        2025-08-13. Bumping this pin requires a fresh harness evidence
+        run per the release contract.
     upgrade_mechanism: helm-chart-upgrade
     config_surface:
       - surface: bootstrap kustomization

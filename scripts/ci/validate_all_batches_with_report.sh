@@ -38,6 +38,7 @@ declare -a BATCH_IDS=(
   "22"
   "23"
   "24"
+  "25"
 )
 
 declare -a BATCH_NAMES=(
@@ -66,6 +67,7 @@ declare -a BATCH_NAMES=(
   "Metering, Billing, and Commercial Operations"
   "Live-Cluster Validation and Evidence"
   "AI/MCP Runtime Activation"
+  "Production Operations and Release Engineering"
 )
 
 declare -a VALIDATION_CRITERIA=(
@@ -94,6 +96,7 @@ declare -a VALIDATION_CRITERIA=(
   "Validate metering contract dimension coverage, control-tenancy index write tests with tenant attribution, plan catalog quota bound checks, billing adapter stub metadata and rollback notes, and seeded rejection fixture behavior."
   "Validate harness contract and ADR coherence with pinned entry point, captured install and readiness evidence chain, live drill and GUI smoke and SDN-B15 denial evidence artifacts, captured-evidence references in validation contracts, and disabled-by-default nightly workflow posture."
   "Validate model-provider adapter stub metadata and secrets-backend key resolution, live KAgent and KHook and MCP gateway deployment evidence, trigger-to-casefile-to-approval rehearsal evidence with policy and redaction and audit intact, signoff record with measured thresholds, structural activation checks without a cluster, and extended AI runbook sections."
+  "Validate release contract semver and changelog and OCI publication rules, concrete registry pins with fail-if rule pass and harness install evidence, N-1 upgrade evidence with data and config survival, platform SLO extension checks, SBOM and image scan and license inventory artifacts, production reference architecture section checks, and seeded unpinned-profile and missing-license rejections."
 )
 
 declare -a SCRIPT_PATHS=(
@@ -122,6 +125,7 @@ declare -a SCRIPT_PATHS=(
   "scripts/ci/validate_batch22_smoke.sh"
   "scripts/ci/validate_batch23_smoke.sh"
   "scripts/ci/validate_batch24_smoke.sh"
+  "scripts/ci/validate_batch25_smoke.sh"
 )
 
 declare -a STATUSES=()

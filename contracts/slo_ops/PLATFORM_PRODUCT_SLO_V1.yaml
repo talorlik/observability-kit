@@ -1,0 +1,405 @@
+# Platform product SLO contract (Batch 25 Task 3, TR-25). Defines the
+# SLOs the SaaS operator commits to for the platform ITSELF as a
+# product - the promises made to paying tenants - productionizing the
+# TR-11 reliability targets so the product is operable as a service.
+#
+# This contract EXTENDS the Batch 9 operator-experience SLO surface:
+# the validation artifacts in contracts/slo_ops/*_VALIDATION.json,
+# the burn-rate and symptom alert rules in
+# gitops/platform/search/dashboards/alerts/slo_burn_rate_rules.ndjson,
+# and the platform health signals in
+# gitops/platform/search/dashboards/alerts/platform_health_rules.ndjson.
+# It reuses that surface's SLI naming style, query conventions, alert
+# taxonomy, dashboard taxonomy, and routing channels. It does not
+# redefine, rename, or replace any Batch 9 artifact.
+#
+# Decided by docs/adr/ADR_0010_RELEASE_ENGINEERING.md.
+
+metadata:
+  contract: platform-product-slo
+  version: v1
+  batch: TB-25
+  owner: platform-observability
+  technical_requirements:
+    - TR-11
+    - TR-12
+    - TR-25
+  decided_by: docs/adr/ADR_0010_RELEASE_ENGINEERING.md
+  validated_by: scripts/ci/validate_release_engineering.sh
+  runbook: docs/runbooks/PRODUCTION_RELEASE_GATE_RUNBOOK.md
+  related_contracts:
+    - contracts/release/RELEASE_ENGINEERING_CONTRACT_V1.yaml
+    - contracts/release/PRODUCTION_REFERENCE_ARCHITECTURE_V1.yaml
+    - contracts/tenancy/TENANT_CONTRACT_SCHEMA_V1.json
+    - contracts/tenancy/TENANT_ISOLATION_MATRIX_V1.yaml
+    - contracts/commercial/PLAN_CATALOG_V1.yaml
+    - contracts/evidence/DISPOSABLE_CLUSTER_HARNESS_CONTRACT_V1.yaml
+
+scope:
+  statement: >-
+    This contract covers PRODUCT SLOs: the availability, latency, and
+    isolation promises the SaaS operator makes to paying tenants
+    about the platform itself. It is distinct from, and does not
+    replace, the CUSTOMER WORKLOAD SLO machinery delivered in Batch 9
+    (service-tier SLI queries, per-service SLO targets, and
+    burn-rate alerts such as checkout-api-burn-rate-fast), which the
+    platform provides so tenants can run SLOs for their own services.
+    Customer workload SLOs remain tenant-defined and tenant-owned;
+    the product SLOs below are operator-defined and operator-owned.
+  measured_against: production stack only (see operational_binding)
+  out_of_scope:
+    - customer workload SLOs defined by tenants for their services
+    - the evidence-disposable harness profile (per-run kind cluster)
+    - the dev-persistent developer stack profile
+    - offline validators and CI runs (no serving surface)
+
+# Per-tier targets below bind to the tenant tier enum exactly as the
+# plan catalog does (contracts/commercial/PLAN_CATALOG_V1.yaml
+# tier_binding). The enum is not redefined here.
+tier_binding:
+  source: contracts/tenancy/TENANT_CONTRACT_SCHEMA_V1.json
+  source_pointer: /properties/tier/enum
+  mapping_shape: every-tier-present-exactly-once
+  rule: >-
+    Every targets_by_tier map in the slo_catalog carries exactly the
+    tiers of the source enum (starter, standard, premium,
+    enterprise). A tier missing from a map, or a target for a tier
+    absent from the enum, is a contract violation.
+
+# Alerting reuses the Batch 9 taxonomy unchanged: alert types are
+# burn_rate and symptom, burn-rate alerts come in a fast/slow pair,
+# every alert carries a docs/runbooks/ link, and routing uses the
+# Batch 9 channels (PLATFORM_HEALTH_ALERTS_VALIDATION.json).
+alerting_conventions:
+  taxonomy_source: contracts/slo_ops/BURN_RATE_SYMPTOM_ALERTS_VALIDATION.json
+  rule_store: >-
+    gitops/platform/search/dashboards/alerts/slo_burn_rate_rules.ndjson
+  provisioning_status: >-
+    Declared, not yet provisioned. The per-SLO alert bindings below
+    name the rules this contract requires; the rule definitions land
+    in the rule store with the first production deployment, matching
+    the declared-for-ga status of the SLO targets themselves. A rule
+    named here and absent from the store is a pre-production gap, not
+    a validation failure.
+  alert_types:
+    - burn_rate
+    - symptom
+  burn_rate_windows:
+    fast: 5m
+    slow: 1h
+  alert_name_format: <subject>-burn-rate-<fast|slow>
+  runbook_link_required: true
+  runbook_link_prefix: docs/runbooks/
+  routing_channels:
+    - oncall-platform
+    - slack-platform-alerts
+  dashboard_binding:
+    # Batch 9 dashboard taxonomy: product SLO panels live in the
+    # platform domain (DASHBOARD_TAXONOMY_VALIDATION.json).
+    domain: platform
+    name_prefix: platform-
+    folder: 00-platform-health
+
+# SLI measurement sources name only telemetry that already exists in
+# OpenSearch under the Batch 4-6 index conventions (logs-*,
+# metrics-*, traces-* templates under
+# gitops/platform/search/opensearch/templates/) and the Batch 9
+# meta-monitoring signals. No new collection path is introduced; the
+# OpenTelemetry collector remains the sole collector.
+slo_catalog:
+  - id: slo-product-ingest-availability
+    description: >-
+      Telemetry accepted for ingest is durably written. Measures the
+      write path from collector receivers through the ingest tier to
+      OpenSearch across all three signals.
+    sli:
+      name: ingest_availability_ratio_28d
+      source_indices:
+        - metrics-*
+      signals:
+        - otelcol_receiver_accepted_metric_points
+        - otelcol_receiver_dropped_metric_points
+        - otelcol_exporter_send_failed_requests
+      query: >-
+        sum(rate(otelcol_receiver_accepted[5m])) /
+        (sum(rate(otelcol_receiver_accepted[5m])) +
+        sum(rate(otelcol_receiver_dropped[5m])) +
+        sum(rate(otelcol_exporter_send_failed[5m])))
+    targets_by_tier:
+      starter: 99.5
+      standard: 99.5
+      premium: 99.9
+      enterprise: 99.9
+    error_budget_window: 28d-rolling
+    burn_rate_alerts:
+      fast: platform-ingest-availability-burn-rate-fast
+      slow: platform-ingest-availability-burn-rate-slow
+      runbook: docs/runbooks/OPERATOR_EXPERIENCE_SLO_OPERATIONS_GUIDE.md
+    consequence: >-
+      Fast burn pages oncall-platform. Budget exhaustion triggers the
+      error_budget_policy below, including release freeze.
+
+  - id: slo-product-ingest-latency
+    description: >-
+      End-to-end ingest latency stays within the TR-11 bounds: logs
+      under 60 seconds, metrics under 30 seconds, traces under 60
+      seconds, measured as the share of 5-minute evaluation intervals
+      whose p95 ingest lag is within the per-signal bound.
+    sli:
+      name: ingest_latency_within_target_ratio_28d
+      source_indices:
+        - metrics-*
+      signals:
+        - opensearch_ingest_lag_seconds
+      per_signal_bounds_seconds:
+        logs: 60
+        metrics: 30
+        traces: 60
+      query: >-
+        share of 5m intervals where
+        histogram_quantile(0.95,
+        rate(opensearch_ingest_lag_seconds_bucket[5m])) is within the
+        per-signal bound, evaluated per signal and combined worst-case
+    targets_by_tier:
+      starter: 99.0
+      standard: 99.0
+      premium: 99.5
+      enterprise: 99.5
+    error_budget_window: 28d-rolling
+    burn_rate_alerts:
+      fast: platform-ingest-latency-burn-rate-fast
+      slow: platform-ingest-latency-burn-rate-slow
+      runbook: docs/runbooks/OPERATOR_EXPERIENCE_SLO_OPERATIONS_GUIDE.md
+    consequence: >-
+      Sustained latency breach escalates to capacity review per the
+      TR-11 storage growth and shard strategy review.
+
+  - id: slo-product-query-availability
+    description: >-
+      Tenant queries against stored telemetry succeed: the OpenSearch
+      search path answers within its own health envelope.
+    sli:
+      name: query_availability_ratio_28d
+      source_indices:
+        - metrics-*
+      signals:
+        - opensearch_cluster_health_status
+        - opensearch_search_request_error_ratio
+      query: >-
+        1 - (sum(rate(opensearch_search_requests_failed[5m])) /
+        sum(rate(opensearch_search_requests_total[5m]))), gated red
+        when opensearch_cluster_health_status reports red
+    targets_by_tier:
+      starter: 99.5
+      standard: 99.5
+      premium: 99.9
+      enterprise: 99.9
+    error_budget_window: 28d-rolling
+    burn_rate_alerts:
+      fast: platform-query-availability-burn-rate-fast
+      slow: platform-query-availability-burn-rate-slow
+      runbook: docs/runbooks/OPERATOR_EXPERIENCE_SLO_OPERATIONS_GUIDE.md
+    consequence: >-
+      Fast burn pages oncall-platform; cluster-red gating routes via
+      the Batch 9 backend_cluster_unhealthy platform health alert.
+
+  - id: slo-product-portal-availability
+    description: >-
+      The dashboards UI and the unified management portal serve
+      authenticated requests. Measured from the TR-12 GUI
+      reachability checks and the portal health summary, exported
+      through the OpenTelemetry collector into metrics-*.
+    sli:
+      name: portal_availability_ratio_28d
+      source_indices:
+        - metrics-*
+      signals:
+        - portal_health_check_success
+        - dashboards_http_probe_success
+      query: >-
+        sum(rate(ui_probe_success[5m])) /
+        sum(rate(ui_probe_total[5m])) across the dashboards UI and
+        portal probe series
+    targets_by_tier:
+      starter: 99.0
+      standard: 99.5
+      premium: 99.5
+      enterprise: 99.9
+    error_budget_window: 28d-rolling
+    burn_rate_alerts:
+      fast: platform-portal-availability-burn-rate-fast
+      slow: platform-portal-availability-burn-rate-slow
+      runbook: docs/runbooks/MANAGEMENT_PORTAL_GUIDE.md
+    consequence: >-
+      Portal loss does not degrade ingest or query SLOs; escalation
+      stays within oncall-platform unless coupled with another burn.
+
+  - id: slo-product-control-plane-availability
+    description: >-
+      The tenant control plane API (tenantctl) answers lifecycle and
+      administration requests. Measured from its request telemetry
+      shipped through the OpenTelemetry collector into metrics-*.
+    sli:
+      name: control_plane_availability_ratio_28d
+      source_indices:
+        - metrics-*
+      signals:
+        - tenantctl_http_requests_total
+        - tenantctl_http_requests_failed
+      query: >-
+        1 - (sum(rate(tenantctl_http_requests_failed[5m])) /
+        sum(rate(tenantctl_http_requests_total[5m])))
+    targets_by_tier:
+      starter: 99.0
+      standard: 99.5
+      premium: 99.5
+      enterprise: 99.9
+    error_budget_window: 28d-rolling
+    burn_rate_alerts:
+      fast: platform-control-plane-availability-burn-rate-fast
+      slow: platform-control-plane-availability-burn-rate-slow
+      runbook: docs/runbooks/TENANT_ADMINISTRATION_RUNBOOK.md
+    consequence: >-
+      Control plane loss blocks tenant lifecycle changes but never
+      telemetry flow; escalation follows the tenant administration
+      runbook.
+
+  - id: slo-product-ai-analysis-availability
+    description: >-
+      AI-assisted analysis (MCP gateway and agent runtime) responds
+      to read-path requests. Explicitly DEGRADABLE: the platform is
+      fully usable without it, so its target is lower and its breach
+      never freezes releases on its own.
+    degradable: true
+    sli:
+      name: ai_analysis_availability_ratio_28d
+      source_indices:
+        - metrics-*
+      signals:
+        - mcp_gateway_requests_total
+        - mcp_gateway_requests_failed
+        - kagent_runtime_up
+      query: >-
+        1 - (sum(rate(mcp_gateway_requests_failed[5m])) /
+        sum(rate(mcp_gateway_requests_total[5m]))), gated by
+        kagent_runtime_up
+    targets_by_tier:
+      starter: 95.0
+      standard: 97.0
+      premium: 99.0
+      enterprise: 99.0
+    error_budget_window: 28d-rolling
+    burn_rate_alerts:
+      fast: platform-ai-analysis-availability-burn-rate-fast
+      slow: platform-ai-analysis-availability-burn-rate-slow
+      runbook: docs/runbooks/AI_MCP_LAYER_OPERATOR_GUIDE.md
+    consequence: >-
+      Degradation is announced to tenants; exhaustion triggers an
+      incident review but exempts the release freeze unless a release
+      caused the regression.
+
+  - id: slo-product-tenant-isolation
+    description: >-
+      No tenant ever reads or writes another tenant's data. This is a
+      HARD SLO: the violation budget is zero for every tier. It
+      restates, and never weakens, the isolation guarantees of
+      contracts/tenancy/TENANT_ISOLATION_MATRIX_V1.yaml.
+    hard_slo: true
+    sli:
+      name: tenant_isolation_violation_count_28d
+      source_indices:
+        - logs-*
+      signals:
+        - security_audit_cross_tenant_access_granted
+      query: >-
+        count of audit events in the governance audit stream where a
+        request scoped to one tenant was granted access to another
+        tenant's indices (tenant-<id>-<signal>-* partitioning);
+        expected value is zero
+      continuous_verification: >-
+        The SDN-B15 seeded denial scenarios re-run at every release
+        gate; a seeded denial that unexpectedly succeeds counts as a
+        violation even with no customer impact.
+    targets_by_tier:
+      # Value is the maximum violation count per window, not a
+      # percentage. Zero for every tier; tiers never buy laxer
+      # isolation.
+      starter: 0
+      standard: 0
+      premium: 0
+      enterprise: 0
+    error_budget_window: 28d-rolling
+    burn_rate_alerts:
+      # Burn-rate math is meaningless on a zero budget; the taxonomy
+      # symptom type fires on the first event instead.
+      symptom: platform-tenant-isolation-symptom-violation
+      window: 5m
+      runbook: docs/runbooks/SECURITY_ISOLATION_RESILIENCE_OPERATOR_GUIDE.md
+    consequence: >-
+      Any violation is an immediate highest-severity incident:
+      affected tenants are notified, releases freeze until the
+      root-cause analysis completes, and the incident review is
+      mandatory. No waiver exists for this SLO.
+
+error_budget_policy:
+  budget_definition: >-
+    For each ratio SLO, the error budget is (100 - target) percent of
+    the 28-day rolling window per tier. For the isolation SLO the
+    budget is zero events.
+  on_fast_burn: >-
+    The fast burn-rate alert pages oncall-platform; response follows
+    the alert's runbook link, matching the Batch 9 burn-rate
+    discipline.
+  on_exhaustion:
+    release_freeze: >-
+      Non-emergency releases stop at the release gate defined by
+      contracts/release/RELEASE_ENGINEERING_CONTRACT_V1.yaml and
+      docs/runbooks/PRODUCTION_RELEASE_GATE_RUNBOOK.md until the
+      breached SLO's budget recovers above the resume threshold.
+      Exempt: security fixes and changes that restore the breached
+      SLO. The degradable AI SLO exempts the freeze as stated in its
+      catalog entry.
+    incident_review: >-
+      A blameless incident review is mandatory, following the
+      incident drill conventions of Batch 9
+      (docs/runbooks/INCIDENT_DRILL_RUNBOOK.md); follow-up actions
+      are tracked to closure as in
+      contracts/slo_ops/INCIDENT_DRILL_EVIDENCE_VALIDATION.json.
+    reliability_priority: >-
+      Reliability work outranks feature work for the affected
+      component until the budget recovers.
+  resume_threshold_percent: 25
+  noise_review: >-
+    Every exhaustion event feeds the alert-noise review cycle
+    (contracts/slo_ops/ALERT_NOISE_REDUCTION_VALIDATION.json) so the
+    alert surface improves rather than accretes.
+
+operational_binding:
+  release_gate_review: >-
+    Product SLO compliance is a standing item at every release gate:
+    the gate checklist in
+    docs/runbooks/PRODUCTION_RELEASE_GATE_RUNBOOK.md records current
+    budget state per SLO, and an exhausted budget invokes the
+    error_budget_policy freeze before tagging.
+  measured_on: >-
+    The production stack only: a cluster graded supported against
+    contracts/release/PRODUCTION_REFERENCE_ARCHITECTURE_V1.yaml. The
+    evidence-disposable harness profile and the dev-persistent
+    developer stack
+    (contracts/evidence/DISPOSABLE_CLUSTER_HARNESS_CONTRACT_V1.yaml)
+    are explicitly OUT of SLO scope; nothing measured there counts
+    for or against a budget.
+  reporting: >-
+    Budget state surfaces on the platform-domain dashboards under
+    00-platform-health, alongside the Batch 9 platform health panels.
+
+status:
+  declaration: declared-for-ga
+  measurement_history: >-
+    Targets above are declared ahead of GA. Measurement history
+    begins with the first production deployment of a tagged release;
+    no baseline, compliance figure, or historical attainment exists
+    yet, and none is fabricated here. Until first production data
+    accrues, release gates record the SLO review as
+    "declared, not yet measured".
+  first_review: first production release gate after deployment

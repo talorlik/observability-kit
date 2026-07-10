@@ -1,0 +1,394 @@
+# OSS license compliance contract (Batch 25 Task 4, TB-25, TR-25).
+#
+# Fixes the OSS license compliance review that commercial distribution
+# of the product requires: a license inventory covering every bundled
+# or wrapped system and every product-owned dependency, per-license
+# obligations for each of the product's distribution modes, the
+# attribution file requirement, and the review workflow that keeps the
+# inventory current. The structural validator
+# (scripts/ci/validate_release_engineering.sh) cross-checks the
+# inventory against the wrapped-system registry (no wrapped system may
+# be missing here) and against THIRD_PARTY_NOTICES.md (every inventory
+# entry must be attributed), so drift between reality and this review
+# fails loudly.
+#
+# Decided by docs/adr/ADR_0010_RELEASE_ENGINEERING.md.
+
+metadata:
+  contract: license-compliance
+  version: v1
+  owner: platform-observability
+  technical_requirements:
+    - TR-25
+  decided_by: docs/adr/ADR_0010_RELEASE_ENGINEERING.md
+  validated_by: scripts/ci/validate_release_engineering.sh
+  runbook: docs/runbooks/PRODUCTION_RELEASE_GATE_RUNBOOK.md
+  related_contracts:
+    - contracts/release/RELEASE_ENGINEERING_CONTRACT_V1.yaml
+    - contracts/management/WRAPPED_SYSTEM_REGISTRY_V1.yaml
+    - contracts/tenancy/TENANT_ISOLATION_MATRIX_V1.yaml
+
+distribution_model:
+  summary: >-
+    The product redistributes no upstream software. Wrapped systems are
+    consumed unmodified: the product ships Helm values, Kubernetes
+    manifests, and CRD instances that reference upstream charts and
+    images, and consumer clusters pull those artifacts directly from
+    their upstream sources. The only artifacts the product itself
+    distributes are the platform-core chart, the GitOps trees, the
+    obskit tooling, the contracts and documentation, and product-owned
+    images (obskit-ai-runtime) whose third-party content is limited to
+    the base image and the Python dependencies inventoried below.
+  registry_cross_check: >-
+    Every system listed in
+    contracts/management/WRAPPED_SYSTEM_REGISTRY_V1.yaml must appear in
+    license_inventory below with a matching component id. A wrapped
+    system missing from the inventory is a validation failure, not a
+    warning.
+  modes:
+    - id: referenced-image
+      description: >-
+        The product's manifests reference an unmodified upstream
+        container image by name and pinned version; the consumer
+        cluster pulls it from the upstream registry. The product never
+        rehosts or rebuilds the image.
+    - id: wrapped-chart
+      description: >-
+        The product's GitOps configuration references an unmodified
+        upstream Helm chart (values-only wrap per the wrapped-system
+        registry); chart and images are pulled from upstream sources by
+        the consumer's tooling.
+    - id: vendored-code
+      description: >-
+        The dependency is installed into a product-owned artifact (the
+        obskit-ai-runtime image or an optional extra of a product
+        Python package) and is therefore distributed by the product.
+        Full license obligations for binary redistribution apply.
+    - id: operator-supplied-tool
+      description: >-
+        The tool is required to operate or install the platform but is
+        never shipped by the product; the operator installs and
+        licenses it independently. Recorded for completeness so its
+        terms are reviewed, not because the product distributes it.
+
+license_inventory:
+  # Wrapped systems (must stay in lockstep with the wrapped-system
+  # registry; component ids match registry system ids).
+  - component: opentelemetry-collector
+    registry_system: opentelemetry-collector
+    license: Apache-2.0
+    distribution_mode: referenced-image
+    upstream_source: https://github.com/open-telemetry/opentelemetry-collector
+    obligations:
+      - Attribute in THIRD_PARTY_NOTICES.md with license and source.
+      - Do not remove upstream LICENSE or NOTICE content if the image
+        is ever rehosted (it is not today).
+    compliance_stance: >-
+      Compliant. Unmodified upstream operator and collector images
+      pulled by the consumer cluster; attribution recorded.
+
+  - component: opensearch
+    registry_system: opensearch
+    license: Apache-2.0
+    distribution_mode: wrapped-chart
+    upstream_source: https://github.com/opensearch-project/OpenSearch
+    obligations:
+      - Attribute in THIRD_PARTY_NOTICES.md with license and source.
+      - Preserve upstream trademarks; do not present the wrapped
+        deployment as a modified or forked OpenSearch.
+    compliance_stance: >-
+      Compliant. Values-only wrap of the upstream chart; images pulled
+      from upstream by the consumer cluster.
+
+  - component: opensearch-dashboards
+    registry_system: opensearch-dashboards
+    license: Apache-2.0
+    distribution_mode: wrapped-chart
+    upstream_source: https://github.com/opensearch-project/OpenSearch-Dashboards
+    obligations:
+      - Attribute in THIRD_PARTY_NOTICES.md with license and source.
+    compliance_stance: >-
+      Compliant. Values-only wrap of the upstream chart.
+
+  - component: grafana
+    registry_system: grafana
+    license: AGPL-3.0-only
+    distribution_mode: wrapped-chart
+    upstream_source: https://github.com/grafana/grafana
+    obligations:
+      - AGPL section 13 network copyleft applies to whoever runs
+        Grafana for network users. The product deploys the unmodified
+        upstream image, so the corresponding source is upstream's
+        published source tree for the pinned version; that link must
+        stay in THIRD_PARTY_NOTICES.md.
+      - Any modification to Grafana itself (patched image, forked
+        chart) would obligate publication of the modified source to
+        network users. The wrapped-system registry forbids forks, so
+        this obligation is structurally avoided - it binds again the
+        moment anyone patches the image.
+      - Product-owned code must not link against or derive from
+        Grafana code. Provisioning dashboards and datasources through
+        Grafana's public HTTP API and provisioning file formats is
+        use, not derivation.
+    compliance_stance: >-
+      Compliant with explicit caveats. The AGPL obligations are real
+      and are flagged honestly: unmodified upstream deployment keeps
+      the product outside section 13's source-publication duty, and
+      commercial distributors must not modify Grafana without legal
+      review. Grafana Labs' CLA/relicensing history means the AGPL
+      terms should be re-reviewed on every pin bump.
+
+  - component: neo4j
+    registry_system: neo4j
+    license: GPL-3.0-only
+    distribution_mode: referenced-image
+    upstream_source: https://github.com/neo4j/neo4j
+    obligations:
+      - Community edition is GPL-3.0-only; the product references the
+        unmodified upstream image and distributes no Neo4j code, so
+        GPL source obligations rest with upstream. Product code speaks
+        the Bolt protocol over the network, which is use, not
+        derivation.
+      - Enterprise edition is commercial, not OSS. The tenant
+        isolation matrix (TENANT_ISOLATION_MATRIX_V1.yaml) sets a
+        multi-database isolation floor that only Enterprise provides,
+        so production multi-tenant deployments require a
+        customer-supplied Neo4j Enterprise license. The product never
+        redistributes Enterprise binaries and never embeds an
+        Enterprise license key.
+      - The disposable evidence harness uses the upstream Enterprise
+        evaluation license on disposable clusters only, per its
+        upstream evaluation terms; evaluation use never extends to
+        persistent or production environments.
+    compliance_stance: >-
+      Compliant with a recorded commercial dependency. The
+      customer-supplied Enterprise license is an explicit onboarding
+      obligation for multi-tenant production, documented here and in
+      the attribution file rather than hidden in deployment defaults.
+
+  - component: argocd
+    registry_system: argocd
+    license: Apache-2.0
+    distribution_mode: wrapped-chart
+    upstream_source: https://github.com/argoproj/argo-cd
+    obligations:
+      - Attribute in THIRD_PARTY_NOTICES.md with license and source.
+    compliance_stance: >-
+      Compliant. Values-only wrap of the upstream chart plus product
+      Application/AppProject CRD instances, which are product-owned
+      configuration, not derived works.
+
+  # Bundled-by-reference infrastructure outside the wrapped-system
+  # registry (adapter-scoped or component-scoped, still reviewed).
+  - component: ingress-nginx
+    license: Apache-2.0
+    distribution_mode: wrapped-chart
+    upstream_source: https://github.com/kubernetes/ingress-nginx
+    obligations:
+      - Attribute in THIRD_PARTY_NOTICES.md with license and source.
+    compliance_stance: >-
+      Compliant. Optional network ingress adapter
+      (adapters/network/); referenced upstream chart and image, never
+      rehosted.
+
+  - component: external-secrets
+    license: Apache-2.0
+    distribution_mode: wrapped-chart
+    upstream_source: https://github.com/external-secrets/external-secrets
+    obligations:
+      - Attribute in THIRD_PARTY_NOTICES.md with license and source.
+    compliance_stance: >-
+      Compliant. Optional secrets backend adapter
+      (adapters/secrets/); referenced upstream chart and image.
+
+  - component: postgresql
+    license: PostgreSQL
+    distribution_mode: referenced-image
+    upstream_source: https://www.postgresql.org/
+    obligations:
+      - Retain the PostgreSQL copyright and permission notice in the
+        attribution file. The license is a permissive MIT-style grant
+        with no copyleft.
+    compliance_stance: >-
+      Compliant. Unmodified upstream image backing the
+      KAGENT_PERSISTENCE store (Batch 24); pulled by the consumer
+      cluster, never rebuilt or rehosted.
+
+  # Operator-supplied tooling (reviewed, never distributed).
+  - component: terraform
+    license: BUSL-1.1
+    distribution_mode: operator-supplied-tool
+    upstream_source: https://github.com/hashicorp/terraform
+    obligations:
+      - Terraform 1.6+ is BUSL-1.1 (source-available, not OSI open
+        source). The Additional Use Grant permits production use
+        except hosting a competing product embedding Terraform; using
+        Terraform as the delivery tool for this platform is permitted
+        use.
+      - The product must never bundle, rehost, or redistribute the
+        Terraform binary. Operators install and license their own
+        copy; OpenTofu (MPL-2.0) is a drop-in alternative where BUSL
+        terms are unacceptable.
+    compliance_stance: >-
+      Compliant as operator-supplied tooling only. Recording this
+      entry is what keeps the BUSL boundary explicit for commercial
+      distribution review.
+
+  # Product-owned runtime and tooling dependencies (distributed inside
+  # product artifacts or optional extras of product packages).
+  - component: fastapi
+    license: MIT
+    distribution_mode: vendored-code
+    upstream_source: https://github.com/fastapi/fastapi
+    obligations:
+      - Include the MIT copyright and permission notice via the
+        attribution file when distributed (optional [api] extra of
+        services/tenancy and services/portal).
+    compliance_stance: Compliant. Permissive; attribution recorded.
+
+  - component: uvicorn
+    license: BSD-3-Clause
+    distribution_mode: vendored-code
+    upstream_source: https://github.com/encode/uvicorn
+    obligations:
+      - Retain copyright notice and disclaimer via the attribution
+        file; do not use the Encode name to endorse the product.
+    compliance_stance: Compliant. Permissive; attribution recorded.
+
+  - component: pg8000
+    license: BSD-3-Clause
+    distribution_mode: vendored-code
+    upstream_source: https://github.com/tlocke/pg8000
+    obligations:
+      - Retain copyright notice and disclaimer via the attribution
+        file. pg8000 is installed into the obskit-ai-runtime image
+        ([postgres] extra), so binary-redistribution terms apply to
+        that image.
+    compliance_stance: Compliant. Permissive; attribution recorded.
+
+  - component: pyyaml
+    license: MIT
+    distribution_mode: vendored-code
+    upstream_source: https://github.com/yaml/pyyaml
+    obligations:
+      - Include the MIT notice via the attribution file. PyYAML is
+        used by repository validators and lint tooling
+        (requirements-ci.txt transitively) and ships in no product
+        image today; it is inventoried so that changes to that fact
+        trigger review rather than slip through.
+    compliance_stance: Compliant. Permissive; attribution recorded.
+
+  - component: kubernetes-python-client
+    license: Apache-2.0
+    distribution_mode: vendored-code
+    upstream_source: https://github.com/kubernetes-client/python
+    obligations:
+      - Attribute in THIRD_PARTY_NOTICES.md with license and source
+        (optional [k8s] extra of tools/obskit for live discovery
+        mode).
+    compliance_stance: Compliant. Permissive; attribution recorded.
+
+license_obligations:
+  # What each license in the inventory requires of the product, per
+  # distribution mode. referenced-image and wrapped-chart modes never
+  # redistribute upstream bits, so their duties reduce to attribution
+  # and no-fork discipline; vendored-code distributes, so full binary
+  # redistribution duties apply.
+  - license: Apache-2.0
+    requires:
+      - Attribution with license identification for all modes.
+      - For vendored-code, include the license text and any upstream
+        NOTICE content in the distributed artifact's documentation,
+        and state significant changes (none are made).
+      - No trademark rights granted; upstream names are used only to
+        identify the upstream projects.
+  - license: AGPL-3.0-only
+    requires:
+      - For wrapped-chart deployment of unmodified upstream, provide
+        network users a path to the corresponding source; upstream's
+        published source for the pinned version satisfies this while
+        the no-fork rule holds.
+      - Any modification triggers full source publication to network
+        users; forbidden by the wrapped-system registry without legal
+        review.
+      - Product-owned code must remain non-derivative (API and
+        provisioning-format use only).
+  - license: GPL-3.0-only
+    requires:
+      - No product distribution of the covered code; consumer clusters
+        pull upstream images directly.
+      - Product-owned code interacts only over network protocols
+        (Bolt), staying outside derivation.
+      - Attribution with license identification.
+  - license: MIT
+    requires:
+      - Preserve the copyright and permission notice wherever the
+        substantial portions of the software ship (vendored-code
+        artifacts and the attribution file).
+  - license: BSD-3-Clause
+    requires:
+      - Preserve the copyright notice, conditions list, and disclaimer
+        in binary redistributions (vendored-code artifacts) via the
+        attribution file.
+      - No endorsement use of upstream contributor names.
+  - license: PostgreSQL
+    requires:
+      - Preserve the copyright notice and permission paragraphs in the
+        attribution file; no further conditions (permissive,
+        MIT-style).
+  - license: BUSL-1.1
+    requires:
+      - Respect the Additional Use Grant boundary; never redistribute
+        the covered tool; keep it operator-supplied.
+      - Re-review terms on every major version bump (BUSL parameters
+        can change per release, and each release converts to MPL-2.0
+        on its change date).
+
+attribution:
+  file: THIRD_PARTY_NOTICES.md
+  location: repository-root
+  requirement: >-
+    Every license_inventory entry above must appear in
+    THIRD_PARTY_NOTICES.md with its component name, SPDX license
+    identifier, and upstream source. The file ships with every product
+    distribution (it lives at the repository root and is included in
+    published release records).
+  validator_cross_check: >-
+    scripts/ci/validate_release_engineering.sh cross-checks the
+    inventory against THIRD_PARTY_NOTICES.md in both directions: an
+    inventory entry missing from the attribution file fails
+    validation, and the license-inventory-complete release gate in
+    RELEASE_ENGINEERING_CONTRACT_V1.yaml fails with it.
+
+review_workflow:
+  triggers:
+    - id: new-bundled-system
+      description: >-
+        A system is added to the wrapped-system registry, a new
+        adapter references a new upstream chart or image, or a new
+        dependency lands in any product pyproject.toml or requirements
+        file. The inventory entry must land in the same change.
+    - id: pin-bump
+      description: >-
+        A version_pin bump of any inventoried system. Upstream
+        projects relicense (Grafana and Terraform both have); the bump
+        review confirms the pinned version's license still matches the
+        inventory.
+    - id: upstream-license-change
+      description: >-
+        An upstream relicensing announcement affecting any inventoried
+        component, even without a pin bump, triggers re-review before
+        the next release tag.
+  sign_off:
+    role: platform-observability owner (the release-gate operator)
+    recorded_in: >-
+      The release-gate checklist in
+      docs/runbooks/PRODUCTION_RELEASE_GATE_RUNBOOK.md; each release
+      records that the license-inventory-complete gate was reviewed
+      and by whom.
+  blocking_rule: >-
+    Commercial distribution is blocked while any triggered review is
+    incomplete: the license-inventory-complete gate in the release
+    contract fails, no release tag may be cut, and no artifact may be
+    published until the inventory, obligations, and attribution file
+    are current and signed off.

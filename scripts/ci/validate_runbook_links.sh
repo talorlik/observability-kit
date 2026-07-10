@@ -31,6 +31,7 @@ required_docs=(
   "docs/runbooks/MANAGEMENT_PORTAL_GUIDE.md"
   "docs/runbooks/COMMERCIAL_OPERATIONS_RUNBOOK.md"
   "docs/runbooks/LIVE_VALIDATION_RUNBOOK.md"
+  "docs/runbooks/PRODUCTION_RELEASE_GATE_RUNBOOK.md"
 )
 
 echo "Checking baseline runbook files..."

@@ -1,0 +1,482 @@
+# Production stack reference architecture (Batch 25 Task 7, TB-25,
+# TR-25; plane-separation and drill context TR-11/TR-12).
+#
+# Defines the production-grade stack for any conformant Kubernetes
+# cluster, cloud or on-prem: multi-node HA topology with anti-affinity,
+# sizing tiers mapped to tenant scale, storage and ingress requirements
+# expressed through the Batch 2 compatibility profiles, backup and DR
+# posture, and the mapping to the prod overlay under gitops/overlays/.
+# Production is the third deployment stack role, next to the two local
+# roles fixed by
+# contracts/evidence/DISPOSABLE_CLUSTER_HARNESS_CONTRACT_V1.yaml
+# (dev-persistent, evidence-disposable). A cluster that complies with
+# this document grades `supported` against the existing compatibility
+# matrix; nothing here changes the matrix.
+#
+# The structural validator (scripts/ci/validate_release_engineering.sh)
+# asserts this document's required sections. The Batch 26
+# OPERATIONS_GUIDE.md consumes it as its production deployment source.
+#
+# Decided by docs/adr/ADR_0010_RELEASE_ENGINEERING.md.
+
+metadata:
+  contract: production-reference-architecture
+  version: v1
+  owner: platform-observability
+  technical_requirements:
+    - TR-11
+    - TR-12
+    - TR-25
+  decided_by: docs/adr/ADR_0010_RELEASE_ENGINEERING.md
+  validated_by: scripts/ci/validate_release_engineering.sh
+  related_contracts:
+    - contracts/release/RELEASE_ENGINEERING_CONTRACT_V1.yaml
+    - contracts/compatibility/COMPATIBILITY_MATRIX.json
+    - contracts/compatibility/PROFILE_CATALOG.json
+    - contracts/compatibility/GRADING_RULES.json
+    - contracts/evidence/DISPOSABLE_CLUSTER_HARNESS_CONTRACT_V1.yaml
+    - contracts/tenancy/TENANT_CONTRACT_SCHEMA_V1.json
+    - contracts/tenancy/TENANT_ISOLATION_MATRIX_V1.yaml
+    - contracts/commercial/PLAN_CATALOG_V1.yaml
+
+scope:
+  # Production is a profile of the one product, not a fork of it. The
+  # same guided installer, the same charts, and the same contracts run
+  # on every stack role; production differs only in the overlay and the
+  # profiles selected, never in code path.
+  cluster_class: >-
+    Any CNCF-conformant multi-node Kubernetes cluster, cloud-managed
+    (for example EKS, GKE, AKS) or on-prem (for example kubeadm,
+    OpenShift), that grades `supported` against
+    contracts/compatibility/COMPATIBILITY_MATRIX.json. No
+    provider-specific service is mandatory; provider integrations
+    remain optional adapters under adapters/providers/.
+  install_path: >-
+    Production installs use the same Batch 18 guided installer
+    (obskit install) as every other stack role, with the prod overlay
+    (gitops/overlays/prod/platform-core-values.yaml). The stack
+    differs by profile and overlay, never by code path.
+  stack_role: >-
+    The third deployment stack role. dev-persistent and
+    evidence-disposable are fixed by the disposable cluster harness
+    contract and are never production targets; the evidence harness
+    refuses foreign contexts by construction, so a production cluster
+    is structurally unreachable from local drills.
+  constraints:
+    - OpenTelemetry is the sole collector for logs, metrics, traces.
+    - OpenSearch is the single telemetry and vector store.
+    - Neo4j is a derived graph tier, never a raw telemetry store.
+    - Delivery is Terraform + Helm + ArgoCD GitOps only.
+
+ha_topology:
+  # Multi-node, multi-failure-domain, anti-affine. Node counts here
+  # are floors; sizing_tiers scales them up with tenant load.
+  node_floor:
+    worker_nodes_min: 3
+    failure_domains_min: 3
+    rationale: >-
+      Three worker nodes across three failure domains (zones on cloud,
+      racks or rooms on-prem) is the minimum spread at which every
+      three-replica quorum component (OpenSearch masters, collector
+      gateway, Argo CD HA Redis) survives the loss of one domain.
+  control_plane:
+    managed: >-
+      Provider-managed control planes (EKS, GKE, AKS) satisfy the
+      control-plane HA requirement as delivered; the provider owns
+      etcd quorum and API server redundancy.
+    self_managed: >-
+      Self-managed control planes (kubeadm, OpenShift) require at
+      least three control-plane nodes with stacked or external etcd
+      spread across the same failure domains as the workers.
+  anti_affinity:
+    # Required end state per component. Expression is standard
+    # Kubernetes podAntiAffinity on kubernetes.io/hostname plus
+    # topology spread on topology.kubernetes.io/zone (or the on-prem
+    # failure-domain label the operator designates).
+    default_rule: >-
+      Every multi-replica product component sets requiredDuringScheduling
+      podAntiAffinity on kubernetes.io/hostname and a topologySpreadConstraint
+      on the cluster's failure-domain label with maxSkew 1.
+    components:
+      - name: collector-gateway
+        kind: Deployment
+        replicas_min: 3
+        anti_affinity: required-per-node
+        note: >-
+          The OpenTelemetry gateway is the single ingest funnel; losing
+          it silences telemetry, so it gets the strictest spread. The
+          per-node collector agent is a DaemonSet and needs no
+          anti-affinity by construction.
+      - name: opensearch-self-managed
+        kind: StatefulSet
+        replicas_min: 3
+        anti_affinity: required-per-node
+        note: >-
+          Applies when OpenSearch runs in-cluster (standalone mode):
+          three master-eligible nodes minimum, data nodes per
+          sizing_tiers, index replica count >= 1 so any single node
+          can drain without red indices.
+      - name: opensearch-provider-attached
+        kind: external
+        replicas_min: 0
+        anti_affinity: provider-owned
+        note: >-
+          Applies in attach mode (provider-managed OpenSearch): HA,
+          spread, and quorum are the provider's contract; the operator
+          must select a multi-AZ (or equivalent) offering.
+      - name: opensearch-dashboards
+        kind: Deployment
+        replicas_min: 2
+        anti_affinity: required-per-node
+      - name: grafana
+        kind: Deployment
+        replicas_min: 2
+        anti_affinity: required-per-node
+      - name: neo4j
+        kind: StatefulSet
+        replicas_min: 1
+        anti_affinity: preferred-per-node
+        note: >-
+          Neo4j is a derived tier rebuilt from OpenSearch content, so
+          a single replica with fast re-derivation is an accepted
+          posture at lower tiers; enterprise tier runs a causal
+          cluster of 3 cores with required anti-affinity.
+      - name: argocd
+        kind: Deployment
+        replicas_min: 2
+        anti_affinity: required-per-node
+        note: >-
+          Argo CD HA manifests: redundant repo-server and
+          application-controller, HA Redis. GitOps is the delivery
+          spine; its outage freezes change, not runtime, but recovery
+          paths (rollback drill) depend on it.
+      - name: tenant-control-plane
+        kind: Deployment
+        replicas_min: 2
+        anti_affinity: required-per-node
+      - name: portal
+        kind: Deployment
+        replicas_min: 2
+        anti_affinity: required-per-node
+      - name: ai-runtime
+        kind: Deployment
+        replicas_min: 2
+        anti_affinity: required-per-node
+        note: >-
+          kagent, khook, gateway, and mcpserver entrypoints each run
+          at least two replicas; the KAGENT_PERSISTENCE store follows
+          the storage_requirements floors like any stateful component.
+  pod_disruption_budgets:
+    rule: >-
+      Every component listed above with replicas_min >= 2 carries a
+      PodDisruptionBudget of minAvailable 1 (quorum components:
+      minAvailable of quorum size, i.e. 2 of 3 for OpenSearch masters)
+      so voluntary disruption (node drain, upgrade) never takes the
+      component below serving capacity.
+  failure_domain_spreading:
+    rule: >-
+      Multi-AZ on cloud, multi-rack or multi-room on-prem. All
+      replicated components spread across at least
+      failure_domains_min domains via topologySpreadConstraints;
+      PersistentVolumes for quorum members bind in distinct domains
+      (volume-binding mode WaitForFirstConsumer).
+
+sizing_tiers:
+  # Tier names bind 1:1 to the tenant tier enum fixed by
+  # contracts/tenancy/TENANT_CONTRACT_SCHEMA_V1.json
+  # (/properties/tier/enum) and therefore to the commercial plans in
+  # contracts/commercial/PLAN_CATALOG_V1.yaml (bijective per that
+  # contract). A cluster is sized for the largest tier it hosts;
+  # quota bounds per tier come from the plan catalog, not this file.
+  tier_binding:
+    source_of_truth: contracts/tenancy/TENANT_CONTRACT_SCHEMA_V1.json
+    source_pointer: /properties/tier/enum
+  tiers:
+    - tier: starter
+      tenant_scale: >-
+        Single-digit tenants on shared-partition isolation; ingest
+        bounded by plan-starter quotas (up to ~25 GB/day per tenant).
+      worker_nodes: 3
+      node_shape:
+        cpu_range: 4-8 vCPU
+        memory_range: 16-32 GiB
+      opensearch_data_nodes:
+        count: 3
+        cpu_per_node: 2 vCPU
+        memory_per_node: 8 GiB (JVM heap 4 GiB)
+        storage_per_node: 200 GiB
+    - tier: standard
+      tenant_scale: >-
+        Tens of tenants on shared-partition or dedicated-indices
+        isolation; ingest bounded by plan-standard quotas (up to
+        ~100 GB/day per tenant).
+      worker_nodes: 5
+      node_shape:
+        cpu_range: 8-16 vCPU
+        memory_range: 32-64 GiB
+      opensearch_data_nodes:
+        count: 3
+        cpu_per_node: 4 vCPU
+        memory_per_node: 16 GiB (JVM heap 8 GiB)
+        storage_per_node: 500 GiB
+    - tier: premium
+      tenant_scale: >-
+        Tens of tenants with dedicated-indices isolation and heavier
+        retention; ingest bounded by plan-premium quotas.
+      worker_nodes: 7
+      node_shape:
+        cpu_range: 8-16 vCPU
+        memory_range: 32-64 GiB
+      opensearch_data_nodes:
+        count: 5
+        cpu_per_node: 8 vCPU
+        memory_per_node: 32 GiB (JVM heap 16 GiB)
+        storage_per_node: 1 TiB
+    - tier: enterprise
+      tenant_scale: >-
+        Dedicated-stack isolation available; per-tenant store
+        instances rendered from per-tenant GitOps overlays; ingest
+        bounded by plan-enterprise quotas.
+      worker_nodes: 9
+      node_shape:
+        cpu_range: 16-32 vCPU
+        memory_range: 64-128 GiB
+      opensearch_data_nodes:
+        count: 6
+        cpu_per_node: 8 vCPU
+        memory_per_node: 32 GiB (JVM heap 16 GiB)
+        storage_per_node: 2 TiB
+        note: >-
+          Dedicated master trio separate from data nodes at this tier;
+          Neo4j runs a 3-core causal cluster (see ha_topology).
+
+storage_requirements:
+  # Expressed through the Batch 2 compatibility profiles. Profile ids
+  # are references into contracts/compatibility/COMPATIBILITY_MATRIX.json
+  # and contracts/compatibility/PROFILE_CATALOG.json; this document
+  # adds production floors on top but defines no new profiles, so a
+  # compliant cluster grades against the existing matrix unchanged.
+  accepted_profiles:
+    storage:
+      # Matrix status `supported`; `nfs-rwx` is matrix-conditional
+      # (throughput_validation_required) and is not a production floor.
+      - gp3-csi
+      - standard-rwo
+    object_storage:
+      # Snapshot repository target. The S3-gateway profiles are
+      # matrix-conditional (snapshot_plugin_validation_required) and
+      # only acceptable after that condition is discharged.
+      - s3-compatible
+  production_floors:
+    - id: non_ephemeral_storage_class
+      requirement: >-
+        The selected storage profile must bind PersistentVolumes with
+        a durable, non-ephemeral provisioner; hostPath and emptyDir
+        never back stateful product components in production.
+    - id: snapshot_capable_object_storage
+      requirement: >-
+        An object-storage profile must be selected and reachable from
+        the OpenSearch snapshot plugin, because backup_and_dr depends
+        on snapshot repositories; a cluster without object storage
+        cannot meet the DR posture.
+    - id: volume_expansion
+      requirement: >-
+        The storage class allows volume expansion, so retention growth
+        is an online resize, not a migration.
+    - id: reclaim_policy_retain_for_stores
+      requirement: >-
+        PersistentVolumes backing OpenSearch and Neo4j use reclaim
+        policy Retain so accidental release never deletes data.
+
+ingress_requirements:
+  # Same rule as storage: profile ids reference the Batch 2 matrix and
+  # catalog; floors are additive.
+  accepted_profiles:
+    ingress_network:
+      # Both matrix status `supported`. `traefik` is matrix-conditional
+      # (header_forwarding_validation_required) and only acceptable
+      # after that condition is discharged.
+      - nginx-ingress
+      - gateway-api
+  production_floors:
+    - id: tls_termination
+      requirement: >-
+        All external endpoints (Dashboards, Grafana, portal, MCP
+        gateway) terminate TLS at the ingress with certificates from
+        the operator's issuer; plaintext external listeners are
+        forbidden.
+    - id: single_admin_access_plane
+      requirement: >-
+        Ingress exposure follows the admin access plane profile; no
+        component is exposed outside the access layer's SSO path.
+    - id: ha_ingress_controller
+      requirement: >-
+        The ingress controller itself runs with at least two replicas
+        spread per ha_topology rules (or is provider-managed with an
+        equivalent SLA).
+    - id: otlp_ingest_endpoint
+      requirement: >-
+        The OTLP ingest path into the collector gateway is reachable
+        from all telemetry sources under a stable DNS name owned by
+        the operator (placeholder form: otlp.<your-domain>).
+
+backup_and_dr:
+  # What is backed up, to what targets, and how the posture is proven.
+  # DR procedures are never bespoke: they are exercised only through
+  # the mode-parameterized drills under scripts/ops/.
+  backed_up:
+    - artifact: opensearch-indices
+      method: >-
+        OpenSearch snapshots to the s3-compatible object-storage
+        profile repository, scheduled per tier RPO below; snapshot
+        lifecycle follows the ILM policies under
+        gitops/platform/search/.
+    - artifact: neo4j-graph
+      method: >-
+        Periodic neo4j dumps to the same object-storage repository.
+        The graph is a derived tier, so full re-derivation from
+        OpenSearch is the fallback restore path.
+    - artifact: gitops-repository
+      method: >-
+        The GitOps repository is the source of truth for all rendered
+        configuration; its hosting (mirrored remotes, provider
+        redundancy) is an operator prerequisite. Cluster state is
+        reproducible from repo plus snapshots.
+    - artifact: control-plane-store
+      method: >-
+        Tenant control plane state and control-tenancy usage indices
+        live in the control plane's OpenSearch indices and are covered
+        by the same snapshot schedule; KAGENT_PERSISTENCE (postgres)
+        is dumped on the same cadence as neo4j.
+  rpo_rto_targets:
+    # Targets bind to the same tier names as sizing_tiers.
+    - tier: starter
+      rpo: 24h
+      rto: 8h
+    - tier: standard
+      rpo: 6h
+      rto: 4h
+    - tier: premium
+      rpo: 1h
+      rto: 2h
+    - tier: enterprise
+      rpo: 15m
+      rto: 1h
+  drills:
+    # The drills are the only sanctioned exercise path for DR
+    # procedures; a documented-but-undrilled procedure does not count
+    # toward the posture.
+    - script: scripts/ops/run_restore_drill.sh
+      exercises: OpenSearch snapshot/restore cycle
+      cadence: quarterly minimum, and after any storage profile change
+      production_note: >-
+        The restore drill refuses ENVIRONMENT=production in every
+        mode by design; production restore fitness is proven by
+        running the drill against a non-production environment built
+        to this reference architecture, never by restoring into the
+        production stores as an exercise.
+    - script: scripts/ops/run_rollback_drill.sh
+      exercises: GitOps revision rollback via Argo CD convergence
+      cadence: quarterly minimum, and before every major upgrade
+    - script: scripts/ops/run_config_rollback_drill.sh
+      exercises: configuration rollback re-render (Batch 19 surface)
+      cadence: quarterly minimum
+    - script: scripts/ops/run_uninstall_validation.sh
+      exercises: clean uninstall and residue check
+      cadence: per release qualification, non-production only
+  rule: >-
+    DR procedures are exercised via the scripts/ops/ drills in dry-run
+    or live mode against non-production stacks; drill evidence
+    payloads (DRILL_PAYLOAD_OUT) are the acceptance record. Real
+    production restores follow the same steps under incident command.
+
+prod_overlay_mapping:
+  # Honest mapping between this reference architecture and what the
+  # prod overlay actually sets today. The overlay is the product-side
+  # half; everything else is a cluster-level prerequisite the operator
+  # provides before the guided installer runs.
+  file: gitops/overlays/prod/platform-core-values.yaml
+  realizes_today:
+    - requirement: collector gateway HA
+      overlay_value: "collector.gateway.replicas: 3"
+    - requirement: production resource floors for the collector agent
+      overlay_value: >-
+        collector.agent.resources (requests 200m/512Mi, limits
+        1 CPU/1Gi)
+    - requirement: production resource floors for the collector gateway
+      overlay_value: >-
+        collector.gateway.resources (requests 500m/1Gi, limits
+        2 CPU/2Gi)
+    - requirement: graph tier enabled with production resources
+      overlay_value: >-
+        graph.enabled: true; graph.neo4j.resources (requests
+        1 CPU/2Gi, limits 2 CPU/4Gi)
+  not_yet_expressed_in_overlay:
+    # Required end state per ha_topology that the current overlay does
+    # not carry as values. Until the chart exposes them as overlay
+    # keys, the operator applies them as cluster or chart-level
+    # configuration; this list shrinking to empty is the overlay's
+    # convergence target.
+    - explicit podAntiAffinity and topologySpreadConstraints per
+      ha_topology.anti_affinity
+    - PodDisruptionBudgets per ha_topology.pod_disruption_budgets
+    - replica counts for Dashboards, Grafana, Argo CD, control plane,
+      portal, and AI runtime components
+  cluster_level_prerequisites:
+    # Provided by the operator, outside any overlay by design.
+    - multi-node cluster spanning >= 3 failure domains
+    - storage classes satisfying storage_requirements profiles/floors
+    - object-storage bucket and credentials in the secrets backend
+    - ingress controller satisfying ingress_requirements
+    - identity provider (oidc profile) and secrets backend
+      (external-secrets or vault profile) reachable
+    - GitOps repository hosting with provider redundancy
+
+conformance:
+  # How a cluster proves it is a valid production target. Production
+  # claims (SLOs, DR posture, commercial plans) require conformance;
+  # a non-conformant cluster may run the product but must not be
+  # represented as a production deployment.
+  proof:
+    - id: grades_supported
+      check: >-
+        The cluster grades `supported` against
+        contracts/compatibility/COMPATIBILITY_MATRIX.json under
+        contracts/compatibility/GRADING_RULES.json: a supported
+        Kubernetes version, a supported distribution, and a selected
+        profile in every family with no unresolved conditions and no
+        missing prerequisites. Selecting only the profiles listed in
+        storage_requirements and ingress_requirements (with oidc,
+        external-secrets or vault, s3-compatible, argocd) yields
+        exactly the matrix's supported evaluation; conditional
+        profiles require their matrix conditions discharged and
+        downgrade the claim until then.
+    - id: passes_preflight
+      check: >-
+        The Batch 3 preflight and capability probes pass on the
+        target cluster before the guided installer runs.
+    - id: meets_reference_floors
+      check: >-
+        The cluster meets ha_topology node and failure-domain floors,
+        the sizing tier matching its largest hosted tenant tier, and
+        all storage and ingress production floors in this document.
+    - id: dr_posture_exercised
+      check: >-
+        The scripts/ops/ drills have produced evidence payloads
+        within their stated cadence for the claimed RPO/RTO tier.
+  consumers:
+    - path: docs/product/OPERATIONS_GUIDE.md
+      role: Batch 26 operations guide production deployment source
+      status: planned-batch-26
+      note: >-
+        Forward reference; the product docs tree does not exist until
+        Batch 26 delivers it. Path fixed by the SaaS productization
+        plan documentation table.
+    - path: docs/auxiliary/planning/SAAS_PRODUCTIZATION_PLAN.md
+      role: production stack role definition
+  non_goals:
+    - This document defines no new compatibility profiles and changes
+      no matrix entries; kind remains conditional
+      (disposable_evidence_harness_only) and is never production.
+    - No provider-specific service is required; provider integrations
+      stay in adapters/providers/.

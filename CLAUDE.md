@@ -85,7 +85,7 @@ bash scripts/ci/check_no_hardcoded_env_values.sh
 bash scripts/ci/validate_all_batches_with_report.sh
 # Reports written to docs/reports/validation/
 # Covers every batch registered in its BATCH_IDS array (currently
-# 1-9A, 10-24; new batches register themselves when implemented).
+# 1-9A, 10-25; new batches register themselves when implemented).
 ```
 
 ### Running a Single Batch
@@ -118,6 +118,7 @@ bash scripts/ci/validate_portal_contracts.sh          # Batch 21
 bash scripts/ci/validate_commercial_contracts.sh      # Batch 22
 bash scripts/ci/validate_live_evidence.sh             # Batch 23
 bash scripts/ci/validate_ai_activation.sh             # Batch 24
+bash scripts/ci/validate_release_engineering.sh       # Batch 25
 ```
 
 Batch 17 delivers the `obskit` executor runtime under `tools/obskit/`
@@ -221,11 +222,39 @@ and cross-checks the runtime's embedded contract constants against
 the governing YAML contracts. Offline tests live in
 `tests/ai_activation/`.
 
-Batches 25-26 (SaaS productization: release
-engineering, product docs) are authored in `TASKS.md` but not yet
-implemented. Their plan is
-`docs/auxiliary/planning/SAAS_PRODUCTIZATION_PLAN.md`; execute them via
-`/run-batch <N>` or the prompt in
+Batch 25 turns the repository into a releasable product (ADR-0010,
+renumbered from the 0009 the backlog budgeted - Batch 24 consumed
+two ADRs): `contracts/release/` fixes release engineering (semver,
+Keep a Changelog `CHANGELOG.md`, tag-driven publication via
+`.github/workflows/release.yaml` - tags and `workflow_dispatch`
+only, never PR-gating - packaged chart plus OCI publication with a
+neutral `REGISTRY_HOST`, cosign-keyless signing posture, syft SBOM
+and trivy CRITICAL scan gates), OSS license compliance (inventory
+bijective with the wrapped-system registry and
+`THIRD_PARTY_NOTICES.md`), and the production reference architecture
+(HA topology, sizing tiers bound to the tenancy tier enum, storage
+and ingress via the Batch 2 compatibility profiles, backup and DR
+posture, `prod` overlay mapping). The three open wrapped-system pins
+(`opensearch` 2.19.1, `opensearch-dashboards` 2.19.1, `argocd`
+v3.1.0) are resolved to the harness-proven versions, so
+`fail_if_production_pin_missing` now passes for production profiles.
+`contracts/slo_ops/PLATFORM_PRODUCT_SLO_V1.yaml` declares the
+platform's own product SLOs (declared-for-ga; the isolation SLO has
+a zero violation budget). The chart is 0.3.0 and pod templates carry
+`app.kubernetes.io/version`, so version bumps are observable rolling
+updates. Live evidence under `artifacts/evidence/batch25/` comes
+from the harness checks `release-pins` and `upgrade-drill` (compose
+on a completed `install`; the harness publishes committed state
+only, so commit before capturing). `validate_release_engineering.sh`
+checks everything structurally without a cluster, including two
+seeded rejections (unpinned production profile, missing license
+inventory entry) with fixtures in `tests/release/`. The operator
+flow is `docs/runbooks/PRODUCTION_RELEASE_GATE_RUNBOOK.md`.
+
+Batch 26 (SaaS productization: product docs and GA readiness) is
+authored in `TASKS.md` but not yet implemented. The plan is
+`docs/auxiliary/planning/SAAS_PRODUCTIZATION_PLAN.md`; execute it via
+`/run-batch 26` or the prompt in
 `docs/auxiliary/task_execution/SAAS_EXECUTION_PROMPT.md`.
 
 Each batch also has a smoke wrapper: `scripts/ci/validate_batch<N>_smoke.sh`.
@@ -430,7 +459,7 @@ adapter and neutrality contracts pass. Run them (or the all-batches report)
 before trusting adapter/neutrality changes.
 
 `scripts/ci/validate_all_batches_with_report.sh` runs every batch smoke
-wrapper (currently 1-9, 9A, and 10-24) and writes a
+wrapper (currently 1-9, 9A, and 10-25) and writes a
 markdown + JSON report under `docs/reports/validation/`. It is intended for
 developer / QA use and is not part of the CI workflow itself.
 

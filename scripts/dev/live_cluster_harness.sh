@@ -36,6 +36,10 @@
 #             run; they compose on top of a completed install check,
 #             in order): ai-deploy | ai-rehearsal | ai-signoff.
 #             Evidence is written under artifacts/evidence/batch24/.
+#             Batch 25 release engineering checks (never in the
+#             default run; they compose on top of a completed install
+#             check, in order): release-pins | upgrade-drill.
+#             Evidence is written under artifacts/evidence/batch25/.
 #   teardown  Delete the kind cluster, verify deletion against kind
 #             and Docker, record the teardown evidence artifact, and
 #             remove the scratch kubeconfig.
@@ -64,6 +68,7 @@ INSTALL_OUTPUT="$SCRATCH_DIR/install-output"
 LOG_DIR="$SCRATCH_DIR/logs"
 EVIDENCE_DIR="$REPO_ROOT/artifacts/evidence/batch23"
 EVIDENCE_DIR_B24="$REPO_ROOT/artifacts/evidence/batch24"
+EVIDENCE_DIR_B25="$REPO_ROOT/artifacts/evidence/batch25"
 ASSETS_DIR="$REPO_ROOT/scripts/dev/harness_assets"
 
 AI_IMAGE="obskit-ai-runtime:0.1.0"
@@ -1001,6 +1006,386 @@ print(record['decision'])
       "threshold gate failed - see the signoff record."
 }
 
+# ---------------------------------------------------------------------
+# Batch 25 - release engineering checks (TR-25, ADR-0010). Never part
+# of the default run; they compose on top of a completed install
+# check: run --only install, then release-pins, then upgrade-drill.
+# Evidence envelopes carry batch: 25.
+# ---------------------------------------------------------------------
+
+wrap_evidence_b25() {
+  # $1 artifact kind, $2 output path, $3 payload file (JSON),
+  # $4 status (pass|fail), $5 check command string
+  "$VENV_DIR/bin/python3" "$ASSETS_DIR/wrap_evidence.py" \
+    --artifact-kind "$1" \
+    --output "$2" \
+    --payload "$3" \
+    --status "$4" \
+    --check-command "$5" \
+    --batch 25 \
+    --stack-profile "$STACK_PROFILE" \
+    --context "$CONTEXT" \
+    --node-image "$NODE_IMAGE"
+}
+
+release_baseline_ref() {
+  # N-1 state per RELEASE_ENGINEERING_CONTRACT_V1.yaml upgrade_policy:
+  # the newest v* release tag when one exists; for the inaugural
+  # release (no tags yet) the merge-base with the local main branch,
+  # i.e. the pre-batch main state. UPGRADE_BASELINE_REF overrides for
+  # rehearsals.
+  if [[ -n "${UPGRADE_BASELINE_REF:-}" ]]; then
+    echo "$UPGRADE_BASELINE_REF"
+    return
+  fi
+  local tag
+  tag="$(git -C "$REPO_ROOT" tag --list 'v*' --sort=-v:refname \
+    | head -n 1)"
+  if [[ -n "$tag" ]]; then
+    echo "$tag"
+    return
+  fi
+  git -C "$REPO_ROOT" merge-base main HEAD
+}
+
+wait_application_revision() {
+  # Wait for platform-core to reach Synced/Healthy at exactly the
+  # revision in $1 (Argo CD polls the git server on its default
+  # ~3-minute refresh interval, so the ceiling stays generous).
+  local want="$1" attempt revision sync health
+  for attempt in $(seq 1 60); do
+    # platform-core is a multi-source Application, so its synced
+    # commit lives in status.sync.revisions[0]; single-source apps
+    # expose status.sync.revision instead. Query both.
+    revision="$(kc -n argocd get application platform-core \
+      -o jsonpath='{.status.sync.revisions[0]}' 2>/dev/null || true)"
+    if [[ -z "$revision" ]]; then
+      revision="$(kc -n argocd get application platform-core \
+        -o jsonpath='{.status.sync.revision}' 2>/dev/null || true)"
+    fi
+    sync="$(kc -n argocd get application platform-core \
+      -o jsonpath='{.status.sync.status}' 2>/dev/null || true)"
+    health="$(kc -n argocd get application platform-core \
+      -o jsonpath='{.status.health.status}' 2>/dev/null || true)"
+    if [[ "$revision" == "$want" && "$sync" == "Synced" \
+      && "$health" == "Healthy" ]]; then
+      return 0
+    fi
+    sleep 10
+  done
+  die "platform-core never reached Synced/Healthy at $want" \
+    "(revision=$revision sync=$sync health=$health)."
+}
+
+check_release_pins() {
+  log "check: release-pins (registry pins live on the harness)"
+  ensure_venv
+  [[ -d "$GITOPS_CLONE/.git" ]] \
+    || die "no GitOps clone; run the install check first."
+  mkdir -p "$EVIDENCE_DIR_B25/release" "$LOG_DIR"
+
+  local os_image dash_image argocd_image sync health
+  os_image="$(kc -n "$BACKEND_NS" get deployment opensearch \
+    -o jsonpath='{.spec.template.spec.containers[0].image}')"
+  dash_image="$(kc -n "$BACKEND_NS" get deployment \
+    opensearch-dashboards \
+    -o jsonpath='{.spec.template.spec.containers[0].image}')"
+  argocd_image="$(kc -n argocd get deployment argocd-server \
+    -o jsonpath='{.spec.template.spec.containers[0].image}')"
+  sync="$(kc -n argocd get application platform-core \
+    -o jsonpath='{.status.sync.status}')"
+  health="$(kc -n argocd get application platform-core \
+    -o jsonpath='{.status.health.status}')"
+
+  local payload="$LOG_DIR/release_pins_payload.json" status=pass
+  if ! "$VENV_DIR/bin/python3" - \
+    "$REPO_ROOT/contracts/management/WRAPPED_SYSTEM_REGISTRY_V1.yaml" \
+    "$os_image" "$dash_image" "$argocd_image" \
+    "$sync" "$health" "$payload" <<'PY'
+import json
+import sys
+
+import yaml
+
+(_, registry_path, os_image, dash_image, argocd_image,
+ sync, health, payload_path) = sys.argv
+with open(registry_path) as handle:
+    registry = yaml.safe_load(handle)
+pins = {
+    entry["system"]: entry["version_pin"]
+    for entry in registry["systems"]
+}
+observed = {
+    "opensearch": os_image,
+    "opensearch-dashboards": dash_image,
+    "argocd": argocd_image,
+}
+matches = {}
+for system, image in observed.items():
+    expected = str(pins[system]["value"])
+    matches[system] = {
+        "expected_pin": expected,
+        "observed_image": image,
+        "pin_status": pins[system]["status"],
+        "match": image.rsplit(":", 1)[-1] == expected
+        and pins[system]["status"] == "pinned",
+    }
+remaining = sorted(
+    system for system, pin in pins.items()
+    if pin.get("status") == "to-be-pinned"
+)
+payload = {
+    "pinned_set": matches,
+    "remaining_to_be_pinned": remaining,
+    "application": {"sync": sync, "health": health},
+}
+with open(payload_path, "w") as handle:
+    json.dump(payload, handle, indent=2, sort_keys=True)
+    handle.write("\n")
+ok = (
+    all(item["match"] for item in matches.values())
+    and not remaining
+    and sync == "Synced"
+    and health == "Healthy"
+)
+sys.exit(0 if ok else 1)
+PY
+  then
+    status=fail
+  fi
+  wrap_evidence_b25 live_release_pins \
+    "$EVIDENCE_DIR_B25/release/release_pins.json" "$payload" "$status" \
+    "harness release-pins (registry pins vs live images)"
+  log "release-pins evidence captured under $EVIDENCE_DIR_B25/release/"
+  [[ "$status" == "pass" ]]
+}
+
+check_upgrade_drill() {
+  log "check: upgrade-drill (N-1 installs, upgrades to N, survives)"
+  ensure_venv
+  secrets
+  [[ -d "$GITOPS_CLONE/.git" ]] \
+    || die "no GitOps clone; run the install check first."
+  mkdir -p "$EVIDENCE_DIR_B25/upgrade" "$LOG_DIR"
+
+  local baseline prev_version curr_version
+  baseline="$(release_baseline_ref)"
+  prev_version="$(git -C "$REPO_ROOT" \
+    show "$baseline:gitops/charts/platform-core/Chart.yaml" \
+    | awk '/^version:/ {print $2}')"
+  # HEAD, not the working tree: step B publishes the HEAD chart, so
+  # the version the drill asserts must come from the same commit.
+  curr_version="$(git -C "$REPO_ROOT" \
+    show "HEAD:gitops/charts/platform-core/Chart.yaml" \
+    | awk '/^version:/ {print $2}')"
+  [[ "$prev_version" != "$curr_version" ]] \
+    || die "baseline and current chart versions are both" \
+      "$curr_version; nothing to upgrade. Set UPGRADE_BASELINE_REF."
+  # The harness publishes committed state only (the install check
+  # clones file://$REPO_ROOT); uncommitted chart work never reaches
+  # the cluster, which would make this drill compare N-1 to N-1.
+  local published_version
+  published_version="$(awk '/^version:/ {print $2}' \
+    "$GITOPS_CLONE/gitops/charts/platform-core/Chart.yaml")"
+  [[ "$published_version" == "$curr_version" ]] \
+    || die "published clone carries chart $published_version but the" \
+      "working tree is $curr_version; commit the work and re-run the" \
+      "install check first (the harness publishes committed state)."
+
+  # Step A: install the previous release state. The chart tree in the
+  # published GitOps clone is pinned to the baseline ref, and Argo CD
+  # syncs the cluster to exactly what the previous release shipped.
+  # (The install check has already proven the current state installs
+  # cleanly; this drill demonstrates the N-1 -> N transition.)
+  log "pinning published charts to baseline $baseline" \
+    "(chart $prev_version)"
+  rm -rf "$GITOPS_CLONE/gitops/charts/platform-core"
+  git -C "$REPO_ROOT" archive "$baseline" -- \
+    gitops/charts/platform-core \
+    | tar -x -C "$GITOPS_CLONE"
+  git -C "$GITOPS_CLONE" add gitops/charts
+  git -C "$GITOPS_CLONE" \
+    -c user.name="obskit-harness" \
+    -c user.email="harness@observability-kit.local" \
+    commit --quiet \
+    -m "upgrade-drill: previous release state (chart $prev_version)"
+  publish_gitops_clone
+  local baseline_rev
+  baseline_rev="$(git -C "$GITOPS_CLONE" rev-parse HEAD)"
+  wait_application_revision "$baseline_rev"
+  wait_rollout "$PLATFORM_NS" daemonset/otel-agent 600s
+  wait_rollout "$PLATFORM_NS" deployment/otel-gateway 600s
+  local label_before
+  label_before="$(kc -n "$PLATFORM_NS" get deployment otel-gateway \
+    -o jsonpath='{.spec.template.metadata.labels.app\.kubernetes\.io/version}' \
+    2>/dev/null || true)"
+
+  # Seed data and record the configuration state that must survive.
+  local seed_index="upgrade-drill-evidence-v1"
+  local seed_id="upgrade-drill-marker"
+  local values_file="gitops/overlays/dev/platform-core-values.yaml"
+  local values_sha_before values_sha_after
+  values_sha_before="$(shasum -a 256 "$GITOPS_CLONE/$values_file" \
+    | awk '{print $1}')"
+  local cm_sha_before cm_sha_after
+  cm_sha_before="$(kc -n "$PLATFORM_NS" get configmap \
+    otel-gateway-config -o jsonpath='{.data}' \
+    | shasum -a 256 | awk '{print $1}')"
+  log "seeding a durable OpenSearch document ($seed_index/$seed_id)"
+  kc -n "$BACKEND_NS" port-forward svc/opensearch \
+    "$OPENSEARCH_LOCAL_PORT:9200" \
+    > "$LOG_DIR/upgrade-port-forward.log" 2>&1 &
+  local pf_pid=$!
+  # File convention: the port-forward must never leak on an errexit
+  # abort anywhere below (publish, sync wait, rollout wait).
+  trap 'kill "${pf_pid:-}" 2>/dev/null || true' RETURN EXIT
+  local attempt reachable=false
+  for attempt in $(seq 1 24); do
+    if curl -fsk -u "admin:$OPENSEARCH_ADMIN_PASSWORD" \
+      "https://127.0.0.1:$OPENSEARCH_LOCAL_PORT/_cluster/health" \
+      >/dev/null 2>&1; then
+      reachable=true
+      break
+    fi
+    sleep 5
+  done
+  [[ "$reachable" == "true" ]] \
+    || { kill "$pf_pid" 2>/dev/null || true; \
+      die "OpenSearch port-forward never became reachable."; }
+  curl -fsk -u "admin:$OPENSEARCH_ADMIN_PASSWORD" \
+    -X PUT -H 'Content-Type: application/json' \
+    "https://127.0.0.1:$OPENSEARCH_LOCAL_PORT/$seed_index/_doc/$seed_id?refresh=true" \
+    -d "{\"marker\": \"upgrade-drill\", \
+\"seeded_at_chart\": \"$prev_version\"}" \
+    > "$LOG_DIR/upgrade_seed.json"
+
+  # Step B: upgrade to the current state and wait for the rollout
+  # (the current chart stamps app.kubernetes.io/version on the pod
+  # templates, so the version bump is a real rolling update).
+  log "upgrading published charts to the current state" \
+    "(chart $curr_version)"
+  rm -rf "$GITOPS_CLONE/gitops/charts/platform-core"
+  # HEAD, not the working tree: the drill's evidence must attest a
+  # transition between two states that exist as commits (symmetric
+  # with the git-archive extraction of the baseline in step A).
+  git -C "$REPO_ROOT" archive HEAD -- gitops/charts/platform-core \
+    | tar -x -C "$GITOPS_CLONE"
+  git -C "$GITOPS_CLONE" add gitops/charts
+  git -C "$GITOPS_CLONE" \
+    -c user.name="obskit-harness" \
+    -c user.email="harness@observability-kit.local" \
+    commit --quiet \
+    -m "upgrade-drill: upgrade to current state (chart $curr_version)"
+  publish_gitops_clone
+  local upgraded_rev
+  upgraded_rev="$(git -C "$GITOPS_CLONE" rev-parse HEAD)"
+  wait_application_revision "$upgraded_rev"
+  wait_rollout "$PLATFORM_NS" daemonset/otel-agent 600s
+  wait_rollout "$PLATFORM_NS" deployment/otel-gateway 600s
+  local label_after
+  label_after="$(kc -n "$PLATFORM_NS" get deployment otel-gateway \
+    -o jsonpath='{.spec.template.metadata.labels.app\.kubernetes\.io/version}' \
+    2>/dev/null || true)"
+
+  # Survival checks: the seeded document is retrievable, the rendered
+  # configuration is byte-identical, and the live collector config
+  # was not rewritten by the upgrade.
+  local seed_lookup="$LOG_DIR/upgrade_seed_lookup.json"
+  curl -fsk -u "admin:$OPENSEARCH_ADMIN_PASSWORD" \
+    "https://127.0.0.1:$OPENSEARCH_LOCAL_PORT/$seed_index/_doc/$seed_id" \
+    > "$seed_lookup" || true
+  kill "$pf_pid" 2>/dev/null || true
+  values_sha_after="$(shasum -a 256 "$GITOPS_CLONE/$values_file" \
+    | awk '{print $1}')"
+  cm_sha_after="$(kc -n "$PLATFORM_NS" get configmap \
+    otel-gateway-config -o jsonpath='{.data}' \
+    | shasum -a 256 | awk '{print $1}')"
+  local final_sync final_health
+  final_sync="$(kc -n argocd get application platform-core \
+    -o jsonpath='{.status.sync.status}')"
+  final_health="$(kc -n argocd get application platform-core \
+    -o jsonpath='{.status.health.status}')"
+
+  local payload="$LOG_DIR/upgrade_drill_payload.json" status=pass
+  if ! "$VENV_DIR/bin/python3" - \
+    "$baseline" "$prev_version" "$curr_version" \
+    "$label_before" "$label_after" \
+    "$values_sha_before" "$values_sha_after" \
+    "$cm_sha_before" "$cm_sha_after" \
+    "$final_sync" "$final_health" \
+    "$seed_lookup" "$seed_index" "$seed_id" "$payload" <<'PY'
+import json
+import sys
+
+(_, baseline, prev_version, curr_version, label_before, label_after,
+ values_before, values_after, cm_before, cm_after, sync, health,
+ seed_lookup, seed_index, seed_id, payload_path) = sys.argv
+try:
+    with open(seed_lookup) as handle:
+        lookup = json.load(handle)
+except (OSError, ValueError):
+    lookup = {}
+data_survived = lookup.get("found") is True
+payload = {
+    "baseline": {
+        "ref": baseline,
+        "chart_version": prev_version,
+        "gateway_version_label": label_before,
+    },
+    "upgraded": {
+        "chart_version": curr_version,
+        "gateway_version_label": label_after,
+    },
+    "survival": {
+        "seeded_document": {
+            "index": seed_index,
+            "id": seed_id,
+            "found_after_upgrade": data_survived,
+        },
+        "rendered_values_sha256": {
+            "before": values_before,
+            "after": values_after,
+            "unchanged": values_before == values_after,
+        },
+        "gateway_configmap_sha256": {
+            "before": cm_before,
+            "after": cm_after,
+            "unchanged": cm_before == cm_after,
+        },
+    },
+    "application": {"sync": sync, "health": health},
+    "sequence_note": (
+        "The install check proved the current state installs cleanly; "
+        "this drill then pinned the published charts to the baseline "
+        "ref, verified the previous release state deployed, seeded "
+        "data and configuration, and upgraded back to the current "
+        "state through GitOps only."
+    ),
+}
+with open(payload_path, "w") as handle:
+    json.dump(payload, handle, indent=2, sort_keys=True)
+    handle.write("\n")
+ok = (
+    data_survived
+    and values_before == values_after
+    and cm_before == cm_after
+    and label_after == curr_version
+    and sync == "Synced"
+    and health == "Healthy"
+)
+sys.exit(0 if ok else 1)
+PY
+  then
+    status=fail
+  fi
+  wrap_evidence_b25 live_upgrade_drill \
+    "$EVIDENCE_DIR_B25/upgrade/upgrade_drill.json" \
+    "$payload" "$status" \
+    "harness upgrade-drill (N-1 install, upgrade to N, survival)"
+  log "upgrade-drill evidence captured under $EVIDENCE_DIR_B25/upgrade/"
+  [[ "$status" == "pass" ]]
+}
+
 mode_run() {
   safety_gates
   require_provenance
@@ -1033,10 +1418,13 @@ mode_run() {
     ai-deploy) check_ai_deploy ;;
     ai-rehearsal) check_ai_rehearsal ;;
     ai-signoff) check_ai_signoff ;;
+    release-pins) check_release_pins ;;
+    upgrade-drill) check_upgrade_drill ;;
     *)
       die "unknown check id '$only'; valid: install," \
         "restore-drill, rollback-drill, config-rollback-drill," \
-        "gui-smoke, denials, ai-deploy, ai-rehearsal, ai-signoff."
+        "gui-smoke, denials, ai-deploy, ai-rehearsal, ai-signoff," \
+        "release-pins, upgrade-drill."
       ;;
   esac
 }

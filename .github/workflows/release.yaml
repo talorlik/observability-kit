@@ -1,0 +1,259 @@
+# Tag-driven release workflow (Batch 25 Task 4, TB-25, TR-25).
+#
+# Operator-initiated by contract
+# (contracts/release/RELEASE_ENGINEERING_CONTRACT_V1.yaml, decided by
+# docs/adr/ADR_0010_RELEASE_ENGINEERING.md): this workflow runs ONLY
+# on push of a v* tag, plus manual workflow_dispatch for rehearsals.
+# It is NEVER wired into pull request gating and never runs on branch
+# pushes; merges to main publish nothing. It also never touches the
+# live disposable harness - harness install and upgrade evidence is
+# captured by the operator before the tag is cut (release contract
+# "evidence" stage) and validated structurally in PR CI.
+#
+# Stages mirror the release contract: verify, package, sbom-and-scan,
+# publish. Publication and keyless signing require registry
+# credentials (RELEASE_REGISTRY_USERNAME / RELEASE_REGISTRY_PASSWORD
+# secrets); when they are absent the publish stage no-ops gracefully
+# so rehearsals and credential-less forks still exercise everything
+# up to and including SBOM generation and the CVE gate.
+#
+# The registry is configuration, not code (TR-03): REGISTRY_HOST and
+# REGISTRY_NAMESPACE come from repository variables, with GHCR as the
+# documented reference default. Any OCI 1.1-conformant registry works.
+
+name: release
+
+permissions:
+  contents: read
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: >-
+          Rehearsal version (semver, no leading v). Leave empty to use
+          0.0.0-rehearsal.<run_number>. Rehearsals never publish.
+        required: false
+        default: ""
+
+env:
+  REGISTRY_HOST: ${{ vars.RELEASE_REGISTRY_HOST || 'ghcr.io' }}
+  REGISTRY_NAMESPACE: ${{ vars.RELEASE_REGISTRY_NAMESPACE || 'observability-kit' }}
+  # Supply-chain tooling is version-pinned; bump deliberately with a
+  # release-notes entry, never implicitly.
+  SYFT_VERSION: v1.18.1
+  TRIVY_VERSION: v0.58.1
+
+jobs:
+  release:
+    name: Verify, package, SBOM, scan, publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      # Keyless cosign signing binds the signature to this workflow's
+      # OIDC identity (release contract signing.binds_to); no signing
+      # key is stored anywhere.
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Derive product version
+        id: version
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+            # Tag push: the product version is the tag without the
+            # leading v (release contract tag_format v<MAJOR>.<MINOR>.<PATCH>).
+            version="${GITHUB_REF_NAME#v}"
+          elif [ -n "${INPUT_VERSION}" ]; then
+            version="${INPUT_VERSION}"
+          else
+            version="0.0.0-rehearsal.${GITHUB_RUN_NUMBER}"
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "Product version: ${version}"
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup Python virtual environment
+        run: bash scripts/ci/setup_python_env.sh
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      # ----- Stage: verify -----------------------------------------
+
+      - name: "Verify: changelog section for the release version"
+        if: github.event_name == 'push'
+        run: |
+          set -euo pipefail
+          version="${{ steps.version.outputs.version }}"
+          # Release contract changelog.gate: a tag whose version has
+          # no matching dated section fails before anything is
+          # packaged or published.
+          if ! grep -Eq "^## \[${version//./\\.}\] - [0-9]{4}-[0-9]{2}-[0-9]{2}$" CHANGELOG.md; then
+            echo "CHANGELOG.md has no dated section for ${version}." >&2
+            exit 1
+          fi
+
+      - name: "Verify: repository validators and release gates"
+        run: |
+          set -euo pipefail
+          # Release-specific structural gates: changelog convention,
+          # wrapped-system pins concrete, license inventory complete
+          # and cross-checked against THIRD_PARTY_NOTICES.md.
+          bash scripts/ci/validate_release_engineering.sh
+          # Full repository validation, same surface PR CI trusts.
+          bash scripts/ci/validate_all_batches_with_report.sh
+
+      # ----- Stage: package ----------------------------------------
+
+      - name: "Package: helm chart at the product version"
+        run: |
+          set -euo pipefail
+          version="${{ steps.version.outputs.version }}"
+          mkdir -p dist/charts
+          helm package gitops/charts/platform-core \
+            --version "${version}" \
+            --app-version "${version}" \
+            --destination dist/charts
+
+      - name: "Package: build product images at the product version"
+        run: |
+          set -euo pipefail
+          version="${{ steps.version.outputs.version }}"
+          docker build \
+            --tag "obskit-ai-runtime:${version}" \
+            services/ai
+
+      # ----- Stage: sbom-and-scan ----------------------------------
+
+      - name: "SBOM: install syft"
+        run: |
+          set -euo pipefail
+          curl -sSfL https://get.anchore.io/syft \
+            | sh -s -- -b "${RUNNER_TEMP}/tools" "${SYFT_VERSION}"
+          echo "${RUNNER_TEMP}/tools" >> "$GITHUB_PATH"
+
+      - name: "SBOM: SPDX 2.3 JSON per release artifact"
+        run: |
+          set -euo pipefail
+          version="${{ steps.version.outputs.version }}"
+          mkdir -p dist/sbom
+          # One SBOM per published artifact (release contract
+          # sbom_and_scanning.sbom_scope): the packaged chart and
+          # every product image.
+          syft scan "dist/charts/platform-core-${version}.tgz" \
+            -o spdx-json \
+            > "dist/sbom/platform-core-${version}.spdx.json"
+          syft scan "docker:obskit-ai-runtime:${version}" \
+            -o spdx-json \
+            > "dist/sbom/obskit-ai-runtime-${version}.spdx.json"
+
+      - name: "Scan: install trivy"
+        run: |
+          set -euo pipefail
+          curl -sSfL \
+            https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
+            | sh -s -- -b "${RUNNER_TEMP}/tools" "${TRIVY_VERSION}"
+
+      - name: "Scan: image CVE scan, fail on CRITICAL"
+        run: |
+          set -euo pipefail
+          version="${{ steps.version.outputs.version }}"
+          mkdir -p dist/scan
+          # Full report attaches to the release record.
+          trivy image \
+            --format json \
+            --output "dist/scan/obskit-ai-runtime-${version}.trivy.json" \
+            "obskit-ai-runtime:${version}"
+          # Gate: CRITICAL findings fail the release. A waiver is only
+          # a dated entry in the release-gate checklist
+          # (docs/runbooks/PRODUCTION_RELEASE_GATE_RUNBOOK.md) naming
+          # the CVE, reason, and remediation deadline; there is no
+          # in-pipeline suppression file by design.
+          trivy image \
+            --severity CRITICAL \
+            --exit-code 1 \
+            "obskit-ai-runtime:${version}"
+
+      - name: Upload release artifacts (chart, SBOMs, scan report)
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: dist/
+
+      # ----- Stage: publish ----------------------------------------
+
+      - name: "Publish: eligibility gate"
+        id: publish_gate
+        env:
+          REGISTRY_USERNAME: ${{ secrets.RELEASE_REGISTRY_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.RELEASE_REGISTRY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_EVENT_NAME}" != "push" ]; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "Publish skipped: rehearsal run (workflow_dispatch)" \
+              "never publishes."
+          elif [ -z "${REGISTRY_USERNAME}" ] || [ -z "${REGISTRY_PASSWORD}" ]; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "Publish skipped: registry credentials absent" \
+              "(RELEASE_REGISTRY_USERNAME / RELEASE_REGISTRY_PASSWORD)." \
+              "Package, SBOM, and scan stages completed; posture is" \
+              "implemented-first-publication-pending per the release" \
+              "contract."
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: "Publish: registry login"
+        if: steps.publish_gate.outputs.publish == 'true'
+        env:
+          REGISTRY_USERNAME: ${{ secrets.RELEASE_REGISTRY_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.RELEASE_REGISTRY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          echo "${REGISTRY_PASSWORD}" | docker login "${REGISTRY_HOST}" \
+            --username "${REGISTRY_USERNAME}" --password-stdin
+          echo "${REGISTRY_PASSWORD}" | helm registry login "${REGISTRY_HOST}" \
+            --username "${REGISTRY_USERNAME}" --password-stdin
+
+      - name: "Publish: install cosign"
+        if: steps.publish_gate.outputs.publish == 'true'
+        uses: sigstore/cosign-installer@v3
+
+      - name: "Publish: push and sign image"
+        if: steps.publish_gate.outputs.publish == 'true'
+        run: |
+          set -euo pipefail
+          version="${{ steps.version.outputs.version }}"
+          image_ref="${REGISTRY_HOST}/${REGISTRY_NAMESPACE}/images/obskit-ai-runtime:${version}"
+          docker tag "obskit-ai-runtime:${version}" "${image_ref}"
+          docker push "${image_ref}"
+          # Sign by digest: tags are mutable, digests are not.
+          digest_ref="$(docker image inspect --format '{{index .RepoDigests 0}}' "${image_ref}")"
+          cosign sign --yes "${digest_ref}"
+
+      - name: "Publish: push and sign chart"
+        if: steps.publish_gate.outputs.publish == 'true'
+        run: |
+          set -euo pipefail
+          version="${{ steps.version.outputs.version }}"
+          push_out="$(helm push "dist/charts/platform-core-${version}.tgz" \
+            "oci://${REGISTRY_HOST}/${REGISTRY_NAMESPACE}/charts" 2>&1)"
+          echo "${push_out}"
+          chart_digest="$(echo "${push_out}" | sed -n 's/^Digest: //p')"
+          test -n "${chart_digest}"
+          cosign sign --yes \
+            "${REGISTRY_HOST}/${REGISTRY_NAMESPACE}/charts/platform-core@${chart_digest}"

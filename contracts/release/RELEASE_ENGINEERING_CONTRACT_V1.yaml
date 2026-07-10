@@ -1,0 +1,244 @@
+# Release engineering contract (Batch 25 Task 1, TR-25).
+#
+# Fixes how the product is versioned, changelogged, tagged, packaged,
+# published, and signed. Nothing here runs at merge time or gates pull
+# requests; publication is tag-driven and operator-initiated. The
+# structural validator (scripts/ci/validate_release_engineering.sh)
+# asserts this contract's required sections and cross-checks the
+# release workflow, the changelog, and the wrapped-system registry
+# pins against it, so drift between contract and pipeline fails
+# loudly.
+#
+# Decided by docs/adr/ADR_0010_RELEASE_ENGINEERING.md.
+
+metadata:
+  contract: release-engineering
+  version: v1
+  owner: platform-observability
+  technical_requirements:
+    - TR-11
+    - TR-12
+    - TR-25
+  decided_by: docs/adr/ADR_0010_RELEASE_ENGINEERING.md
+  validated_by: scripts/ci/validate_release_engineering.sh
+  runbook: docs/runbooks/PRODUCTION_RELEASE_GATE_RUNBOOK.md
+  related_contracts:
+    - contracts/management/WRAPPED_SYSTEM_REGISTRY_V1.yaml
+    - contracts/release/LICENSE_COMPLIANCE_CONTRACT_V1.yaml
+    - contracts/release/PRODUCTION_REFERENCE_ARCHITECTURE_V1.yaml
+    - contracts/evidence/DISPOSABLE_CLUSTER_HARNESS_CONTRACT_V1.yaml
+
+versioning:
+  scheme: semver-2.0.0
+  scope: >-
+    One product version for the whole release unit: the platform-core
+    chart version, the chart appVersion, and every product-owned image
+    tag equal the product version at release time. Wrapped upstream
+    systems keep their own upstream versions, pinned in the
+    wrapped-system registry, and are never re-versioned by the
+    product.
+  tag_format: v<MAJOR>.<MINOR>.<PATCH>
+  tag_ref: main
+  pre_ga_range: 0.y.z
+  ga_floor: 1.0.0
+  ga_gate: >-
+    1.0.0 is cut only by the Batch 26 GA readiness review; until then
+    every release stays in the 0.y.z range and breaking changes bump
+    MINOR per semver spec item 4.
+  increment_rules:
+    major: >-
+      Breaking change to any published contract, the install flow, the
+      unified configuration schema, or the tenant lifecycle API.
+    minor: >-
+      Backward-compatible capability addition, new adapter, new
+      contract version published alongside the old one, or a
+      wrapped-system pin bump.
+    patch: >-
+      Backward-compatible fix with no contract surface change.
+
+changelog:
+  file: CHANGELOG.md
+  convention: keep-a-changelog-1.1.0
+  sections_required:
+    - Unreleased
+  release_section_heading: "## [<version>] - <YYYY-MM-DD>"
+  subsections_allowed:
+    - Added
+    - Changed
+    - Deprecated
+    - Removed
+    - Fixed
+    - Security
+  source: >-
+    Curated by hand from the Conventional Commits subjects that land
+    on main; the changelog is the human-facing release narrative, not
+    a generated commit dump.
+  gate: >-
+    A release tag whose version has no matching dated section in
+    CHANGELOG.md fails the release gate before anything is packaged
+    or published.
+
+release_process:
+  trigger: tag
+  workflow: .github/workflows/release.yaml
+  workflow_triggers:
+    - push-tag-v*
+    - workflow_dispatch
+  pull_request_gated: false
+  initiated_by: >-
+    A human operator, after completing the release-gate checklist in
+    docs/runbooks/PRODUCTION_RELEASE_GATE_RUNBOOK.md. Merges to main
+    never publish; autonomous batch runs never tag, push, or publish.
+  stages:
+    - id: verify
+      description: >-
+        Re-run the repository validators plus the release-specific
+        gates: changelog section present for the tag version, wrapped
+        system registry pins concrete, license inventory complete.
+    - id: package
+      description: >-
+        helm package the platform-core chart at the product version;
+        build product images tagged with the product version.
+    - id: sbom-and-scan
+      description: >-
+        Generate SPDX SBOMs for every artifact and CVE-scan every
+        image; CRITICAL findings without a recorded waiver fail the
+        release.
+    - id: publish
+      description: >-
+        Push chart and images to the OCI registry and sign them;
+        attach SBOMs and scan reports to the release record.
+    - id: evidence
+      executed_by: operator-pre-tag
+      description: >-
+        Record the release in the changelog tag section, and require
+        harness install and N-1 upgrade evidence captured for the
+        pinned set under artifacts/evidence/ before the tag is cut.
+        This stage runs before the tag exists, so the workflow only
+        verifies its outputs; the operator executes it per the
+        release-gate runbook.
+
+publication:
+  model: oci
+  registry_host: REGISTRY_HOST
+  registry_note: >-
+    REGISTRY_HOST is deliberately a placeholder: any OCI 1.1
+    conformant registry works and none is mandatory (TR-03). The
+    reference deployment uses GHCR (ghcr.io) because the repository
+    already lives on GitHub, but substituting a self-hosted or
+    cloud-provider registry is configuration, not code change.
+  charts:
+    - name: platform-core
+      source: gitops/charts/platform-core
+      artifact: platform-core-<version>.tgz
+      path: oci://REGISTRY_HOST/observability-kit/charts
+  images:
+    - name: obskit-ai-runtime
+      source: services/ai
+      path: REGISTRY_HOST/observability-kit/images/obskit-ai-runtime
+      tag: <version>
+      digest_pinning: >-
+        GitOps overlays consuming a published image pin by digest, not
+        tag, once the first publication exists; until then the dev
+        overlay pins the kind-loaded local image name.
+  consumption: >-
+    Consumers pull the versioned chart and images from the registry
+    and reconcile them through their own GitOps repository; the
+    product never pushes into a consumer cluster.
+
+signing:
+  posture: cosign-keyless
+  binds_to: release-workflow-oidc-identity
+  covers:
+    - charts
+    - images
+  signature_store: >-
+    Signatures live in the same OCI registry next to the artifacts
+    they cover; no detached signature hosting.
+  key_custody: >-
+    None. Keyless signing uses short-lived certificates bound to the
+    workflow identity; the repository stores no signing keys, matching
+    the secrets posture (keys only via the secrets backend, never in
+    Git).
+  verification: >-
+    Documented in docs/runbooks/PRODUCTION_RELEASE_GATE_RUNBOOK.md;
+    consumer-side enforcement is optional in v1 and no admission
+    controller is mandated.
+  status: implemented-first-publication-pending
+
+sbom_and_scanning:
+  sbom_format: spdx-2.3-json
+  sbom_tool: syft
+  sbom_scope: >-
+    One SBOM per published artifact: the packaged chart (source SBOM)
+    and every product image (image SBOM).
+  scan_tool: trivy
+  scan_scope: every-published-image
+  scan_gate:
+    fail_on: CRITICAL
+    waiver_policy: >-
+      A CRITICAL finding may be waived only by a dated entry in the
+      release-gate checklist naming the CVE, the reason, and the
+      remediation deadline; the waiver lands in the release record.
+  license_review: contracts/release/LICENSE_COMPLIANCE_CONTRACT_V1.yaml
+
+upgrade_policy:
+  claim: n-minus-1
+  description: >-
+    Every release must upgrade cleanly from the immediately previous
+    release. The drill installs the previous tagged state on the
+    disposable harness, seeds tenant data and configuration, upgrades
+    to the current state, and verifies both survive.
+  inaugural_release_note: >-
+    For the first tagged release there is no earlier tag; N-1 is the
+    pre-Batch-25 main state, and the drill run for Batch 25 evidence
+    uses exactly that state as its starting point.
+  evidence_dir: artifacts/evidence/batch25
+  evidence_validator: scripts/ci/validate_release_engineering.sh
+
+wrapped_system_pins:
+  registry: contracts/management/WRAPPED_SYSTEM_REGISTRY_V1.yaml
+  rule: >-
+    Production profiles require every enabled wrapped system to carry
+    a concrete version pin (registry policy rule
+    fail_if_production_pin_missing). The version the harness evidence
+    proves is the version the registry pins; a pin bump is a GitOps
+    change plus a fresh harness install evidence run.
+  pin_source: harness-proven
+  open_pins_resolved_by: batch-25
+
+release_gates:
+  checklist: docs/runbooks/PRODUCTION_RELEASE_GATE_RUNBOOK.md
+  required:
+    - id: validators-green
+      check: >-
+        scripts/ci/validate_all_batches_with_report.sh reports green
+        for every registered batch.
+    - id: changelog-section
+      check: >-
+        CHANGELOG.md carries a dated section for the release version.
+    - id: pins-concrete
+      check: >-
+        No enabled wrapped system in the registry has version_pin
+        status to-be-pinned.
+    - id: license-inventory-complete
+      check: >-
+        Every bundled system appears in the license inventory with
+        obligations reviewed and the attribution file current.
+    - id: sbom-and-scan
+      check: >-
+        SBOMs generated for all artifacts; image scans pass the
+        CRITICAL gate or carry recorded waivers.
+    - id: harness-install-evidence
+      check: >-
+        The pinned set installed cleanly on the disposable harness
+        with committed evidence.
+    - id: upgrade-evidence
+      check: >-
+        The N-1 to N upgrade drill passed with committed evidence.
+    - id: slo-budget-state
+      check: >-
+        Product SLO error budgets per
+        contracts/slo_ops/PLATFORM_PRODUCT_SLO_V1.yaml are reviewed;
+        an exhausted budget freezes the release unless the release
+        itself is the corrective action.

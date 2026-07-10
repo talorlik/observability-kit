@@ -52,6 +52,7 @@ the install entrypoint below.
 | 21    | `MANAGEMENT_PORTAL_GUIDE.md`                             | Management portal: setup, SSO, config editing, tenant views        |
 | 22    | `COMMERCIAL_OPERATIONS_RUNBOOK.md`                       | Commercial layer: pricing, metering, invoicing, quota breaches     |
 | 23    | `LIVE_VALIDATION_RUNBOOK.md`                             | Disposable harness lifecycle, live evidence capture, teardown      |
+| 25    | `PRODUCTION_RELEASE_GATE_RUNBOOK.md`                     | Release gates, tag-to-publication, pin bumps, upgrade testing      |
 
 ## Conventions
 
