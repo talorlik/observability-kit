@@ -6,8 +6,8 @@ description: |
   (agent + gateway), the optional Neo4j graph tier, and the namespace and
   RBAC scaffolding that downstream Applications layer onto.
 type: application
-version: 0.2.0
-appVersion: "0.2.0"
+version: 0.3.0
+appVersion: "0.3.0"
 home: https://github.com/example/observability-kit
 sources:
   - https://github.com/example/observability-kit

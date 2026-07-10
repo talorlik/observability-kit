@@ -13,6 +13,9 @@ spec:
     metadata:
       labels:
         app: otel-gateway
+        # Stamped so a chart version bump is an observable rolling
+        # update; the Batch 25 upgrade drill asserts this label.
+        app.kubernetes.io/version: {{ .Chart.Version | quote }}
     spec:
       serviceAccountName: otel-collector
       containers:

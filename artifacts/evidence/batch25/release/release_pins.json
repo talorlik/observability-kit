@@ -1,0 +1,39 @@
+{
+  "artifact_kind": "live_release_pins",
+  "batch": 25,
+  "captured_at": "2026-07-10T14:02:34.512563+00:00",
+  "check_command": "harness release-pins (registry pins vs live images)",
+  "harness": {
+    "kubectl_context": "kind-obskit-evidence",
+    "node_image": "kindest/node:v1.29.14",
+    "stack_profile": "evidence-disposable"
+  },
+  "payload": {
+    "application": {
+      "health": "Healthy",
+      "sync": "Synced"
+    },
+    "pinned_set": {
+      "argocd": {
+        "expected_pin": "v3.1.0",
+        "match": true,
+        "observed_image": "quay.io/argoproj/argocd:v3.1.0",
+        "pin_status": "pinned"
+      },
+      "opensearch": {
+        "expected_pin": "2.19.1",
+        "match": true,
+        "observed_image": "opensearchproject/opensearch:2.19.1",
+        "pin_status": "pinned"
+      },
+      "opensearch-dashboards": {
+        "expected_pin": "2.19.1",
+        "match": true,
+        "observed_image": "opensearchproject/opensearch-dashboards:2.19.1",
+        "pin_status": "pinned"
+      }
+    },
+    "remaining_to_be_pinned": []
+  },
+  "status": "pass"
+}

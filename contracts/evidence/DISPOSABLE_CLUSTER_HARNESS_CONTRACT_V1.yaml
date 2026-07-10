@@ -151,10 +151,13 @@ attached_backend:
 
 harness_scoped_pins_note: >-
   Every version above is a harness-scoped pin for reproducible evidence
-  runs. These pins deliberately do not resolve the to-be-pinned entries
-  in contracts/management/WRAPPED_SYSTEM_REGISTRY_V1.yaml (opensearch,
-  opensearch-dashboards, argocd); those stay open until Batch 25 and
-  keep blocking production profiles.
+  runs. Since Batch 25 the wrapped-system registry pins for opensearch,
+  opensearch-dashboards, and argocd converge on these harness-proven
+  versions by decision (docs/adr/ADR_0010_RELEASE_ENGINEERING.md): the
+  version the evidence runs prove is the version production profiles
+  pin. A pin bump changes the registry and this harness together and
+  requires a fresh harness evidence run per
+  contracts/release/RELEASE_ENGINEERING_CONTRACT_V1.yaml.
 
 install_path:
   # TR-24: the only permitted install path on the harness. Anything
@@ -295,3 +298,48 @@ ai_activation:
       - approved
       - hold
       - rejected
+
+# Batch 25 addition (TB-25, TR-25, ADR-0010): release engineering
+# evidence. Additive only - nothing above this line changed.
+# validate_release_engineering.sh owns the structural checks for this
+# section; validate_live_evidence.sh ignores it by design.
+release_engineering:
+  batch: 25
+  decided_by:
+    - docs/adr/ADR_0010_RELEASE_ENGINEERING.md
+  validated_by: scripts/ci/validate_release_engineering.sh
+  checks:
+    # Composed onto a completed install check of the same harness
+    # run, in this order; never part of the default batch 23 run.
+    - release-pins
+    - upgrade-drill
+  release_pins_check:
+    registry: contracts/management/WRAPPED_SYSTEM_REGISTRY_V1.yaml
+    asserts: >-
+      Every wrapped system the registry pins for production
+      (opensearch, opensearch-dashboards, argocd) is running on the
+      harness at exactly its pinned version, no to-be-pinned entries
+      remain, and the platform-core Application is Synced and Healthy.
+  upgrade_drill:
+    policy: contracts/release/RELEASE_ENGINEERING_CONTRACT_V1.yaml
+    baseline: >-
+      The newest v* release tag when one exists; for the inaugural
+      release the merge-base with the local main branch
+      (UPGRADE_BASELINE_REF overrides for rehearsals).
+    survival_assertions:
+      - A document seeded into OpenSearch before the upgrade is
+        retrievable after it.
+      - The rendered overlay values in the published GitOps clone are
+        byte-identical across the upgrade.
+      - The live collector gateway ConfigMap content is unchanged.
+      - The collector workloads roll to the new chart version label
+        and the Application ends Synced and Healthy.
+  evidence:
+    output_dir: artifacts/evidence/batch25
+    committed: true
+    required_artifacts:
+      release:
+        - release/release_pins.json
+      upgrade:
+        - upgrade/upgrade_drill.json
+    envelope_batch: 25

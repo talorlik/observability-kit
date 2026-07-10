@@ -5,12 +5,12 @@
         "annotations": {
             "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"argoproj.io/v1alpha1\",\"kind\":\"Application\",\"metadata\":{\"annotations\":{},\"name\":\"platform-core\",\"namespace\":\"argocd\"},\"spec\":{\"destination\":{\"namespace\":\"observability\",\"server\":\"https://kubernetes.default.svc\"},\"project\":\"default\",\"sources\":[{\"helm\":{\"valueFiles\":[\"$values/gitops/overlays/base/platform-core-values.yaml\",\"$values/gitops/overlays/dev/platform-core-values.yaml\"]},\"path\":\"gitops/charts/platform-core\",\"repoURL\":\"https://git-server.evidence-gitops.svc.cluster.local:8443/gitops.git\",\"targetRevision\":\"main\"},{\"ref\":\"values\",\"repoURL\":\"https://git-server.evidence-gitops.svc.cluster.local:8443/gitops.git\",\"targetRevision\":\"main\"}],\"syncPolicy\":{\"automated\":{\"prune\":true,\"selfHeal\":true},\"syncOptions\":[\"CreateNamespace=true\"]}}}\n"
         },
-        "creationTimestamp": "2026-07-10T13:19:36Z",
+        "creationTimestamp": "2026-07-10T13:57:57Z",
         "generation": 18,
         "name": "platform-core",
         "namespace": "argocd",
-        "resourceVersion": "1886",
-        "uid": "abe17ed0-6318-4e98-b8d4-d880c2c06dca"
+        "resourceVersion": "2406",
+        "uid": "1699b5ea-806b-4b74-b70a-44ae77f77354"
     },
     "spec": {
         "destination": {
@@ -49,20 +49,20 @@
     "status": {
         "controllerNamespace": "argocd",
         "health": {
-            "lastTransitionTime": "2026-07-10T13:23:11Z",
+            "lastTransitionTime": "2026-07-10T14:02:06Z",
             "status": "Healthy"
         },
         "history": [
             {
-                "deployStartedAt": "2026-07-10T13:22:50Z",
-                "deployedAt": "2026-07-10T13:22:50Z",
+                "deployStartedAt": "2026-07-10T14:01:45Z",
+                "deployedAt": "2026-07-10T14:01:45Z",
                 "id": 0,
                 "initiatedBy": {
                     "automated": true
                 },
                 "revisions": [
-                    "c619bb1bcaa2c15206c514a810e518fddf2d20d6",
-                    "c619bb1bcaa2c15206c514a810e518fddf2d20d6"
+                    "f8fec07a960c0e30dc1117b569d076aee373772e",
+                    "f8fec07a960c0e30dc1117b569d076aee373772e"
                 ],
                 "source": {
                     "repoURL": ""
@@ -88,7 +88,7 @@
             }
         ],
         "operationState": {
-            "finishedAt": "2026-07-10T13:22:51Z",
+            "finishedAt": "2026-07-10T14:01:46Z",
             "message": "successfully synced (all tasks run)",
             "operation": {
                 "initiatedBy": {
@@ -102,14 +102,23 @@
                     "prune": true,
                     "resources": [
                         {
+                            "kind": "Service",
+                            "name": "otel-gateway"
+                        },
+                        {
+                            "group": "apps",
+                            "kind": "DaemonSet",
+                            "name": "otel-agent"
+                        },
+                        {
                             "group": "apps",
                             "kind": "Deployment",
                             "name": "otel-gateway"
                         }
                     ],
                     "revisions": [
-                        "c619bb1bcaa2c15206c514a810e518fddf2d20d6",
-                        "c619bb1bcaa2c15206c514a810e518fddf2d20d6"
+                        "f8fec07a960c0e30dc1117b569d076aee373772e",
+                        "f8fec07a960c0e30dc1117b569d076aee373772e"
                     ],
                     "syncOptions": [
                         "CreateNamespace=true"
@@ -117,9 +126,34 @@
                 }
             },
             "phase": "Succeeded",
-            "startedAt": "2026-07-10T13:22:51Z",
+            "startedAt": "2026-07-10T14:01:46Z",
             "syncResult": {
                 "resources": [
+                    {
+                        "group": "",
+                        "hookPhase": "Running",
+                        "kind": "Service",
+                        "message": "service/otel-gateway unchanged",
+                        "name": "otel-gateway",
+                        "namespace": "observability",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
+                    {
+                        "group": "apps",
+                        "hookPhase": "Running",
+                        "images": [
+                            "otel/opentelemetry-collector-k8s:0.101.0"
+                        ],
+                        "kind": "DaemonSet",
+                        "message": "daemonset.apps/otel-agent unchanged",
+                        "name": "otel-agent",
+                        "namespace": "observability",
+                        "status": "Synced",
+                        "syncPhase": "Sync",
+                        "version": "v1"
+                    },
                     {
                         "group": "apps",
                         "hookPhase": "Running",
@@ -137,8 +171,8 @@
                 ],
                 "revision": "",
                 "revisions": [
-                    "c619bb1bcaa2c15206c514a810e518fddf2d20d6",
-                    "c619bb1bcaa2c15206c514a810e518fddf2d20d6"
+                    "f8fec07a960c0e30dc1117b569d076aee373772e",
+                    "f8fec07a960c0e30dc1117b569d076aee373772e"
                 ],
                 "source": {
                     "repoURL": ""
@@ -163,7 +197,7 @@
                 ]
             }
         },
-        "reconciledAt": "2026-07-10T13:22:51Z",
+        "reconciledAt": "2026-07-10T14:01:46Z",
         "resourceHealthSource": "appTree",
         "resources": [
             {
@@ -270,8 +304,8 @@
                 ]
             },
             "revisions": [
-                "c619bb1bcaa2c15206c514a810e518fddf2d20d6",
-                "c619bb1bcaa2c15206c514a810e518fddf2d20d6"
+                "f8fec07a960c0e30dc1117b569d076aee373772e",
+                "f8fec07a960c0e30dc1117b569d076aee373772e"
             ],
             "status": "Synced"
         }
