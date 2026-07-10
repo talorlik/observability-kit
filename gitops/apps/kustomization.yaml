@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# ArgoCD Application set owned by the ArgoCD bootstrap
+# (gitops/bootstrap/argocd). Listed explicitly so the bootstrap can
+# reference this directory as a kustomization root: kustomize load
+# restrictions forbid referencing individual files above a
+# kustomization's own directory, but permit nested kustomization roots.
+# grafana-application.yaml is deliberately not listed: it is provisioned
+# by the visualization access plane (Batch 9A), not by the bootstrap.
+resources:
+  - platform-core-application.yaml
+  - observability-pipelines-application.yaml
+  - search-stack-application.yaml
+  - graph-stack-application.yaml
+  - ai-runtime-application.yaml
+  - access-layer-application.yaml
+  - security-policies-application.yaml
+  - storage-backups-application.yaml

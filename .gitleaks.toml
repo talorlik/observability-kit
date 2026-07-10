@@ -1,0 +1,23 @@
+# Gitleaks configuration for the repository and CI secret scanning
+# (.github/workflows/ci.yaml, Secret Scanning job). Extends the default
+# ruleset; the allowlist below covers known non-secrets that the
+# default rules flag:
+#
+# - scripts/ci/validate_seeded_rejection_checks.sh embeds a fake,
+#   non-functional private-key fixture ON PURPOSE: the script seeds it
+#   into a temp directory and asserts that gitleaks REJECTS it. That
+#   runtime check scans the temp directory with the default config, so
+#   this allowlist does not weaken it.
+# - artifacts/evidence/batch24/deploy/contract_fingerprints.json holds
+#   sha256 content fingerprints of contract files (hex digests, not
+#   credentials); the generic-api-key rule false-positives on them.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Known non-secrets: seeded CI fixture and evidence content fingerprints"
+paths = [
+  '''scripts/ci/validate_seeded_rejection_checks\.sh''',
+  '''artifacts/evidence/batch24/deploy/contract_fingerprints\.json''',
+]

@@ -13,6 +13,33 @@ first. Entry format:
 - Follow-up: <action for a future batch, or "none">
 ```
 
+## 2026-07-10 - Batch n/a - Main CI Repair After First Push
+
+- Decision: the first push of `main` to the remote surfaced two
+  long-red CI jobs (also red on the 2026-07-09 push); both are fixed.
+  `gitops/apps/` gained its own `kustomization.yaml` (the same eight
+  bootstrap applications; grafana stays provisioned by Batch 9A) and
+  the ArgoCD bootstrap now references that directory as a nested
+  kustomization root instead of individual `../../apps/*.yaml` files.
+- Why: kustomize load restrictions forbid file references above a
+  kustomization's directory, so `kustomize build
+  gitops/bootstrap/argocd` failed in CI (and would fail for any
+  `kubectl apply -k` consumer); locally the check silently skipped
+  because kustomize is not installed. Rendered output is unchanged
+  (eight Applications, namespace argocd).
+- Follow-up: none.
+
+- Decision: added a root `.gitleaks.toml` allowlisting two paths:
+  `scripts/ci/validate_seeded_rejection_checks.sh` (deliberately
+  seeded fake private-key fixture) and
+  `artifacts/evidence/batch24/deploy/contract_fingerprints.json`
+  (sha256 content fingerprints flagged as generic-api-key).
+- Why: the CI secret scan walks full history and failed on three
+  known non-secrets. The seeded-rejection runtime check is unweakened:
+  it scans a temp directory with the default gitleaks config. Local
+  full-history scan now reports "no leaks found" (97 commits).
+- Follow-up: none.
+
 ## 2026-07-10 - Batch 26 - Product Docs and GA Readiness Decisions
 
 - Decision: `validate_product_docs.sh` is PR-gated in
