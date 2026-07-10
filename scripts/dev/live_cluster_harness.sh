@@ -261,6 +261,9 @@ PY
     --cert="$SCRATCH_DIR/git-server-cert.pem" \
     --key="$SCRATCH_DIR/git-server-key.pem" \
     --dry-run=client -o yaml | kc apply -f -
+  kc -n "$GITOPS_NS" create configmap git-server-script \
+    --from-file=git_smart_http.py="$ASSETS_DIR/git_smart_http.py" \
+    --dry-run=client -o yaml | kc apply -f -
   kc apply -f "$ASSETS_DIR/gitserver.yaml"
   # Declarative Argo CD repository credential: TLS verification off
   # for the per-run self-signed certificate. Scoped to exactly the

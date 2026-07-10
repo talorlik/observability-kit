@@ -5,11 +5,13 @@
 # (Secret git-server-tls, created by the harness) and registers a
 # declarative Argo CD repository secret with insecure: "true".
 #
-# The server is a Python stdlib static HTTPS server over the bare
-# repo (git "dumb" HTTP protocol; the harness runs
-# `git update-server-info` before shipping the repo with kubectl cp).
-# Read-only, anonymous, disposable - exactly the lifetime of the
-# evidence cluster.
+# The server speaks the git SMART HTTP protocol (Argo CD lists refs
+# with go-git, which cannot use the dumb protocol): a Python stdlib
+# CGI bridge to `git http-backend`, mounted from the
+# git-server-script ConfigMap (scripts/dev/harness_assets/
+# git_smart_http.py). Read-only, anonymous, disposable - exactly the
+# lifetime of the evidence cluster. The git package is installed at
+# pod start (apk); the harness is a networked test rig by contract.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -31,27 +33,12 @@ spec:
         - name: git-https
           image: python:3.12-alpine
           command:
-            - python3
+            - sh
             - -c
-            - |
-              import http.server
-              import os
-              import ssl
-
-              os.makedirs("/repos", exist_ok=True)
-              os.chdir("/repos")
-              httpd = http.server.HTTPServer(
-                  ("0.0.0.0", 8443),
-                  http.server.SimpleHTTPRequestHandler,
-              )
-              context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-              context.load_cert_chain(
-                  "/certs/tls.crt", "/certs/tls.key"
-              )
-              httpd.socket = context.wrap_socket(
-                  httpd.socket, server_side=True
-              )
-              httpd.serve_forever()
+            - >-
+              apk add --no-cache git >/dev/null &&
+              mkdir -p /repos &&
+              exec python3 /scripts/git_smart_http.py
           ports:
             - containerPort: 8443
               name: https
@@ -61,12 +48,20 @@ spec:
               memory: 64Mi
             limits:
               cpu: 250m
-              memory: 128Mi
+              memory: 256Mi
+          readinessProbe:
+            tcpSocket:
+              port: 8443
+            initialDelaySeconds: 3
+            periodSeconds: 5
           volumeMounts:
             - name: repos
               mountPath: /repos
             - name: tls
               mountPath: /certs
+              readOnly: true
+            - name: script
+              mountPath: /scripts
               readOnly: true
       volumes:
         - name: repos
@@ -74,6 +69,9 @@ spec:
         - name: tls
           secret:
             secretName: git-server-tls
+        - name: script
+          configMap:
+            name: git-server-script
 ---
 apiVersion: v1
 kind: Service
