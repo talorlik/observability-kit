@@ -78,3 +78,6 @@ docs/reports/validation/*
 # scripts/dev/sandbox_validate.sh leaves these only if cleanup fails (rare;
 # only on sandbox mounts that block unlink). Safe to delete.
 **/*.sandbox_bak.*
+
+# Batch 23 disposable harness scratch state (kubeconfig, venv, clones)
+.live-harness/

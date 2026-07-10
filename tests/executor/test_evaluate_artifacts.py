@@ -104,11 +104,14 @@ def test_chained_run_emits_four_artifacts() -> None:
     assert "standard-rwo" in matrix["storage_profile_candidates"]
 
     compat = artifacts["compatibility_result.json"]["compatibility_result"]
-    # "kind" is deliberately outside the supported distribution matrix
-    # (eks/gke/aks/kubeadm/openshift), so the reference chain grades
-    # blocked with exactly that contract reason code.
-    assert compat["grade"] == "blocked", compat
-    assert compat["reasons"] == ["unsupported_distribution"], compat
+    # Batch 23 added "kind" to the distribution matrix as conditional
+    # (disposable evidence harness only, ADR-0007), so the reference
+    # chain grades conditional with exactly that contract reason code.
+    # Blocked-grade coverage lives in the sample cluster evaluations.
+    assert compat["grade"] == "conditional", compat
+    assert compat["reasons"] == (
+        ["disposable_evidence_harness_only"]
+    ), compat
 
     mode = artifacts["mode_recommendation.json"]
     decision = mode["decision"]
@@ -135,7 +138,7 @@ def test_grading_reproduces_all_sample_cluster_evaluations() -> None:
     samples = json.loads(
         (CONTRACTS / "compatibility" / "GRADING_RULES.json").read_text()
     )["sample_cluster_evaluations"]
-    assert len(samples) == 3, "expected the three contracted samples"
+    assert len(samples) == 4, "expected the four contracted samples"
     for sample in samples:
         given = sample["input"]
         result = evaluate_module.grade_compatibility(

@@ -1,0 +1,61 @@
+# In-cluster git daemon serving the disposable GitOps clone to
+# Argo CD (ADR-0007). The harness ships the bare repository into the
+# pod with kubectl cp; git daemon serves whatever appears under
+# /repos. Read-only, anonymous, disposable - exactly the lifetime of
+# the evidence cluster.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: git-server
+  namespace: evidence-gitops
+  labels:
+    app: git-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: git-server
+  template:
+    metadata:
+      labels:
+        app: git-server
+    spec:
+      containers:
+        - name: git-daemon
+          image: alpine/git:2.47.2
+          command:
+            - git
+            - daemon
+            - --base-path=/repos
+            - --export-all
+            - --reuseaddr
+            - --verbose
+          ports:
+            - containerPort: 9418
+              name: git
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+          volumeMounts:
+            - name: repos
+              mountPath: /repos
+      volumes:
+        - name: repos
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: git-server
+  namespace: evidence-gitops
+spec:
+  selector:
+    app: git-server
+  ports:
+    - name: git
+      port: 9418
+      targetPort: 9418

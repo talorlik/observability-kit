@@ -1,0 +1,17 @@
+{
+  "cluster_name": "obskit-evidence",
+  "environment": "dev",
+  "deployment_mode": "attach",
+  "gitops_repo_url": "git://git-server.evidence-gitops.svc.cluster.local/gitops.git",
+  "gitops_path": "gitops",
+  "base_domain": "evidence.observability-kit.local",
+  "storage_profile": "standard-rwo",
+  "object_storage_profile": "s3-compatible",
+  "identity_profile": "static-users",
+  "secret_profile": "external-secrets",
+  "ingress_profile": "nginx-ingress",
+  "attached_services": {
+    "opensearch_endpoint": "https://opensearch.evidence-backend.svc.cluster.local:9200",
+    "dashboards_endpoint": "http://opensearch-dashboards.evidence-backend.svc.cluster.local:5601"
+  }
+}

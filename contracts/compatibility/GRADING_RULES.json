@@ -3,7 +3,11 @@
     "version": "v1",
     "owner": "platform-observability"
   },
-  "grading_scale": ["supported", "conditional", "blocked"],
+  "grading_scale": [
+    "supported",
+    "conditional",
+    "blocked"
+  ],
   "blocked_conditions": [
     {
       "code": "unsupported_kubernetes_version",
@@ -86,7 +90,32 @@
       },
       "expected_output": {
         "grade": "blocked",
-        "reasons": ["unsupported_kubernetes_version"]
+        "reasons": [
+          "unsupported_kubernetes_version"
+        ]
+      }
+    },
+    {
+      "name": "cluster-kind-evidence-harness",
+      "input": {
+        "kubernetes_version": "1.29",
+        "distribution": "kind",
+        "profiles": {
+          "storage": "standard-rwo",
+          "object_storage": "s3-compatible",
+          "identity": "static-users",
+          "secret": "external-secrets",
+          "ingress_network": "nginx-ingress",
+          "gitops_controller": "argocd"
+        },
+        "missing_prerequisites": []
+      },
+      "expected_output": {
+        "grade": "conditional",
+        "reasons": [
+          "disposable_evidence_harness_only",
+          "short_lived_usage_only"
+        ]
       }
     }
   ]

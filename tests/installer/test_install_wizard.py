@@ -73,8 +73,9 @@ def _merged_snapshot(workdir: Path) -> Path:
     Base: the Batch 17 preflight-pass fixture. The discovery-facing
     sections come from the discovery reference fixture (nginx ingress
     workload, external-secrets CRDs) and the distribution becomes
-    kubeadm, because "kind" deliberately grades blocked by contract
-    and the guided flow halts on a blocked grade.
+    kubeadm, a conditional matrix entry that keeps this fixture
+    independent of the Batch 23 evidence-harness path ("kind" grades
+    conditional with disposable_evidence_harness_only since Batch 23).
     """
     base = json.loads(
         (EXECUTOR_FIXTURES / "snapshot_preflight_pass.json").read_text()
