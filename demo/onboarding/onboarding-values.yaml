@@ -1,0 +1,30 @@
+# Batch 7 one-block onboarding values for the demo playground.
+# One YAML document per demo service. Each document is a complete
+# observability-lib values file: it validates against
+# gitops/libraries/helm/observability-lib/values.schema.json, and
+# its observability block validates against
+# contracts/onboarding/ONBOARDING_SCHEMA.json (TR-06). The demo
+# package doubles as a conformance example of the onboarding path.
+observability:
+  serviceName: demo-http-api
+  environment: dev
+  owner: team-demo
+  subscriptionMode: instrumentation
+---
+observability:
+  serviceName: demo-worker
+  environment: dev
+  owner: team-demo
+  subscriptionMode: instrumentation
+---
+observability:
+  serviceName: demo-scheduled-job
+  environment: dev
+  owner: team-demo
+  subscriptionMode: instrumentation
+---
+observability:
+  serviceName: demo-datastore
+  environment: dev
+  owner: team-demo
+  subscriptionMode: instrumentation

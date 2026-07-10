@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - http-api-deployment.yaml
+  - worker-deployment.yaml
+  - scheduled-job-cronjob.yaml
+  - datastore-deployment.yaml
+  - loadgen-deployment.yaml
+configMapGenerator:
+  - name: demo-scenarios
+    namespace: tenant-demo
+    files:
+      - scenarios/steady-baseline.json
+      - scenarios/burst.json
+      - scenarios/error-injection.json
+      - scenarios/latency-injection.json
+generatorOptions:
+  disableNameSuffixHash: true

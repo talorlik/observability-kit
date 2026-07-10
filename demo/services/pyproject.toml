@@ -1,0 +1,27 @@
+# Dependency manifest for the demo playground services (Batch 27,
+# TR-27, ADR-0011). This package owns its dependencies; nothing here
+# is ever added to requirements-ci.txt, which stays lint-only - the
+# same posture ADR-0001 fixed for tools/obskit and ADR-0009 for
+# services/ai.
+#
+# The package is standard-library-only by decision (ADR-0011): the
+# OTLP/HTTP JSON emitter is hand-rolled so the offline test posture
+# (tests/ runs without PyPI) holds and the image build needs no
+# package index at all.
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "obskit-demo"
+version = "0.1.0"
+description = "Observability Kit demo playground workloads"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["demosvc*"]
+
+[tool.setuptools.package-data]
+demosvc = ["py.typed"]

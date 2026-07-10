@@ -1,0 +1,32 @@
+{
+  "schema_version": "v1",
+  "name": "latency-injection",
+  "kind": "latency-injection",
+  "description": "Steady load with roughly 800 milliseconds of server-side latency added by the demo HTTP API via the x-demo-latency-ms header, feeding the latency dashboards and the trace-centric AI surfaces.",
+  "target": {
+    "base_url_env": "DEMO_TARGET_BASE_URL",
+    "route": "/api/orders",
+    "method": "GET"
+  },
+  "load": {
+    "requests_per_second": 2,
+    "concurrency": 4,
+    "duration_seconds": 0
+  },
+  "fault": {
+    "latency_ms": 800
+  },
+  "expectations": {
+    "dashboards": [
+      "DEMO_LATENCY_TRACES/p95-latency-by-route",
+      "DEMO_LATENCY_TRACES/slow-trace-waterfall",
+      "DEMO_SERVICE_OVERVIEW/latency-percentiles"
+    ],
+    "ai_surfaces": [
+      "risk-scoring",
+      "assisted-rca",
+      "mcp:trace-investigation",
+      "mcp:metrics-correlation"
+    ]
+  }
+}

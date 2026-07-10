@@ -1,0 +1,67 @@
+# Demo asynchronous worker (Batch 27, TR-27, ADR-0011).
+# Polls the demo HTTP API's work queue and continues each item's
+# trace (CONSUMER spans); all telemetry goes through the platform
+# gateway collector as OTLP/HTTP JSON.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-worker
+  namespace: tenant-demo
+  labels:
+    app.kubernetes.io/name: demo-worker
+    app.kubernetes.io/part-of: obskit-demo
+    service.name: demo-worker
+    deployment.environment: dev
+    service.owner: team-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: demo-worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: demo-worker
+        app.kubernetes.io/part-of: obskit-demo
+        service.name: demo-worker
+        deployment.environment: dev
+        service.owner: team-demo
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: worker
+          image: ghcr.io/obskit/demo:0.1.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - worker
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          # ADR-0011 sizing budget: requests <= 100m / 128Mi per pod.
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-gateway.observability.svc.cluster.local:4318
+            - name: DEMO_ENVIRONMENT
+              value: dev
+            - name: DEMO_OWNER
+              value: team-demo
+            - name: DEMO_TENANT_ID
+              value: demo
+            - name: DEMO_HTTP_API_URL
+              value: http://demo-http-api:8080
+            - name: DEMO_WORKER_POLL_SECONDS
+              value: "5"

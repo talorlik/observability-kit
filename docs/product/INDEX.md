@@ -18,8 +18,8 @@ least one of them; every audience has at least one document.
 
 | Audience | Who they are | Primary documents |
 | ---- | ---- | ---- |
-| Evaluator | Assessing the product before adopting it | [Getting Started](GETTING_STARTED.md) |
-| Installer and operator | Platform operators and SREs who install, configure, and run the platform | [Installation Guide](INSTALLATION_GUIDE.md), [Configuration Guide](CONFIGURATION_GUIDE.md), [Operations Guide](OPERATIONS_GUIDE.md) |
+| Evaluator | Assessing the product before adopting it | [Getting Started](GETTING_STARTED.md), [Demo Playground Guide](PLAYGROUND_GUIDE.md) |
+| Installer and operator | Platform operators and SREs who install, configure, and run the platform | [Installation Guide](INSTALLATION_GUIDE.md), [Configuration Guide](CONFIGURATION_GUIDE.md), [Operations Guide](OPERATIONS_GUIDE.md), [Demo Playground Guide](PLAYGROUND_GUIDE.md) |
 | Tenant administrator | SaaS operators and tenant administrators managing tenant lifecycles | [Tenant Admin Guide](TENANT_ADMIN_GUIDE.md), [API Reference](API_REFERENCE.md) |
 | End user | Tenant end users consuming dashboards, queries, and alerts | [End User Guide](END_USER_GUIDE.md) |
 | Commercial administrator | Commercial, sales, and support teams operating plans, billing, and onboarding | [Pricing and Packaging](PRICING_AND_PACKAGING.md), [Support and Onboarding](SUPPORT_AND_ONBOARDING.md) |
@@ -38,12 +38,15 @@ least one of them; every audience has at least one document.
 | [PRICING_AND_PACKAGING.md](PRICING_AND_PACKAGING.md) | Commercial administrator | Plan and tier catalog, metering dimensions, billing adapter options, invoice export |
 | [SUPPORT_AND_ONBOARDING.md](SUPPORT_AND_ONBOARDING.md) | Commercial administrator; support engineers | Triage flows, known failure modes, escalation paths, customer onboarding |
 | [GA_READINESS_REVIEW.md](GA_READINESS_REVIEW.md) | Installer and operator; commercial administrator | Signed, evidence-backed GA readiness review against the productization definition of done |
+| [PLAYGROUND_GUIDE.md](PLAYGROUND_GUIDE.md) | Evaluator; installer and operator | Demo playground walkthrough: platform install or dev-stack reuse, demo deploy, traffic scenarios, dashboards, AI prompts, teardown |
 
 ## Reading Paths
 
 - Evaluating the product: start with
   [Getting Started](GETTING_STARTED.md), then skim
   [Pricing and Packaging](PRICING_AND_PACKAGING.md).
+- Evaluating with live data: the
+  [Demo Playground Guide](PLAYGROUND_GUIDE.md).
 - Standing up a platform: [Getting Started](GETTING_STARTED.md), then
   the [Installation Guide](INSTALLATION_GUIDE.md), then the
   [Configuration Guide](CONFIGURATION_GUIDE.md).

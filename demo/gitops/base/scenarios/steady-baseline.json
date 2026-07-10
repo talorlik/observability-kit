@@ -1,0 +1,16 @@
+{
+  "schema_version": "v1",
+  "name": "steady-baseline",
+  "kind": "steady-baseline",
+  "description": "Gentle continuous load against the demo HTTP API so every dashboard, tenancy, and metering surface shows healthy baseline telemetry.",
+  "target": {
+    "base_url_env": "DEMO_TARGET_BASE_URL",
+    "route": "/api/orders",
+    "method": "GET"
+  },
+  "load": {
+    "requests_per_second": 2,
+    "concurrency": 2,
+    "duration_seconds": 0
+  }
+}

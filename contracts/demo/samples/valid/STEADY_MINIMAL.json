@@ -1,0 +1,15 @@
+{
+  "schema_version": "v1",
+  "name": "steady-minimal",
+  "kind": "steady-baseline",
+  "description": "Minimal steady scenario used as a schema conformance sample; distinct from the shipped steady-baseline scenario.",
+  "target": {
+    "route": "/healthz",
+    "method": "GET"
+  },
+  "load": {
+    "requests_per_second": 0.5,
+    "concurrency": 1,
+    "duration_seconds": 60
+  }
+}

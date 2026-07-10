@@ -401,6 +401,7 @@ Report outputs:
 - `docs/runbooks/LIVE_VALIDATION_RUNBOOK.md`
 - `docs/runbooks/PRODUCTION_RELEASE_GATE_RUNBOOK.md`
 - `docs/runbooks/PRODUCT_DOCUMENTATION_RUNBOOK.md`
+- `docs/runbooks/DEMO_PLAYGROUND_RUNBOOK.md`
 
 ## Project-Local Snyk Path
 

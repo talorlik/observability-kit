@@ -109,6 +109,9 @@ jobs:
       - name: Product documentation checks
         run: bash scripts/ci/validate_product_docs.sh
 
+      - name: Demo playground checks
+        run: bash scripts/ci/validate_demo_playground.sh
+
       - name: Preflight and discovery checks
         run: bash scripts/ci/validate_preflight_and_discovery.sh
 

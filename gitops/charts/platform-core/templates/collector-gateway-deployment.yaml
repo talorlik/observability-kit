@@ -63,4 +63,11 @@ spec:
     - name: otlp-grpc
       port: 4317
       targetPort: 4317
+    # Additive OTLP/HTTP port (Batch 27, ADR-0011): the gateway
+    # container already listens on 4318; the demo playground's
+    # stdlib emitter posts OTLP/HTTP JSON here. The collector
+    # topology contract is unchanged.
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318
 {{- end }}

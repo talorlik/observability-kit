@@ -1,0 +1,15 @@
+{
+  "schema_version": "v1",
+  "name": "burst-without-block",
+  "kind": "burst",
+  "description": "Seeded-invalid sample: burst kind requires the burst object with interval, window, and multiplier.",
+  "target": {
+    "route": "/api/orders",
+    "method": "GET"
+  },
+  "load": {
+    "requests_per_second": 1,
+    "concurrency": 1,
+    "duration_seconds": 60
+  }
+}

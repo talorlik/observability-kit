@@ -1,0 +1,15 @@
+{
+  "schema_version": "v1",
+  "name": "bad-kind",
+  "kind": "chaos-monkey",
+  "description": "Seeded-invalid sample: kind is not one of the four allowed scenario kinds.",
+  "target": {
+    "route": "/api/orders",
+    "method": "GET"
+  },
+  "load": {
+    "requests_per_second": 1,
+    "concurrency": 1,
+    "duration_seconds": 60
+  }
+}

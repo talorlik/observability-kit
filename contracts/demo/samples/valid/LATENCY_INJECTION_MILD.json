@@ -1,0 +1,26 @@
+{
+  "schema_version": "v1",
+  "name": "latency-mild",
+  "kind": "latency-injection",
+  "description": "Mild latency-injection sample exercising the fault and expectations conditionals; distinct from the shipped latency-injection scenario.",
+  "target": {
+    "route": "/api/inventory",
+    "method": "GET"
+  },
+  "load": {
+    "requests_per_second": 1,
+    "concurrency": 1,
+    "duration_seconds": 120
+  },
+  "fault": {
+    "latency_ms": 250
+  },
+  "expectations": {
+    "dashboards": [
+      "DEMO_LATENCY_TRACES/p95-latency-by-route"
+    ],
+    "ai_surfaces": [
+      "risk-scoring"
+    ]
+  }
+}

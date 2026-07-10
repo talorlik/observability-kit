@@ -1,0 +1,21 @@
+{
+  "schema_version": "v1",
+  "name": "burst-tight",
+  "kind": "burst",
+  "description": "Short-cycle burst sample exercising the kind-conditional burst block; distinct from the shipped burst scenario.",
+  "target": {
+    "base_url_env": "DEMO_SAMPLE_TARGET_URL",
+    "route": "/api/inventory",
+    "method": "POST"
+  },
+  "load": {
+    "requests_per_second": 1,
+    "concurrency": 2,
+    "duration_seconds": 300
+  },
+  "burst": {
+    "interval_seconds": 30,
+    "burst_seconds": 5,
+    "burst_multiplier": 3
+  }
+}

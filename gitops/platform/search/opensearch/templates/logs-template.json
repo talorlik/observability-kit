@@ -33,6 +33,9 @@
         },
         "message": {
           "type": "text"
+        },
+        "k8s.namespace.name": {
+          "type": "keyword"
         }
       }
     }

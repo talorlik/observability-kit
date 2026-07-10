@@ -1,0 +1,15 @@
+{
+  "schema_version": "v1",
+  "name": "missing-fault",
+  "kind": "error-injection",
+  "description": "Seeded-invalid sample: error-injection kind without the required fault object and expectations block.",
+  "target": {
+    "route": "/api/orders",
+    "method": "GET"
+  },
+  "load": {
+    "requests_per_second": 1,
+    "concurrency": 1,
+    "duration_seconds": 60
+  }
+}

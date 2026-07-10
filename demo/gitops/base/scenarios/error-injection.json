@@ -1,0 +1,31 @@
+{
+  "schema_version": "v1",
+  "name": "error-injection",
+  "kind": "error-injection",
+  "description": "Steady load with roughly thirty percent of requests answered 500 by the demo HTTP API via the x-demo-fault-ratio header, feeding the error dashboards and the risk-scoring and assisted-RCA surfaces.",
+  "target": {
+    "base_url_env": "DEMO_TARGET_BASE_URL",
+    "route": "/api/orders",
+    "method": "GET"
+  },
+  "load": {
+    "requests_per_second": 2,
+    "concurrency": 2,
+    "duration_seconds": 0
+  },
+  "fault": {
+    "error_ratio": 0.3
+  },
+  "expectations": {
+    "dashboards": [
+      "DEMO_ERRORS_ALERTS/error-rate-by-service",
+      "DEMO_SERVICE_OVERVIEW/request-rate-and-errors",
+      "DEMO_LOGS_EXPLORER/error-log-stream"
+    ],
+    "ai_surfaces": [
+      "risk-scoring",
+      "assisted-rca",
+      "mcp:incident-search"
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "schema_version": "v1",
+  "name": "negative-rps",
+  "kind": "steady-baseline",
+  "description": "Seeded-invalid sample: load.requests_per_second must be strictly greater than zero.",
+  "target": {
+    "route": "/api/orders",
+    "method": "GET"
+  },
+  "load": {
+    "requests_per_second": -5,
+    "concurrency": 1,
+    "duration_seconds": 60
+  }
+}

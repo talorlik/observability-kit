@@ -1,0 +1,21 @@
+{
+  "schema_version": "v1",
+  "name": "burst",
+  "kind": "burst",
+  "description": "Baseline load with a periodic burst window so throughput panels, autoscaling signals, and usage metering show realistic diurnal-style variation.",
+  "target": {
+    "base_url_env": "DEMO_TARGET_BASE_URL",
+    "route": "/api/orders",
+    "method": "GET"
+  },
+  "load": {
+    "requests_per_second": 2,
+    "concurrency": 4,
+    "duration_seconds": 0
+  },
+  "burst": {
+    "interval_seconds": 120,
+    "burst_seconds": 20,
+    "burst_multiplier": 5
+  }
+}

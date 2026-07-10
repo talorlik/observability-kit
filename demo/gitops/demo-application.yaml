@@ -1,0 +1,28 @@
+# Optional ArgoCD Application for GitOps-managed environments.
+# Applied explicitly by the operator (never referenced from
+# gitops/apps/ or the bootstrap). Substitute DEMO_REPO_URL first:
+#   DEMO_REPO_URL=<git-remote> envsubst < demo/gitops/demo-application.yaml \
+#     | kubectl apply -f -
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: obskit-demo
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: obskit-demo
+spec:
+  project: default
+  source:
+    repoURL: ${DEMO_REPO_URL}
+    targetRevision: HEAD
+    path: demo/gitops/base
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tenant-demo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

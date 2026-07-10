@@ -1,0 +1,324 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://observability-kit/contracts/demo/DEMO_SCENARIO_SCHEMA_V1.json",
+  "title": "DemoScenarioV1",
+  "description": "Declarative traffic, load, and fault simulation scenario executed by the demo package loadgen entrypoint (ADR-0011, TR-27). Fault injection reaches the demo HTTP API exclusively through the x-demo-fault-ratio and x-demo-latency-ms request headers derived from the fault block.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "name",
+    "kind",
+    "description",
+    "target",
+    "load"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "v1"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "steady-baseline",
+        "burst",
+        "error-injection",
+        "latency-injection"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "route",
+        "method"
+      ],
+      "properties": {
+        "base_url_env": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$",
+          "default": "DEMO_TARGET_BASE_URL",
+          "description": "Name of the environment variable holding the target base URL. Defaults to DEMO_TARGET_BASE_URL; the loadgen runtime falls back to http://demo-http-api:8080 when the variable is unset."
+        },
+        "route": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "method": {
+          "type": "string",
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE",
+            "HEAD"
+          ]
+        }
+      }
+    },
+    "load": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requests_per_second",
+        "concurrency",
+        "duration_seconds"
+      ],
+      "properties": {
+        "requests_per_second": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "concurrency": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "duration_seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total scenario runtime in seconds; 0 means run forever until SIGTERM."
+        }
+      }
+    },
+    "burst": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "interval_seconds",
+        "burst_seconds",
+        "burst_multiplier"
+      ],
+      "properties": {
+        "interval_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Length of one baseline-plus-burst cycle in seconds."
+        },
+        "burst_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Burst window at the start of each cycle, in seconds."
+        },
+        "burst_multiplier": {
+          "type": "number",
+          "exclusiveMinimum": 1,
+          "description": "Factor applied to load.requests_per_second during the burst window."
+        }
+      }
+    },
+    "fault": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "error_ratio": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "description": "Sent as the x-demo-fault-ratio request header: probability that the demo HTTP API answers 500."
+        },
+        "latency_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Sent as the x-demo-latency-ms request header: server-side added latency in milliseconds."
+        }
+      }
+    },
+    "expectations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dashboards",
+        "ai_surfaces"
+      ],
+      "properties": {
+        "dashboards": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Demo dashboard panels this fault scenario is expected to light up, as <DASHBOARD>/<panel> references."
+        },
+        "ai_surfaces": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Risk-scoring, assisted-RCA, and MCP surfaces this fault scenario is expected to feed."
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "steady-baseline"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "burst"
+              ]
+            },
+            {
+              "required": [
+                "fault"
+              ]
+            },
+            {
+              "required": [
+                "expectations"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "burst"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "allOf": [
+          {
+            "required": [
+              "burst"
+            ]
+          },
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "fault"
+                  ]
+                },
+                {
+                  "required": [
+                    "expectations"
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "error-injection"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "allOf": [
+          {
+            "required": [
+              "fault",
+              "expectations"
+            ]
+          },
+          {
+            "properties": {
+              "fault": {
+                "required": [
+                  "error_ratio"
+                ],
+                "not": {
+                  "required": [
+                    "latency_ms"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "not": {
+              "required": [
+                "burst"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "latency-injection"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "allOf": [
+          {
+            "required": [
+              "fault",
+              "expectations"
+            ]
+          },
+          {
+            "properties": {
+              "fault": {
+                "required": [
+                  "latency_ms"
+                ],
+                "not": {
+                  "required": [
+                    "error_ratio"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "not": {
+              "required": [
+                "burst"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

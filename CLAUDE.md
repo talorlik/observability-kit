@@ -85,7 +85,7 @@ bash scripts/ci/check_no_hardcoded_env_values.sh
 bash scripts/ci/validate_all_batches_with_report.sh
 # Reports written to docs/reports/validation/
 # Covers every batch registered in its BATCH_IDS array (currently
-# 1-9A, 10-26; new batches register themselves when implemented).
+# 1-9A, 10-27; new batches register themselves when implemented).
 ```
 
 ### Running a Single Batch
@@ -120,6 +120,7 @@ bash scripts/ci/validate_live_evidence.sh             # Batch 23
 bash scripts/ci/validate_ai_activation.sh             # Batch 24
 bash scripts/ci/validate_release_engineering.sh       # Batch 25
 bash scripts/ci/validate_product_docs.sh              # Batch 26
+bash scripts/ci/validate_demo_playground.sh           # Batch 27
 ```
 
 Batch 17 delivers the `obskit` executor runtime under `tools/obskit/`
@@ -271,10 +272,27 @@ matrix, cross-tree links, API reference freshness, and the GA review
 structure. The operator flow is
 `docs/runbooks/PRODUCT_DOCUMENTATION_RUNBOOK.md`.
 
-Batch 27 (demo workloads and observability playground) is authored
-in `TASKS.md` but not yet implemented. The plan is
-`docs/auxiliary/planning/DEMO_PLAYGROUND_PLAN.md`; execute it via
-`/run-batch 27` or the kick-off prompt in that plan's section 6.
+Batch 27 delivers the demo playground (ADR-0011, plan
+`docs/auxiliary/planning/DEMO_PLAYGROUND_PLAN.md`): an optional,
+additive, removable package under `demo/` - four house-built sample
+services plus a scenario-driven load generator in one stdlib-only
+image (`ghcr.io/obskit/demo:0.1.0`, five entrypoints, hand-rolled
+OTLP/HTTP JSON emitter targeting `otel-gateway:4318`; the gateway
+Service gained the additive `otlp-http` port), deployed tenant-scoped
+(tenant `demo`, namespace `tenant-demo`) through the Batch 7
+one-block onboarding contract via `demo/deploy.sh` /
+`demo/teardown.sh` (both refuse `ENVIRONMENT=production`; core
+charts, contracts, and bootstrap untouched). Traffic scenarios
+(steady-baseline, burst, error-injection, latency-injection) are
+declarative under `demo/gitops/base/scenarios/` against
+`contracts/demo/DEMO_SCENARIO_SCHEMA_V1.json` with seeded-invalid
+samples; demo dashboards ship as `DEMO_*.ndjson` under the platform
+provisioning path; the AI prompt pack
+(`demo/prompts/AI_PROMPT_PACK.md`) binds read-path MCP catalog tools
+with a single approval-gated write prompt. Offline tests live in
+`tests/demo/`; the operator walkthrough is
+`docs/product/PLAYGROUND_GUIDE.md` and the drill runbook is
+`docs/runbooks/DEMO_PLAYGROUND_RUNBOOK.md`.
 
 Each batch also has a smoke wrapper: `scripts/ci/validate_batch<N>_smoke.sh`.
 
@@ -478,7 +496,7 @@ adapter and neutrality contracts pass. Run them (or the all-batches report)
 before trusting adapter/neutrality changes.
 
 `scripts/ci/validate_all_batches_with_report.sh` runs every batch smoke
-wrapper (currently 1-9, 9A, and 10-26) and writes a
+wrapper (currently 1-9, 9A, and 10-27) and writes a
 markdown + JSON report under `docs/reports/validation/`. It is intended for
 developer / QA use and is not part of the CI workflow itself.
 

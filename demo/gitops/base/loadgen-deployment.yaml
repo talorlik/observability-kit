@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-loadgen
+  namespace: tenant-demo
+  labels:
+    app.kubernetes.io/name: demo-loadgen
+    app.kubernetes.io/part-of: obskit-demo
+    service.name: demo-loadgen
+    deployment.environment: dev
+    service.owner: team-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: demo-loadgen
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: demo-loadgen
+        app.kubernetes.io/part-of: obskit-demo
+        service.name: demo-loadgen
+        deployment.environment: dev
+        service.owner: team-demo
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: demo-loadgen
+          # Product-owned demo image (ADR-0011); the loadgen entrypoint
+          # executes the declarative scenario documents mounted from the
+          # demo-scenarios ConfigMap and validated against
+          # contracts/demo/DEMO_SCENARIO_SCHEMA_V1.json.
+          image: ghcr.io/obskit/demo:0.1.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - loadgen
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            # Scenario selection: set to steady-baseline, burst,
+            # error-injection, or latency-injection (see demo/SCENARIOS.md).
+            - name: DEMO_SCENARIO
+              value: steady-baseline
+            - name: DEMO_TARGET_BASE_URL
+              value: http://demo-http-api:8080
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-gateway.observability.svc.cluster.local:4318
+            - name: DEMO_ENVIRONMENT
+              value: dev
+            - name: DEMO_OWNER
+              value: team-demo
+            - name: DEMO_TENANT_ID
+              value: demo
+          volumeMounts:
+            - name: scenarios
+              mountPath: /etc/demo/scenarios
+              readOnly: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+      volumes:
+        - name: scenarios
+          configMap:
+            name: demo-scenarios

@@ -40,6 +40,7 @@ declare -a BATCH_IDS=(
   "24"
   "25"
   "26"
+  "27"
 )
 
 declare -a BATCH_NAMES=(
@@ -70,6 +71,7 @@ declare -a BATCH_NAMES=(
   "AI/MCP Runtime Activation"
   "Production Operations and Release Engineering"
   "Product Documentation and GA Readiness"
+  "Demo Workloads and Observability Playground"
 )
 
 declare -a VALIDATION_CRITERIA=(
@@ -100,6 +102,7 @@ declare -a VALIDATION_CRITERIA=(
   "Validate model-provider adapter stub metadata and secrets-backend key resolution, live KAgent and KHook and MCP gateway deployment evidence, trigger-to-casefile-to-approval rehearsal evidence with policy and redaction and audit intact, signoff record with measured thresholds, structural activation checks without a cluster, and extended AI runbook sections."
   "Validate release contract semver and changelog and OCI publication rules, concrete registry pins with fail-if rule pass and harness install evidence, N-1 upgrade evidence with data and config survival, platform SLO extension checks, SBOM and image scan and license inventory artifacts, production reference architecture section checks, and seeded unpinned-profile and missing-license rejections."
   "Validate product docs index and audience map coverage, core and tenant and commercial document presence checks, generated API reference marker and contract fidelity, docs-coverage matrix with every Batch 17-25 capability mapped, link validation across the docs tree, and signed GA readiness checklist with per-item evidence links."
+  "Validate ADR-0011 gated choices, demo package skeleton and deploy and teardown safety, Batch 7 onboarding and tenant descriptor conformance, image-pinned tenant-scoped manifests within the sizing budget, scenario contract with seeded-invalid rejections and fault expectations resolving to dashboard panels, demo dashboards with standard filter dimensions, read-path-by-default AI prompt pack bound to the MCP catalog, offline demo tests, and playground guide and runbook registration."
 )
 
 declare -a SCRIPT_PATHS=(
@@ -130,6 +133,7 @@ declare -a SCRIPT_PATHS=(
   "scripts/ci/validate_batch24_smoke.sh"
   "scripts/ci/validate_batch25_smoke.sh"
   "scripts/ci/validate_batch26_smoke.sh"
+  "scripts/ci/validate_batch27_smoke.sh"
 )
 
 declare -a STATUSES=()

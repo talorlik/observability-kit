@@ -294,3 +294,35 @@ batches:
           budget on the isolation SLO.
         doc: docs/product/OPERATIONS_GUIDE.md
         section: Health and Product SLOs
+
+  # Batch 27 extends the matrix beyond the TR-26 scope (17-25): the
+  # demo playground is a product surface with its own guide, and the
+  # Batch 27 validator relies on the same section-heading binding.
+  "27":
+    name: Demo workloads and observability playground
+    capabilities:
+      - id: b27-demo-package-deploy
+        summary: >-
+          Optional, additive, removable demo package deploying four
+          sample workloads plus a load generator, tenant-scoped and
+          onboarded through the Batch 7 contract (ADR-0011).
+        doc: docs/product/PLAYGROUND_GUIDE.md
+        section: Deploy the Demo
+      - id: b27-traffic-scenarios
+        summary: >-
+          Declarative, schema-validated traffic scenarios including
+          error and latency fault injection.
+        doc: docs/product/PLAYGROUND_GUIDE.md
+        section: Run Traffic Scenarios
+      - id: b27-demo-dashboards
+        summary: >-
+          Four demo dashboards provisioned as saved objects with the
+          standard filter dimensions.
+        doc: docs/product/PLAYGROUND_GUIDE.md
+        section: Explore the Dashboards
+      - id: b27-ai-prompt-pack
+        summary: >-
+          Read-path-by-default AI prompt pack bound to the MCP
+          catalog, with the single write prompt approval-gated.
+        doc: docs/product/PLAYGROUND_GUIDE.md
+        section: Ask the AI

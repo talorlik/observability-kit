@@ -1,0 +1,39 @@
+{
+  "tenant_id": "demo",
+  "display_name": "Demo Playground",
+  "tier": "standard",
+  "isolation_class": "shared-partition",
+  "residency": {
+    "region": "local",
+    "data_residency_required": false,
+    "pool": "shared"
+  },
+  "lifecycle_state": "active",
+  "owner": {
+    "name": "Demo Operator",
+    "email": "demo-operator@obskit.example",
+    "team": "team-demo"
+  },
+  "contacts": [
+    {
+      "role": "technical",
+      "email": "demo-operator@obskit.example"
+    },
+    {
+      "role": "operations",
+      "email": "demo-operator@obskit.example"
+    }
+  ],
+  "quotas": {
+    "ingest": {
+      "max_gb_per_day": 5,
+      "max_events_per_second": 500
+    },
+    "retention": {
+      "logs_days": 3,
+      "metrics_days": 7,
+      "traces_days": 3
+    }
+  },
+  "created_at": "2026-07-10T00:00:00Z"
+}
