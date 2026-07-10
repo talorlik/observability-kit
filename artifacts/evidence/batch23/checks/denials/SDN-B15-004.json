@@ -1,0 +1,34 @@
+{
+  "artifact_kind": "live_cross_tenant_denial",
+  "attempted_access": {
+    "action": "map-principal-into-foreign-dashboard-space",
+    "actor_tenant": "tenant-a",
+    "store": "dashboards",
+    "target_tenant": "tenant-b"
+  },
+  "batch": 23,
+  "captured_at": "2026-07-10T10:31:39.862655+00:00",
+  "decision": "reject",
+  "enforcement_point": "config-validation",
+  "expected_decision": "reject",
+  "harness": {
+    "kubectl_context": "kind-obskit-evidence",
+    "node_image": "kindest/node:v1.29.14",
+    "stack_profile": "evidence-disposable"
+  },
+  "matches_expected": true,
+  "matrix": "contracts/tenancy/TENANT_ISOLATION_MATRIX_V1.yaml",
+  "observed": {
+    "config_validation_violations": [
+      "mapping places tenant-a-analyst into foreign dashboard space tenant-b (CTR-03)"
+    ],
+    "live_mapping_violations": [],
+    "seeded_mapping": {
+      "dashboard_space": "tenant-b",
+      "principals": [
+        "tenant-a-analyst"
+      ]
+    }
+  },
+  "scenario_id": "SDN-B15-004"
+}

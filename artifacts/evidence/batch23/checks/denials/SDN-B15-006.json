@@ -1,0 +1,38 @@
+{
+  "artifact_kind": "live_cross_tenant_denial",
+  "attempted_access": {
+    "action": "vector-retrieval-with-foreign-tenant-filter",
+    "actor_tenant": "tenant-a",
+    "store": "vectors",
+    "target_tenant": "tenant-b"
+  },
+  "batch": 23,
+  "captured_at": "2026-07-10T10:31:39.901516+00:00",
+  "decision": "deny",
+  "enforcement_point": "runtime",
+  "expected_decision": "deny",
+  "harness": {
+    "kubectl_context": "kind-obskit-evidence",
+    "node_image": "kindest/node:v1.29.14",
+    "stack_profile": "evidence-disposable"
+  },
+  "matches_expected": true,
+  "matrix": "contracts/tenancy/TENANT_ISOLATION_MATRIX_V1.yaml",
+  "observed": {
+    "http_status": 403,
+    "response": {
+      "error": {
+        "reason": "no permissions for [indices:data/read/search] and User [name=tenant-a-analyst, backend_roles=[], requestedTenant=null]",
+        "root_cause": [
+          {
+            "reason": "no permissions for [indices:data/read/search] and User [name=tenant-a-analyst, backend_roles=[], requestedTenant=null]",
+            "type": "security_exception"
+          }
+        ],
+        "type": "security_exception"
+      },
+      "status": 403
+    }
+  },
+  "scenario_id": "SDN-B15-006"
+}

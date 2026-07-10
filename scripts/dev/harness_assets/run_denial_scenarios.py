@@ -236,8 +236,11 @@ def _setup_opensearch(args: Args) -> None:
                 },
                 {
                     "index_patterns": ["vectors-shared-*"],
+                    # .keyword: tenant_id is dynamically mapped as
+                    # text; a term query on the analyzed field never
+                    # matches.
                     "dls": json.dumps(
-                        {"term": {"tenant_id": tenant}}
+                        {"term": {"tenant_id.keyword": tenant}}
                     ),
                     "allowed_actions": ["read"],
                 },
@@ -338,15 +341,18 @@ def _setup_opensearch(args: Args) -> None:
 
 
 def _setup_neo4j(args: Args) -> None:
+    # Neo4j restricts principal names to ascii, digits, and
+    # underscores; database names keep the matrix's hyphenated
+    # tenant slugs.
     statements = [
         f"CREATE DATABASE `{TENANT_A}` IF NOT EXISTS WAIT",
         f"CREATE DATABASE `{TENANT_B}` IF NOT EXISTS WAIT",
-        "CREATE USER `tenant-a-reader` IF NOT EXISTS SET PASSWORD "
+        "CREATE USER tenant_a_reader IF NOT EXISTS SET PASSWORD "
         f"'{args.neo4j_password}' SET PASSWORD CHANGE NOT REQUIRED",
-        "CREATE ROLE `tenant-a-role` IF NOT EXISTS",
-        f"GRANT ACCESS ON DATABASE `{TENANT_A}` TO `tenant-a-role`",
-        f"GRANT MATCH {{*}} ON GRAPH `{TENANT_A}` TO `tenant-a-role`",
-        "GRANT ROLE `tenant-a-role` TO `tenant-a-reader`",
+        "CREATE ROLE tenant_a_role IF NOT EXISTS",
+        f"GRANT ACCESS ON DATABASE `{TENANT_A}` TO tenant_a_role",
+        f"GRANT MATCH {{*}} ON GRAPH `{TENANT_A}` TO tenant_a_role",
+        "GRANT ROLE tenant_a_role TO tenant_a_reader",
         # PUBLIC stays: it grants access to the home database only,
         # never to tenant databases, and Neo4j forbids revoking it.
     ]
@@ -597,11 +603,11 @@ def _scenario_006(args: Args) -> dict[str, Any]:
 
 def _scenario_007(args: Args) -> dict[str, Any]:
     code_foreign, output_foreign = _cypher(
-        args, "tenant-a-reader", args.neo4j_password,
+        args, "tenant_a_reader", args.neo4j_password,
         TENANT_B, "RETURN 1",
     )
     code_system, output_system = _cypher(
-        args, "tenant-a-reader", args.neo4j_password,
+        args, "tenant_a_reader", args.neo4j_password,
         "system", "SHOW USERS",
     )
     denied = (

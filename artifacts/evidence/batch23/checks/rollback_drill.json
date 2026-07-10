@@ -1,7 +1,7 @@
 {
   "artifact_kind": "live_rollback_drill",
   "batch": 23,
-  "captured_at": "2026-07-10T10:29:13.159416+00:00",
+  "captured_at": "2026-07-10T10:30:15.246809+00:00",
   "check_command": "scripts/ops/run_rollback_drill.sh live",
   "harness": {
     "kubectl_context": "kind-obskit-evidence",
@@ -9,7 +9,24 @@
     "stack_profile": "evidence-disposable"
   },
   "payload": {
-    "note": "check produced no payload file"
+    "application": "platform-core",
+    "base_gateway_replicas": 2,
+    "base_revision": "1b35011445312d1ea86c3fbb685ad7a16a1b9f36",
+    "drill": "rollback",
+    "forward_converge_seconds": 22,
+    "forward_gateway_replicas": 3,
+    "forward_revision": "a3396a8273cfde31390f1f11f6c3440c3daa7b18",
+    "mode": "live",
+    "rollback_converge_seconds": 11,
+    "rollback_revision": "92ab0127d92116483b62164cecdd0e6baaddca5a",
+    "steps": [
+      "record base revision and gateway replica count",
+      "commit forward overlay change (replicas +1)",
+      "publish and wait for Synced/Healthy at forward revision",
+      "git revert the forward commit (GitOps rollback)",
+      "publish and wait for Synced/Healthy at rollback revision",
+      "verify gateway replicas returned to base"
+    ]
   },
-  "status": "fail"
+  "status": "pass"
 }
