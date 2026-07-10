@@ -34,6 +34,7 @@ declare -a BATCH_IDS=(
   "18"
   "19"
   "20"
+  "21"
 )
 
 declare -a BATCH_NAMES=(
@@ -58,6 +59,7 @@ declare -a BATCH_NAMES=(
   "Guided Installation Experience"
   "Configuration Rendering Runtime"
   "Tenant Control Plane Service"
+  "Unified Management Portal"
 )
 
 declare -a VALIDATION_CRITERIA=(
@@ -82,6 +84,7 @@ declare -a VALIDATION_CRITERIA=(
   "Validate install flow contract step order, wizard answer validation with seeded invalid-answers rejection, GitOps-only render output, post-install readiness invocation with install summary, and installation guide completeness."
   "Validate renderer ADR and architecture contract, byte-identical re-render tests, generated-file header and commit trailer checks, rendered-versus-live drift diff output, rollback re-render drill in dry-run mode, and offline fixture harness pass."
   "Validate OpenAPI contract lifecycle semantics, idempotent replay tests per transition, isolation provisioning render fixtures, approval denial and timeout tests with tenant-scoped audit records, and seeded denial fixture rejection offline."
+  "Validate portal contract schema checks, UI catalog aggregation tests, Git-commit-only config edit flow tests, SSO role mapping and tenant scoping tests, and admin GUI smoke extension for the portal endpoint."
 )
 
 declare -a SCRIPT_PATHS=(
@@ -106,6 +109,7 @@ declare -a SCRIPT_PATHS=(
   "scripts/ci/validate_batch18_smoke.sh"
   "scripts/ci/validate_batch19_smoke.sh"
   "scripts/ci/validate_batch20_smoke.sh"
+  "scripts/ci/validate_batch21_smoke.sh"
 )
 
 declare -a STATUSES=()

@@ -1,0 +1,40 @@
+# Dependency manifest for the management portal service (Batch 21,
+# TR-22, ADR-0005). This package owns its dependencies; nothing here
+# is ever added to requirements-ci.txt, which stays lint-only - the
+# same posture ADR-0001 fixed for tools/obskit and ADR-0004 fixed for
+# services/tenancy.
+#
+# The core layer (UI catalog aggregation, unified-config edit
+# planning, tenant control plane client, health summary, principal
+# model) is standard-library-only plus the repo's own obskit package
+# (tools/obskit), consumed as a library. obskit is a logical
+# dependency without a pip requirement: inside the monorepo,
+# portalsvc.configflow falls back to adding tools/obskit to sys.path
+# relative to the source tree (the same pattern tenantctl.renders and
+# the offline tests use), so no path dependency or index publication
+# is needed. FastAPI is an optional extra used exclusively by the
+# thin API adapter (portalsvc.api), which stays importable without
+# it.
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "obskit-portalsvc"
+version = "0.1.0"
+description = "Observability Kit management portal service"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+api = ["fastapi>=0.110", "uvicorn>=0.30"]
+
+[tool.setuptools.packages.find]
+include = ["portalsvc*"]
+
+# templates/*.html and static/*.css are the ADR-0005 frontend
+# assets: string.Template pages plus the single portal stylesheet,
+# loaded from the package at import time.
+[tool.setuptools.package-data]
+portalsvc = ["py.typed", "templates/*.html", "static/*.css"]

@@ -260,8 +260,19 @@ bash scripts/ci/validate_tenant_control_plane.sh
 bash scripts/ci/validate_batch20_smoke.sh
 ```
 
+Run focused Batch 21 validation (unified management portal - portal
+contract schema and cross-contract checks, UI catalog aggregation,
+Git-commit-only config edit flow, SSO role mapping and TR-16 tenant
+scoping, live-write and bespoke-auth guards, seeded rejection
+checks):
+
+```bash
+bash scripts/ci/validate_portal_contracts.sh
+bash scripts/ci/validate_batch21_smoke.sh
+```
+
 Run the full report-generating aggregator across every registered
-batch (currently 1-9, 9A, 10-20):
+batch (currently 1-9, 9A, 10-21):
 
 ```bash
 bash scripts/ci/validate_all_batches_with_report.sh

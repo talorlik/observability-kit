@@ -1,0 +1,252 @@
+/* Management portal stylesheet (Batch 21 Task 3, ADR-0005).
+ *
+ * The single static CSS file of the portal frontend. It is inlined
+ * into the layout template at import time because the portal
+ * contract's api_surface is exhaustive and adds no static-asset
+ * route. No external font, image, or URL of any kind appears here
+ * (fail_if_hardcoded_endpoint). */
+
+:root {
+  --fg: #1f2430;
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --border: #d5dae3;
+  --accent: #2f5b8f;
+  --ok: #1d7a3e;
+  --degraded: #b3541e;
+  --unknown: #5a6270;
+  --danger: #a12622;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--fg);
+  background: var(--bg);
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+}
+
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 1.5rem;
+}
+
+header nav a {
+  color: var(--accent);
+  text-decoration: none;
+  margin-right: 1.25rem;
+  font-weight: 600;
+}
+
+header nav a:hover {
+  text-decoration: underline;
+}
+
+.identity {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--unknown);
+}
+
+main {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+footer {
+  border-top: 1px solid var(--border);
+  padding: 0.75rem 1.5rem;
+  font-size: 0.8rem;
+  color: var(--unknown);
+}
+
+.view-purpose {
+  color: var(--unknown);
+}
+
+.catalog {
+  list-style: none;
+  padding: 0;
+}
+
+.catalog-entry {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.entry-name {
+  font-weight: 600;
+}
+
+.entry-system {
+  color: var(--unknown);
+  margin-left: 0.35rem;
+}
+
+a.outbound {
+  color: var(--accent);
+  margin-left: 0.75rem;
+}
+
+.unresolved {
+  color: var(--unknown);
+  font-style: italic;
+  margin-left: 0.75rem;
+}
+
+.config-editor textarea {
+  width: 100%;
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.75rem;
+  background: var(--surface);
+}
+
+.config-document {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.75rem;
+  overflow-x: auto;
+  font-size: 0.85rem;
+}
+
+.actions button {
+  background: var(--accent);
+  color: var(--surface);
+  border: 0;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  margin-right: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.plan-result {
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--ok);
+  border-radius: 4px;
+  background: var(--surface);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.plan-rejected {
+  border-left-color: var(--danger);
+}
+
+.plan-errors li {
+  color: var(--danger);
+}
+
+.tenants {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+}
+
+.tenants th,
+.tenants td {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.lifecycle-action {
+  display: inline-block;
+  margin: 0 0.25rem 0.25rem 0;
+}
+
+.lifecycle-action input {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.2rem 0.4rem;
+  margin: 0 0.25rem 0.25rem 0;
+  font-size: 0.85rem;
+}
+
+.lifecycle-action fieldset.approval {
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+  margin: 0.25rem 0;
+  padding: 0.35rem 0.5rem;
+}
+
+.lifecycle-action fieldset.approval legend {
+  font-size: 0.75rem;
+  color: var(--unknown);
+}
+
+.lifecycle-action button {
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: 4px;
+  padding: 0.2rem 0.6rem;
+  cursor: pointer;
+}
+
+.health-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+}
+
+.plane {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+}
+
+.plane h2 {
+  margin-top: 0;
+}
+
+.signals {
+  list-style: none;
+  padding: 0;
+}
+
+.signal {
+  margin-bottom: 0.35rem;
+}
+
+.signal-detail {
+  display: block;
+  color: var(--unknown);
+  font-size: 0.85rem;
+}
+
+.badge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--surface);
+}
+
+.status-ok {
+  background: var(--ok);
+}
+
+.status-degraded {
+  background: var(--degraded);
+}
+
+.status-unknown {
+  background: var(--unknown);
+}

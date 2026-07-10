@@ -85,7 +85,7 @@ bash scripts/ci/check_no_hardcoded_env_values.sh
 bash scripts/ci/validate_all_batches_with_report.sh
 # Reports written to docs/reports/validation/
 # Covers every batch registered in its BATCH_IDS array (currently
-# 1-9A, 10-20; new batches register themselves when implemented).
+# 1-9A, 10-21; new batches register themselves when implemented).
 ```
 
 ### Running a Single Batch
@@ -114,6 +114,7 @@ bash scripts/ci/validate_discovery_executor.sh         # Batch 17
 bash scripts/ci/validate_guided_installer.sh           # Batch 18
 bash scripts/ci/validate_config_renderer.sh            # Batch 19
 bash scripts/ci/validate_tenant_control_plane.sh      # Batch 20
+bash scripts/ci/validate_portal_contracts.sh          # Batch 21
 ```
 
 Batch 17 delivers the `obskit` executor runtime under `tools/obskit/`
@@ -153,7 +154,21 @@ transitions honor `contracts/policy/APPROVAL_FLOW_V1.yaml` timeout
 and escalation rules. Offline tests and seeded denial fixtures live
 in `tests/controlplane/`.
 
-Batches 21-26 (SaaS productization: portal,
+Batch 21 adds the unified management portal under `services/portal/`
+(package `portalsvc`, ADR-0005): a typed, stdlib-core service
+(FastAPI is an optional `[api]` extra; own `pyproject.toml`, never
+added to `requirements-ci.txt`) with a server-rendered no-JS HTML
+frontend. It aggregates the UI catalog of
+`contracts/management/SINGLE_PANE_ACCESS_CONTRACT_V1.yaml`, executes
+unified config edits GitOps-only through the Batch 19 renderer,
+delegates tenant management to the Batch 20 control plane API
+(binding the authenticated principal to `caller_scope`), and serves a
+TR-12 health summary. Its scope is fixed by
+`contracts/management/PORTAL_CONTRACT_V1.yaml`; SSO follows the admin
+access plane profile (which gains an optional `endpoints.portal`
+key). Offline tests live in `tests/portal/`.
+
+Batches 22-26 (SaaS productization:
 billing, live-cluster validation, AI activation, release
 engineering, product docs) are authored in `TASKS.md` but not yet
 implemented. Their plan is
@@ -363,7 +378,7 @@ adapter and neutrality contracts pass. Run them (or the all-batches report)
 before trusting adapter/neutrality changes.
 
 `scripts/ci/validate_all_batches_with_report.sh` runs every batch smoke
-wrapper (currently 1-9, 9A, and 10-20) and writes a
+wrapper (currently 1-9, 9A, and 10-21) and writes a
 markdown + JSON report under `docs/reports/validation/`. It is intended for
 developer / QA use and is not part of the CI workflow itself.
 

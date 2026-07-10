@@ -1,0 +1,301 @@
+# Portal contract for the unified management portal (Batch 21 Task 1,
+# TR-22, ADR-0005).
+#
+# Single source of portal scope: the views the portal serves, the API
+# surface it exposes, and how it authenticates. The portal is the
+# operator's single pane over the wrapped systems; it wraps, never
+# forks, and writes persistent configuration only through Git
+# (TR-17, TR-20).
+#
+# Consumes:
+#   - contracts/management/SINGLE_PANE_ACCESS_CONTRACT_V1.yaml (the
+#     ui_catalog drives portal navigation; sso_role_mapping and
+#     tenant_scoping semantics apply unchanged inside the portal)
+#   - contracts/management/UNIFIED_CONFIG_SCHEMA_V1.json (the config
+#     editor validates every edited document against this schema)
+#   - contracts/management/PROPAGATION_RECONCILIATION_CONTRACT_V1.yaml
+#     (edits follow render -> commit -> reconcile -> verify; the
+#     portal executes the render step through the TR-20 renderer)
+#   - contracts/tenancy/TENANT_CONTROL_PLANE_API_V1.yaml (tenant
+#     management is delegated to these operations; the portal holds
+#     no tenant lifecycle logic of its own)
+#   - install/profiles/admin-access/PROFILE.schema.json (authn
+#     provider, role_mapping groups, and the `endpoints` keys - hosts
+#     live only in the deployed profile, never in this contract)
+#
+# Implemented by services/portal/ (package portalsvc, ADR-0005).
+# Validated offline by scripts/ci/validate_portal_contracts.sh.
+
+contract: portal
+contract_version: 1
+owner: management-plane
+adr: docs/adr/ADR_0005_MANAGEMENT_PORTAL_STACK.md
+markers:
+  - TB-21
+  - TR-03
+  - TR-17
+  - TR-22
+
+# Field semantics:
+#   views              the complete set of portal views; the portal
+#                      serves exactly these and nothing more (v1 is
+#                      minimal by charter)
+#   data_sources       contract or runtime surfaces a view reads;
+#                      views never bypass these surfaces
+#   write_path         the only mutation a view may perform; `none`
+#                      means the view is read-only
+#   minimum_role       the weakest portal role that may load the view
+views:
+  - id: navigation
+    title: Wrapped UI navigation
+    purpose: >-
+      Single-pane entry to every wrapped UI. Renders one outbound
+      link per ui_catalog entry of the single-pane access contract,
+      resolving each entry's endpoint reference against the deployed
+      admin-access profile `endpoints` at request time.
+    data_sources:
+      - contracts/management/SINGLE_PANE_ACCESS_CONTRACT_V1.yaml
+      - deployed admin-access profile `endpoints`
+    write_path: none
+    minimum_role: portal-readonly
+  - id: config
+    title: Unified configuration editor
+    purpose: >-
+      Read and edit the unified configuration document. Every edit is
+      validated against UNIFIED_CONFIG_SCHEMA_V1.json, planned with
+      the TR-20 renderer, and materialized only as rendered files
+      plus a prepared Git commit reference. No live write exists.
+    data_sources:
+      - contracts/management/UNIFIED_CONFIG_SCHEMA_V1.json
+      - unified configuration document (repository path,
+        deployment-provided)
+    write_path: gitops-renderer-commit
+    minimum_role: portal-admin
+  - id: tenants
+    title: Tenant management
+    purpose: >-
+      List, inspect, and operate tenants by delegating every read and
+      every lifecycle transition to the tenant control plane API. The
+      portal forwards the caller's scope; tenant-scoped principals
+      see and touch only their own tenant.
+    data_sources:
+      - contracts/tenancy/TENANT_CONTROL_PLANE_API_V1.yaml
+    write_path: control-plane-delegation
+    minimum_role: portal-readonly
+  - id: health
+    title: Platform health overview
+    purpose: >-
+      Summarize platform health from the TR-12 meta-monitoring
+      signals (collector health, backend health, install and
+      discovery engine health) as a per-plane status grid.
+    data_sources:
+      - TR-12 meta-monitoring signal families
+    write_path: none
+    minimum_role: portal-readonly
+
+# API surface. paths are contract-fixed; the FastAPI adapter binds
+# them one-to-one to core calls. HTML routes serve the views above;
+# JSON routes carry the same data for machine consumption.
+api_surface:
+  html_routes:
+    - path: /
+      view: navigation
+    - path: /config
+      view: config
+    - path: /tenants
+      view: tenants
+    - path: /health
+      view: health
+  json_routes:
+    - path: /api/v1/catalog
+      method: get
+      operation: list_catalog_entries
+      view: navigation
+    - path: /api/v1/config
+      method: get
+      operation: get_unified_config
+      view: config
+    - path: /api/v1/config/plan
+      method: post
+      operation: plan_config_edit
+      view: config
+      semantics: >-
+        Validate the submitted document against the unified config
+        schema and return the render plan's changed paths. Dry-run:
+        nothing is written.
+    - path: /api/v1/config/commit
+      method: post
+      operation: commit_config_edit
+      view: config
+      semantics: >-
+        Execute the previously validated plan through the TR-20
+        renderer: rendered files land at each binding's render_target
+        and the response carries the prepared commit reference. The
+        GitOps controller reconciles; the portal never applies.
+    - path: /api/v1/tenants
+      method: get
+      operation: portal_list_tenants
+      view: tenants
+      delegates_to: listTenants
+    - path: /api/v1/tenants/{tenant_id}
+      method: get
+      operation: portal_get_tenant
+      view: tenants
+      delegates_to: getTenant
+    - path: /api/v1/tenants/{tenant_id}/lifecycle/provision
+      method: post
+      operation: portal_provision_tenant
+      view: tenants
+      delegates_to: provisionTenant
+    - path: /api/v1/tenants/{tenant_id}/lifecycle/suspend
+      method: post
+      operation: portal_suspend_tenant
+      view: tenants
+      delegates_to: suspendTenant
+    - path: /api/v1/tenants/{tenant_id}/lifecycle/resume
+      method: post
+      operation: portal_resume_tenant
+      view: tenants
+      delegates_to: resumeTenant
+    - path: /api/v1/tenants/{tenant_id}/lifecycle/offboard
+      method: post
+      operation: portal_offboard_tenant
+      view: tenants
+      delegates_to: offboardTenant
+    - path: /api/v1/tenants/{tenant_id}/lifecycle/purge
+      method: post
+      operation: portal_purge_tenant
+      view: tenants
+      delegates_to: purgeTenant
+    - path: /api/v1/health
+      method: get
+      operation: get_health_summary
+      view: health
+  unauthenticated_routes:
+    - path: /healthz
+      method: get
+      operation: liveness
+      semantics: process liveness only; serves no platform data
+
+# Authentication and authorization. The portal implements no login
+# form and no credential store: identity arrives from the admin
+# access plane (TR-03) and is mapped, scoped, and enforced here.
+authentication:
+  identity_source: admin-access-plane
+  provider: >-
+    authn.provider of the deployed admin-access profile (oidc by
+    default, saml-adapter when selected); the plane's proxy
+    authenticates the session and injects the identity headers below.
+  trusted_identity_headers:
+    subject: x-portal-user
+    groups: x-portal-groups
+    tenant_scope: x-portal-tenant
+  header_trust_boundary: >-
+    Identity headers are trusted only from the admin access plane
+    ingress or gateway path (profile `mode`); the deployment strips
+    client-supplied copies at the edge. The portal rejects requests
+    missing the subject or groups headers on every authenticated
+    route.
+  role_mapping:
+    - plane_group: role_mapping.readonly_group
+      portal_role: portal-readonly
+      grants: read-only access to every view within caller scope
+    - plane_group: role_mapping.admin_group
+      portal_role: portal-admin
+      grants: >-
+        everything portal-readonly grants, plus config editing and
+        tenant lifecycle transition requests
+  tenant_scoping:
+    model: >-
+      A principal without a tenant_scope header is platform-scoped
+      and spans tenants per CTR-07 semantics of the tenant isolation
+      matrix. A principal with a tenant_scope header is tenant-scoped
+      (TR-16): tenant views list only that tenant, tenant reads and
+      transition requests for any other tenant are denied, and the
+      config view (platform-wide by nature) requires platform scope.
+    control_plane_binding: >-
+      The portal forwards the caller's scope to the tenant control
+      plane, which binds it to the service-layer caller_scope so
+      cross-tenant denial is enforced by the control plane itself,
+      not only by portal filtering.
+  break_glass: >-
+    follows the admin-access profile break_glass block; the portal
+    adds no break-glass mechanism of its own
+
+# Portal endpoint. The portal's own host is profile-owned like every
+# wrapped UI host: the admin-access profile `endpoints` object carries
+# an optional `portal` key. This contract never names a host.
+endpoint:
+  profile_key: portal
+  tls: required (profile tls.enabled is constrained true)
+  exposure: follows the admin-access profile `mode`
+
+# Consistency policy. validate_portal_contracts.sh enforces these
+# rules against this file, the single-pane access contract, the
+# tenant control plane API contract, and the portal source tree.
+consistency_policy:
+  statement: >-
+    The portal serves exactly its contracted views over exactly the
+    cataloged UIs, writes configuration only through the renderer's
+    Git path, delegates tenant lifecycle entirely to the control
+    plane, and authenticates only through the admin access plane.
+  rules:
+    - id: fail_if_catalog_entry_unreachable
+      severity: error
+      fail_if: >-
+        any ui_catalog entry of the single-pane access contract has
+        no navigation path from the portal (the navigation view must
+        surface every catalog id, and only catalog ids)
+      reason: >-
+        TR-22 makes the portal the single pane; a cataloged UI the
+        portal cannot reach breaks the one-pane guarantee.
+    - id: fail_if_live_config_write
+      severity: error
+      fail_if: >-
+        the portal exposes any operation that mutates platform
+        configuration other than plan_config_edit followed by
+        commit_config_edit through the TR-20 renderer
+      reason: >-
+        Propagation is GitOps-only (TR-17, TR-20); a live write path
+        in the portal is drift by construction.
+    - id: fail_if_tenant_lifecycle_logic_in_portal
+      severity: error
+      fail_if: >-
+        any portal tenant operation does not declare a delegates_to
+        operationId defined in TENANT_CONTROL_PLANE_API_V1.yaml, or
+        the portal source implements transition, approval, or audit
+        semantics locally
+      reason: >-
+        Tenant lifecycle is TR-21 territory; duplicating it in the
+        portal forks the control plane's state machine.
+    - id: fail_if_bespoke_portal_auth
+      severity: error
+      fail_if: >-
+        the portal declares an identity source other than the admin
+        access plane, ships a login form or credential store, or maps
+        roles from groups other than role_mapping.readonly_group and
+        role_mapping.admin_group
+      reason: >-
+        Auth always flows through the admin access plane with native
+        mechanisms (TR-03); bespoke portal auth forks the identity
+        model.
+    - id: fail_if_unscoped_tenant_access
+      severity: error
+      fail_if: >-
+        any tenant view or tenant JSON route serves data without
+        enforcing the caller's tenant scope, or the portal fails to
+        forward caller scope on control plane delegation
+      reason: >-
+        TR-16 isolation is deny-by-default end to end; a portal view
+        that widens a tenant-scoped principal's visibility weakens
+        the isolation contract.
+    - id: fail_if_hardcoded_endpoint
+      severity: error
+      fail_if: >-
+        this contract, the portal source, or a portal template
+        carries a literal URL, hostname, or IP for any platform
+        surface instead of a profile endpoint reference or
+        deployment-provided value
+      reason: >-
+        Hosts are environment data owned by the deployed admin-access
+        profile (no-hardcoded-env-values gate).
