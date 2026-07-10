@@ -138,12 +138,16 @@ attached_backend:
     - name: git-server
       image: python:3.12-alpine
       role: >-
-        In-cluster HTTPS git server (stdlib static server over the
-        bare repo, git dumb protocol, per-run self-signed TLS)
-        serving the disposable GitOps clone; the install contract
-        schema requires an https gitops_repo_url, and Argo CD trusts
-        the per-run certificate through a repository credential with
-        insecure: "true" scoped to this URL.
+        In-cluster smart-HTTP git server serving the disposable
+        GitOps clone over per-run self-signed TLS: a Python stdlib
+        CGI bridge (scripts/dev/harness_assets/git_smart_http.py) to
+        `git http-backend`, with the git and git-daemon packages
+        installed at pod start. Smart protocol is mandatory - Argo CD
+        lists refs with go-git, which cannot use the dumb protocol.
+        Read-only (receive-pack never advertised). The install
+        contract schema requires an https gitops_repo_url, and Argo
+        CD trusts the per-run certificate through a repository
+        credential with insecure: "true" scoped to this URL.
 
 harness_scoped_pins_note: >-
   Every version above is a harness-scoped pin for reproducible evidence

@@ -34,7 +34,7 @@ if [[ "$MODE" == "dry-run" ]]; then
 fi
 
 if [[ "$MODE" != "live" && "$MODE" != "real" ]]; then
-  echo "ERROR: unknown mode '${MODE}' (dry-run|live)." >&2
+  echo "ERROR: unknown mode '${MODE}' (dry-run|live|real)." >&2
   exit 2
 fi
 
@@ -100,11 +100,25 @@ BASE_REPLICAS="$(kc -n observability get deployment otel-gateway \
 
 echo "Committing forward config change (gateway replicas +1)..."
 DRILL_REPLICAS=$((BASE_REPLICAS + 1))
-{
-  echo "collector:"
-  echo "  gateway:"
-  echo "    replicas: ${DRILL_REPLICAS}"
-} >> "$OVERLAY"
+# Structured edit: appending a second top-level collector key would
+# leave a duplicate-key document that stricter parsers reject.
+python3 - "$OVERLAY" "$DRILL_REPLICAS" <<'PY'
+import sys
+
+path, replicas = sys.argv[1], int(sys.argv[2])
+with open(path) as handle:
+    lines = handle.read().splitlines(keepends=True)
+if any(line.startswith("collector:") for line in lines):
+    raise SystemExit(
+        "overlay already carries a collector block; refusing to "
+        "guess a merge"
+    )
+lines.append(
+    f"collector:\n  gateway:\n    replicas: {replicas}\n"
+)
+with open(path, "w") as handle:
+    handle.writelines(lines)
+PY
 git -C "$ROLLBACK_GITOPS_CLONE" add gitops/overlays
 git -C "$ROLLBACK_GITOPS_CLONE" \
   -c user.name="obskit-harness" \

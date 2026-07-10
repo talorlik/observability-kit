@@ -31,6 +31,7 @@ import argparse
 import base64
 import json
 import re
+import secrets
 import ssl
 import subprocess
 import sys
@@ -216,7 +217,9 @@ def _cypher(
 # ---------------------------------------------------------------------
 
 def _setup_opensearch(args: Args) -> None:
-    tenant_password = f"Ev1dence-{args.admin_password[-12:]}"
+    # Independent per-run credential: never derived from the admin
+    # password (deriving would leak admin entropy into tenant users).
+    tenant_password = f"Ev1dence-{secrets.token_hex(12)}"
     args.tenant_password = tenant_password  # type: ignore[attr-defined]
 
     for tenant in (TENANT_A, TENANT_B):

@@ -39,7 +39,7 @@ if [[ "$MODE" == "dry-run" ]]; then
 fi
 
 if [[ "$MODE" != "live" && "$MODE" != "real" ]]; then
-  echo "ERROR: unknown mode '${MODE}' (dry-run|live)." >&2
+  echo "ERROR: unknown mode '${MODE}' (dry-run|live|real)." >&2
   exit 2
 fi
 

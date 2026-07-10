@@ -642,6 +642,8 @@ mode_run() {
   local only=""
   if [[ "${1:-}" == "--only" ]]; then
     only="${2:?--only needs a check id}"
+  elif [[ -n "${1:-}" ]]; then
+    die "unknown run argument '${1}'; use: run [--only <check-id>]."
   fi
 
   case "$only" in

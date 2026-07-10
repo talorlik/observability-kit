@@ -15,6 +15,9 @@
 
 name: e2e-nightly
 
+permissions:
+  contents: read
+
 on:
   # Disabled by default. Orchestrator: uncomment to enable the
   # nightly run.
