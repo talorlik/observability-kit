@@ -356,6 +356,9 @@ check_install() {
   #    daemon; the platform arrives only through Argo CD.
   log "committing rendered output into the disposable GitOps clone"
   git clone --quiet --depth 1 "file://$REPO_ROOT" "$GITOPS_CLONE"
+  # The rendered Application targets revision "main"; the clone
+  # inherits whatever branch the source checkout is on, so pin it.
+  git -C "$GITOPS_CLONE" checkout --quiet -B main
   cp "$INSTALL_OUTPUT/rendered/overlays/dev/platform-core-values.yaml" \
     "$GITOPS_CLONE/gitops/overlays/dev/platform-core-values.yaml"
   git -C "$GITOPS_CLONE" add gitops/overlays

@@ -1,0 +1,60 @@
+{{- if and .Values.collector.enabled .Values.collector.agent.enabled }}
+# Agent collector configuration, owned by this chart because the
+# agent DaemonSet mounts it (a workload must ship the config it
+# mounts; gap surfaced by the Batch 23 live install). The pipeline
+# processor chain is the contracted set from
+# contracts/collector/AGENT_DAEMONSET_PROFILE.json, mirrored in
+# .Values.collector.agent.processors.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-agent-config
+  namespace: {{ .Values.namespace }}
+data:
+  collector-agent.yaml: |
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+    processors:
+      k8sattributes:
+        passthrough: false
+        filter:
+          node_from_env_var: KUBE_NODE_NAME
+      resource:
+        attributes:
+          - key: obskit.collector.tier
+            value: agent
+            action: upsert
+      memory_limiter:
+        check_interval: 5s
+        limit_percentage: 80
+        spike_limit_percentage: 20
+      batch: {}
+    exporters:
+      otlp/gateway:
+        endpoint: otel-gateway.{{ .Values.namespace }}.svc.cluster.local:4317
+        tls:
+          insecure: true
+    service:
+      extensions: [health_check]
+      pipelines:
+        logs:
+          receivers: [otlp]
+          processors: [k8sattributes, resource, memory_limiter, batch]
+          exporters: [otlp/gateway]
+        metrics:
+          receivers: [otlp]
+          processors: [k8sattributes, resource, memory_limiter, batch]
+          exporters: [otlp/gateway]
+        traces:
+          receivers: [otlp]
+          processors: [k8sattributes, resource, memory_limiter, batch]
+          exporters: [otlp/gateway]
+{{- end }}

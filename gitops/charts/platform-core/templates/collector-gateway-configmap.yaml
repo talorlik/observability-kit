@@ -1,0 +1,79 @@
+{{- if and .Values.collector.enabled .Values.collector.gateway.enabled }}
+# Gateway collector configuration, owned by this chart because the
+# gateway Deployment mounts it (gap surfaced by the Batch 23 live
+# install). Processor chain per
+# contracts/collector/GATEWAY_DEPLOYMENT_PROFILE.json.
+#
+# Backend export: when the install contract records an attached OTLP
+# ingest endpoint (attachedServices.otlpEndpoint, attach/hybrid
+# modes), the gateway exports there as otlp/backend. Without one,
+# the pipeline terminates in the debug exporter so the platform is
+# runnable and observable while the OTLP ingest attach point is
+# provisioned; the declared exporter contract (otlp/backend) is
+# unchanged and binds as soon as the endpoint is supplied.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-gateway-config
+  namespace: {{ .Values.namespace }}
+data:
+  collector-gateway.yaml: |
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+    processors:
+      k8sattributes:
+        passthrough: false
+      resource:
+        attributes:
+          - key: obskit.collector.tier
+            value: gateway
+            action: upsert
+      memory_limiter:
+        check_interval: 5s
+        limit_percentage: 80
+        spike_limit_percentage: 20
+      batch: {}
+    exporters:
+{{- if and .Values.attachedServices .Values.attachedServices.otlpEndpoint }}
+      otlp/backend:
+        endpoint: {{ .Values.attachedServices.otlpEndpoint | quote }}
+{{- else }}
+      debug:
+        verbosity: basic
+{{- end }}
+    service:
+      extensions: [health_check]
+      pipelines:
+        logs:
+          receivers: [otlp]
+          processors: [k8sattributes, resource, memory_limiter, batch]
+{{- if and .Values.attachedServices .Values.attachedServices.otlpEndpoint }}
+          exporters: [otlp/backend]
+{{- else }}
+          exporters: [debug]
+{{- end }}
+        metrics:
+          receivers: [otlp]
+          processors: [k8sattributes, resource, memory_limiter, batch]
+{{- if and .Values.attachedServices .Values.attachedServices.otlpEndpoint }}
+          exporters: [otlp/backend]
+{{- else }}
+          exporters: [debug]
+{{- end }}
+        traces:
+          receivers: [otlp]
+          processors: [k8sattributes, resource, memory_limiter, batch]
+{{- if and .Values.attachedServices .Values.attachedServices.otlpEndpoint }}
+          exporters: [otlp/backend]
+{{- else }}
+          exporters: [debug]
+{{- end }}
+{{- end }}
