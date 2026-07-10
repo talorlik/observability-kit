@@ -1,0 +1,45 @@
+{
+  "artifact_kind": "live_upgrade_drill",
+  "batch": 25,
+  "captured_at": "2026-07-10T14:24:30.899420+00:00",
+  "check_command": "harness upgrade-drill (N-1 install, upgrade to N, survival)",
+  "harness": {
+    "kubectl_context": "kind-obskit-evidence",
+    "node_image": "kindest/node:v1.29.14",
+    "stack_profile": "evidence-disposable"
+  },
+  "payload": {
+    "application": {
+      "health": "Healthy",
+      "sync": "Synced"
+    },
+    "baseline": {
+      "chart_version": "0.2.0",
+      "gateway_version_label": "",
+      "ref": "4269d8b0dfac1cbfac7fd3b4ae87d1f0be27ddef"
+    },
+    "sequence_note": "The install check proved the current state installs cleanly; this drill then pinned the published charts to the baseline ref, verified the previous release state deployed, seeded data and configuration, and upgraded back to the current state through GitOps only.",
+    "survival": {
+      "gateway_configmap_sha256": {
+        "after": "0df3059293eff10eed11a3e85cbe8514f5391ae47d912e1717ed84af943e50c8",
+        "before": "0df3059293eff10eed11a3e85cbe8514f5391ae47d912e1717ed84af943e50c8",
+        "unchanged": true
+      },
+      "rendered_values_sha256": {
+        "after": "3ce664140e7e72d77082525ee63e436b77dacb4f30210d37e6de77b5ac8c369c",
+        "before": "3ce664140e7e72d77082525ee63e436b77dacb4f30210d37e6de77b5ac8c369c",
+        "unchanged": true
+      },
+      "seeded_document": {
+        "found_after_upgrade": true,
+        "id": "upgrade-drill-marker",
+        "index": "upgrade-drill-evidence-v1"
+      }
+    },
+    "upgraded": {
+      "chart_version": "0.3.0",
+      "gateway_version_label": "0.3.0"
+    }
+  },
+  "status": "pass"
+}

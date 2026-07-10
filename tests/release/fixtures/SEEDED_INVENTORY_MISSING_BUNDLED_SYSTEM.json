@@ -1,0 +1,44 @@
+{
+  "description": "Seeded rejection fixture: a license inventory that omits a bundled system (neo4j) present in the wrapped-system registry. Pinned to the inventory-completeness check of contracts/release/LICENSE_COMPLIANCE_CONTRACT_V1.yaml (release gate license-inventory-complete of contracts/release/RELEASE_ENGINEERING_CONTRACT_V1.yaml).",
+  "expected_rejection_rule": "fail_if_bundled_system_missing_from_inventory",
+  "registry_systems": [
+    "opentelemetry-collector",
+    "opensearch",
+    "opensearch-dashboards",
+    "grafana",
+    "neo4j",
+    "argocd"
+  ],
+  "license_inventory": [
+    {
+      "component": "opentelemetry-collector",
+      "registry_system": "opentelemetry-collector",
+      "license": "Apache-2.0",
+      "distribution_mode": "referenced-image"
+    },
+    {
+      "component": "opensearch",
+      "registry_system": "opensearch",
+      "license": "Apache-2.0",
+      "distribution_mode": "wrapped-chart"
+    },
+    {
+      "component": "opensearch-dashboards",
+      "registry_system": "opensearch-dashboards",
+      "license": "Apache-2.0",
+      "distribution_mode": "wrapped-chart"
+    },
+    {
+      "component": "grafana",
+      "registry_system": "grafana",
+      "license": "AGPL-3.0-only",
+      "distribution_mode": "wrapped-chart"
+    },
+    {
+      "component": "argocd",
+      "registry_system": "argocd",
+      "license": "Apache-2.0",
+      "distribution_mode": "wrapped-chart"
+    }
+  ]
+}

@@ -1054,8 +1054,15 @@ wait_application_revision() {
   # ~3-minute refresh interval, so the ceiling stays generous).
   local want="$1" attempt revision sync health
   for attempt in $(seq 1 60); do
+    # platform-core is a multi-source Application, so its synced
+    # commit lives in status.sync.revisions[0]; single-source apps
+    # expose status.sync.revision instead. Query both.
     revision="$(kc -n argocd get application platform-core \
-      -o jsonpath='{.status.sync.revision}' 2>/dev/null || true)"
+      -o jsonpath='{.status.sync.revisions[0]}' 2>/dev/null || true)"
+    if [[ -z "$revision" ]]; then
+      revision="$(kc -n argocd get application platform-core \
+        -o jsonpath='{.status.sync.revision}' 2>/dev/null || true)"
+    fi
     sync="$(kc -n argocd get application platform-core \
       -o jsonpath='{.status.sync.status}' 2>/dev/null || true)"
     health="$(kc -n argocd get application platform-core \
@@ -1166,8 +1173,11 @@ check_upgrade_drill() {
   prev_version="$(git -C "$REPO_ROOT" \
     show "$baseline:gitops/charts/platform-core/Chart.yaml" \
     | awk '/^version:/ {print $2}')"
-  curr_version="$(awk '/^version:/ {print $2}' \
-    "$REPO_ROOT/gitops/charts/platform-core/Chart.yaml")"
+  # HEAD, not the working tree: step B publishes the HEAD chart, so
+  # the version the drill asserts must come from the same commit.
+  curr_version="$(git -C "$REPO_ROOT" \
+    show "HEAD:gitops/charts/platform-core/Chart.yaml" \
+    | awk '/^version:/ {print $2}')"
   [[ "$prev_version" != "$curr_version" ]] \
     || die "baseline and current chart versions are both" \
       "$curr_version; nothing to upgrade. Set UPGRADE_BASELINE_REF."
@@ -1200,7 +1210,9 @@ check_upgrade_drill() {
     commit --quiet \
     -m "upgrade-drill: previous release state (chart $prev_version)"
   publish_gitops_clone
-  wait_application_revision "$(git -C "$GITOPS_CLONE" rev-parse HEAD)"
+  local baseline_rev
+  baseline_rev="$(git -C "$GITOPS_CLONE" rev-parse HEAD)"
+  wait_application_revision "$baseline_rev"
   wait_rollout "$PLATFORM_NS" daemonset/otel-agent 600s
   wait_rollout "$PLATFORM_NS" deployment/otel-gateway 600s
   local label_before
@@ -1224,6 +1236,9 @@ check_upgrade_drill() {
     "$OPENSEARCH_LOCAL_PORT:9200" \
     > "$LOG_DIR/upgrade-port-forward.log" 2>&1 &
   local pf_pid=$!
+  # File convention: the port-forward must never leak on an errexit
+  # abort anywhere below (publish, sync wait, rollout wait).
+  trap 'kill "${pf_pid:-}" 2>/dev/null || true' RETURN EXIT
   local attempt reachable=false
   for attempt in $(seq 1 24); do
     if curl -fsk -u "admin:$OPENSEARCH_ADMIN_PASSWORD" \
@@ -1250,8 +1265,11 @@ check_upgrade_drill() {
   log "upgrading published charts to the current state" \
     "(chart $curr_version)"
   rm -rf "$GITOPS_CLONE/gitops/charts/platform-core"
-  cp -R "$REPO_ROOT/gitops/charts/platform-core" \
-    "$GITOPS_CLONE/gitops/charts/platform-core"
+  # HEAD, not the working tree: the drill's evidence must attest a
+  # transition between two states that exist as commits (symmetric
+  # with the git-archive extraction of the baseline in step A).
+  git -C "$REPO_ROOT" archive HEAD -- gitops/charts/platform-core \
+    | tar -x -C "$GITOPS_CLONE"
   git -C "$GITOPS_CLONE" add gitops/charts
   git -C "$GITOPS_CLONE" \
     -c user.name="obskit-harness" \
@@ -1259,7 +1277,9 @@ check_upgrade_drill() {
     commit --quiet \
     -m "upgrade-drill: upgrade to current state (chart $curr_version)"
   publish_gitops_clone
-  wait_application_revision "$(git -C "$GITOPS_CLONE" rev-parse HEAD)"
+  local upgraded_rev
+  upgraded_rev="$(git -C "$GITOPS_CLONE" rev-parse HEAD)"
+  wait_application_revision "$upgraded_rev"
   wait_rollout "$PLATFORM_NS" daemonset/otel-agent 600s
   wait_rollout "$PLATFORM_NS" deployment/otel-gateway 600s
   local label_after

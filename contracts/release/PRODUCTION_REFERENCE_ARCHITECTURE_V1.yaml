@@ -465,8 +465,13 @@ conformance:
         The scripts/ops/ drills have produced evidence payloads
         within their stated cadence for the claimed RPO/RTO tier.
   consumers:
-    - path: docs/runbooks/OPERATIONS_GUIDE.md
+    - path: docs/product/OPERATIONS_GUIDE.md
       role: Batch 26 operations guide production deployment source
+      status: planned-batch-26
+      note: >-
+        Forward reference; the product docs tree does not exist until
+        Batch 26 delivers it. Path fixed by the SaaS productization
+        plan documentation table.
     - path: docs/auxiliary/planning/SAAS_PRODUCTIZATION_PLAN.md
       role: production stack role definition
   non_goals:

@@ -6,10 +6,10 @@
             "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"argoproj.io/v1alpha1\",\"kind\":\"Application\",\"metadata\":{\"annotations\":{},\"name\":\"platform-core\",\"namespace\":\"argocd\"},\"spec\":{\"destination\":{\"namespace\":\"observability\",\"server\":\"https://kubernetes.default.svc\"},\"project\":\"default\",\"sources\":[{\"helm\":{\"valueFiles\":[\"$values/gitops/overlays/base/platform-core-values.yaml\",\"$values/gitops/overlays/dev/platform-core-values.yaml\"]},\"path\":\"gitops/charts/platform-core\",\"repoURL\":\"https://git-server.evidence-gitops.svc.cluster.local:8443/gitops.git\",\"targetRevision\":\"main\"},{\"ref\":\"values\",\"repoURL\":\"https://git-server.evidence-gitops.svc.cluster.local:8443/gitops.git\",\"targetRevision\":\"main\"}],\"syncPolicy\":{\"automated\":{\"prune\":true,\"selfHeal\":true},\"syncOptions\":[\"CreateNamespace=true\"]}}}\n"
         },
         "creationTimestamp": "2026-07-10T13:57:57Z",
-        "generation": 18,
+        "generation": 22,
         "name": "platform-core",
         "namespace": "argocd",
-        "resourceVersion": "2406",
+        "resourceVersion": "3417",
         "uid": "1699b5ea-806b-4b74-b70a-44ae77f77354"
     },
     "spec": {
@@ -197,7 +197,7 @@
                 ]
             }
         },
-        "reconciledAt": "2026-07-10T14:01:46Z",
+        "reconciledAt": "2026-07-10T14:13:51Z",
         "resourceHealthSource": "appTree",
         "resources": [
             {
@@ -304,8 +304,8 @@
                 ]
             },
             "revisions": [
-                "f8fec07a960c0e30dc1117b569d076aee373772e",
-                "f8fec07a960c0e30dc1117b569d076aee373772e"
+                "2f1d8b82d3cc061fb1fe9fb8643c39db9d136c9b",
+                "2f1d8b82d3cc061fb1fe9fb8643c39db9d136c9b"
             ],
             "status": "Synced"
         }

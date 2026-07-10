@@ -1,7 +1,7 @@
 {
   "artifact_kind": "live_release_pins",
   "batch": 25,
-  "captured_at": "2026-07-10T14:02:34.512563+00:00",
+  "captured_at": "2026-07-10T14:04:42.255805+00:00",
   "check_command": "harness release-pins (registry pins vs live images)",
   "harness": {
     "kubectl_context": "kind-obskit-evidence",

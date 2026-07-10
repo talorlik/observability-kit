@@ -137,9 +137,11 @@ decision decomposes as follows.
   supply-chain bar. Keyless cosign binds signatures to the workflow
   identity with short-lived certificates and needs no stored key.
 - **Grype instead of trivy for scanning.** Either passes the
-  requirement; trivy is chosen because one binary covers image CVE
-  scanning plus license detection used by the license inventory
-  cross-check, reducing the toolchain to syft + trivy.
+  requirement; trivy is chosen because one binary also covers config
+  and license scanning if the release gates later grow, keeping the
+  toolchain at syft + trivy today. The license inventory cross-check
+  itself stays structural (registry to inventory to notices), not
+  scanner-driven.
 - **Pinning wrapped systems to latest upstream instead of
   harness-proven versions.** Rejected: a pin nothing has installed is
   a declaration, not evidence; TR-25 explicitly requires the pinned

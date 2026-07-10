@@ -74,6 +74,13 @@ alerting_conventions:
   taxonomy_source: contracts/slo_ops/BURN_RATE_SYMPTOM_ALERTS_VALIDATION.json
   rule_store: >-
     gitops/platform/search/dashboards/alerts/slo_burn_rate_rules.ndjson
+  provisioning_status: >-
+    Declared, not yet provisioned. The per-SLO alert bindings below
+    name the rules this contract requires; the rule definitions land
+    in the rule store with the first production deployment, matching
+    the declared-for-ga status of the SLO targets themselves. A rule
+    named here and absent from the store is a pre-production gap, not
+    a validation failure.
   alert_types:
     - burn_rate
     - symptom

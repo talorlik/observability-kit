@@ -13,6 +13,81 @@ first. Entry format:
 - Follow-up: <action for a future batch, or "none">
 ```
 
+## 2026-07-10 - Batch 25 - Release Engineering Decisions and Gotchas
+
+- Decision: the release engineering ADR is
+  `docs/adr/ADR_0010_RELEASE_ENGINEERING.md`, renumbered from the
+  `ADR_0009` filename TASKS.md budgeted.
+- Why: Batch 24 consumed ADR-0008 and ADR-0009 (two decisions where
+  the backlog planned one). TASKS.md Task 1 was amended in-place to
+  reference 0010 with the renumbering noted.
+- Follow-up: none.
+
+- Decision: wrapped-system pins converge on the harness-proven
+  versions (`opensearch` 2.19.1, `opensearch-dashboards` 2.19.1,
+  `argocd` v3.1.0), verified against upstream release tags, with
+  `pinned_in` pointing at the harness sources that install them.
+- Why: TR-25 requires the pinned set to install cleanly on the
+  harness before it ships; a pin nothing has installed is a
+  declaration, not evidence. Captured live:
+  `artifacts/evidence/batch25/release/release_pins.json` (pass).
+- Follow-up: a pin bump updates harness assets, harness contract,
+  and registry together, then re-captures evidence (see
+  `docs/runbooks/PRODUCTION_RELEASE_GATE_RUNBOOK.md`).
+
+- Decision: the N-1 upgrade drill's inaugural baseline is the
+  pre-Batch-25 `main` state (merge-base), since no `v*` tag exists
+  yet; subsequent releases use the newest tag
+  (`release_baseline_ref` in the harness, `UPGRADE_BASELINE_REF`
+  override for rehearsals). The chart moved 0.2.0 to 0.3.0 and pod
+  templates now stamp `app.kubernetes.io/version`, so a version bump
+  is an observable rolling update the drill asserts.
+- Why: "previous tagged state" is undefined before the first tag;
+  the merge-base is the honest previous release state. Without the
+  version label the 0.2.0 to 0.3.0 chart delta rendered
+  byte-identical manifests and the upgrade would have been
+  unobservable. Captured live:
+  `artifacts/evidence/batch25/upgrade/upgrade_drill.json` (pass:
+  seeded OpenSearch document survived, rendered values and live
+  gateway ConfigMap byte-identical, collectors rolled to the 0.3.0
+  label, Synced/Healthy).
+- Follow-up: cut the first tag as v0.3.0 so the chart version and
+  the inaugural product version coincide.
+
+- Decision: two harness gotchas burned during evidence capture.
+  (1) The harness publishes COMMITTED state only (`git clone
+  file://$REPO_ROOT`); uncommitted work never reaches the cluster.
+  The upgrade drill now guards on this and dies with guidance.
+  (2) The platform-core Application is multi-source, so its synced
+  commit is `status.sync.revisions[0]`, not `status.sync.revision`;
+  `wait_application_revision` queries both.
+- Why: first drill run compared N-1 to N-1 ("nothing to commit"),
+  second timed out on an empty revision while Synced/Healthy.
+- Follow-up: none; both encoded in the harness.
+
+- Decision: `validate_release_engineering.sh` is registered in
+  `validate_all_batches_with_report.sh` but NOT in
+  `.github/workflows/ci.yaml`, matching the Batch 23/24 precedent
+  for evidence-backed validators.
+- Why: Task 5's completion check names only the all-batches
+  registration as CI wiring; Batches 23/24 kept evidence validators
+  out of PR gating. The publication pipeline itself is
+  `.github/workflows/release.yaml`, tag-driven plus
+  `workflow_dispatch` only, never PR-gating.
+- Follow-up: Batch 26 may revisit PR-gating the structural release
+  checks once the docs-coverage validator lands.
+
+- Decision: signing posture is cosign keyless with
+  `status: implemented-first-publication-pending`; the publish stage
+  no-ops gracefully without registry credentials.
+- Why: autonomous runs hold no registry credentials and must not
+  publish; the first real publication is an operator-initiated tag
+  push. The gate records this honestly instead of claiming an
+  unexercised capability.
+- Follow-up: on the first tag, verify signatures per the runbook and
+  flip the posture status to exercised; publish `obskit-ai-runtime`
+  (owed since Batch 24) through the same workflow.
+
 ## 2026-07-10 - Batch 24 - AI Runtime Activation Strategy and Live Gotchas
 
 - Decision: `docs/adr/ADR_0009_AI_RUNTIME_ACTIVATION_STRATEGY.md` - the

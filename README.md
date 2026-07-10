@@ -346,6 +346,7 @@ Report outputs:
 - `docs/runbooks/MANAGEMENT_PORTAL_GUIDE.md`
 - `docs/runbooks/COMMERCIAL_OPERATIONS_RUNBOOK.md`
 - `docs/runbooks/LIVE_VALIDATION_RUNBOOK.md`
+- `docs/runbooks/PRODUCTION_RELEASE_GATE_RUNBOOK.md`
 
 ## Project-Local Snyk Path
 

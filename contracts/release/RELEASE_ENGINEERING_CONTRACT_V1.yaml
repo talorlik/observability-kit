@@ -109,10 +109,14 @@ release_process:
         Push chart and images to the OCI registry and sign them;
         attach SBOMs and scan reports to the release record.
     - id: evidence
+      executed_by: operator-pre-tag
       description: >-
         Record the release in the changelog tag section, and require
         harness install and N-1 upgrade evidence captured for the
         pinned set under artifacts/evidence/ before the tag is cut.
+        This stage runs before the tag exists, so the workflow only
+        verifies its outputs; the operator executes it per the
+        release-gate runbook.
 
 publication:
   model: oci
@@ -232,3 +236,9 @@ release_gates:
     - id: upgrade-evidence
       check: >-
         The N-1 to N upgrade drill passed with committed evidence.
+    - id: slo-budget-state
+      check: >-
+        Product SLO error budgets per
+        contracts/slo_ops/PLATFORM_PRODUCT_SLO_V1.yaml are reviewed;
+        an exhausted budget freezes the release unless the release
+        itself is the corrective action.
